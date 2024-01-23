@@ -39,13 +39,9 @@ class OrderController extends Controller
     }
 
 
-    function getAttributes()
+    function getCategoryProducts()
     {
         try {
-
-            if (Cache::has('attributes')) {
-                return Cache::get('attributes');
-            }
 
             $userId = auth()->user()->id;
 
@@ -67,19 +63,15 @@ class OrderController extends Controller
             }
 
             $categories->each(function ($category, $createdBy) {
+
+                // fractions
                 $category_get = Category::findOrFail($category->id);
                 $selectedFractions = $category_get->getSelectedFractions();
                 $category['fractions'] = $selectedFractions->toArray();
 
-
+                // custom labels
                 $custom_label = $this->getCustomLabelUserwise($createdBy, $category->id);
                 $category['custom_labels'] =  $custom_label;
-
-
-                $category->products->each(function ($product) {
-                    $product['patterns'] = $this->getColorPartanModel($product->id);
-                    $product['attributes'] = $this->getProductToAttribute($product->id);
-                });
             });
 
             $responseData = [
@@ -95,11 +87,8 @@ class OrderController extends Controller
                 throw new \Exception();
             }
 
-            Cache::put('attributes', $responseData);
 
-            $retrievedData = Cache::get('attributes');
-
-            return response()->json($retrievedData);
+            return response()->json($responseData);
         } catch (\Exception $e) {
             $responseData = [
                 'status' => 'error',
@@ -110,9 +99,34 @@ class OrderController extends Controller
                 ]
             ];
 
-
-
             return response()->json($responseData, 404);
+        }
+    }
+
+    function getAttributes($product_id)
+    {
+        try {
+
+            $data = [
+
+                'patterns' => $this->getColorPartanModel($product_id),
+                'attributes' => $this->getProductToAttribute($product_id)
+            ];
+
+            return response()->json([
+                'status' => 'success',
+                'code' => 200,
+                'message' => 'Data retrieved successfully',
+                'data' => $data
+            ]);
+        } catch (\Exception $e) {
+
+            return response()->json([
+                'status' => 'error',
+                'code' => 404,
+                'message' => 'Data not found ' . $e->getMessage(),
+                'data' => []
+            ], 404);
         }
     }
 

@@ -22,7 +22,8 @@ Route::middleware('auth:api')->group(function () {
     // Order Routes
     Route::controller(OrderController::class)->prefix('order')->group(function () {
 
-        Route::get('attributes',  'getAttributes');
+        Route::get('getCategoryProducts',  'getCategoryProducts');
+        Route::get('attributes/{product_id}',  'getAttributes');
         Route::get('employees',  'getEmployees');
         Route::get('generate_order_id_based_on_format',  'generate_order_id_based_on_format');
         Route::get('existing_shipping_address/{customer_id}',  'existingShippingAddress');
