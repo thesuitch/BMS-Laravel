@@ -39,7 +39,7 @@ class CustomerCreateRequest extends FormRequest
             $rules['customer_type'] = 'required';
         }
         // Check if customer_type is 'business', then add required
-        if (request('customer_type') === 'business') {
+        if (request('customer_type') == 'business') {
             $rules['company'] = 'required';
             $rules['order_prefix'] = 'required';
         }

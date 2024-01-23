@@ -4,7 +4,9 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\AuthController;
-
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\RoomController;
+use App\Models\Customer;
 
 // Authentication Routes
 Route::post('login', [AuthController::class, 'login']);
@@ -20,26 +22,21 @@ Route::middleware('auth:api')->group(function () {
     // Order Routes
     Route::controller(OrderController::class)->prefix('order')->group(function () {
 
-        Route::get('category',  'getCategory');
-        Route::get('customer',  'getCustomer');
+        Route::get('attributes',  'getAttributes');
         Route::get('employees',  'getEmployees');
-
         Route::get('generate_order_id_based_on_format',  'generate_order_id_based_on_format');
-        Route::get('products/{category}',  'getProducts');
-        Route::get('fractions/{category}',  'getFractions');
-        Route::get('rooms',  'getRooms');
-        Route::post('room_save',  'saveRoom');
-
-        Route::get('color_partan_model/{product_id}',  'getColorPartanModel');
-        Route::get('color_model/{product_id}/{pattern_id}',  'getColorModel');
-        Route::get('color_code/{id}',  'getColorCode');
-        Route::get('color_code_select/{keyword}/{pattern_id}',  'getColorCodeSelect');
         Route::get('existing_shipping_address/{customer_id}',  'existingShippingAddress');
-        Route::get('product_to_attribute/{product_id}',  'getProductToAttribute');
-
-        // Route::get('customer-wise-sidemark/{customer_id}',  'customerWiseSidemark']);
     });
 
-    // Add other routes as needed
-    Route::post('customer', [OrderController::class, 'saveCustomer']);
+    // Customer
+    Route::controller(CustomerController::class)->prefix('customer')->group(function () {
+        Route::post('store', 'store');
+        Route::get('dropdown',  'getCustomer');
+    });
+
+    // Room
+    Route::controller(RoomController::class)->prefix('room')->group(function () {
+        Route::post('store', 'store');
+        Route::get('dropdown', 'getRooms');
+    });
 });

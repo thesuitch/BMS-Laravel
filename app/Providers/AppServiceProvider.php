@@ -19,6 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        $this->mergeConfigFrom(__DIR__.'/../../config/constants.php', 'constants');
+
     }
 }
