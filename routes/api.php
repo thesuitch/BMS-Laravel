@@ -27,6 +27,8 @@ Route::middleware('auth:api')->group(function () {
         Route::get('employees',  'getEmployees');
         Route::get('generate_order_id_based_on_format',  'generate_order_id_based_on_format');
         Route::get('existing_shipping_address/{customer_id}',  'existingShippingAddress');
+        
+        Route::get('calculate/{upConditionHeight}/{upConditionHeightFraction}/{upConditionWidth}/{upConditionWidthFraction}/{upAttributeId}/{upLevel}/{productId}/{patternId}',  'calculateUpCondition');
     });
 
     // Customer
