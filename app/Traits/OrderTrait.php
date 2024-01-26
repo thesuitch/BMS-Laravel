@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash as FacadesHash;
 use App\Models\Product;
+use App\Models\UserInfo;
 use App\Models\WidthHeightFraction;
 use App\Models\PatternModel;
 
@@ -1330,5 +1331,117 @@ trait OrderTrait
 
 
 
-}
 
+    // For strint operator calculate price for upcharges : START
+    function calculateTotalAmt($main_price, $operator, $amt)
+    {
+        // $final_amt = 0;
+        $final_amt = $main_price;
+        if (!is_numeric($amt)) {
+            $amt = 0;
+        }
+
+        if ($amt > 0) {
+            switch ($operator) {
+                case "+":
+                    $final_amt = $main_price + $amt;
+                    break;
+
+                case "/":
+                    $final_amt = $main_price / $amt;
+                    break;
+
+                case "%":
+                    $final_amt = (($main_price * $amt) / 100);
+                    break;
+
+                case "-":
+                    $final_amt = $main_price - $amt;
+                    break;
+
+                case "*":
+                    $final_amt = $main_price * $amt;
+                    break;
+            }
+        }
+        return $final_amt;
+    }
+    // For strint operator calculate price for upcharges : END
+
+    function convertFormulaToValue($formula)
+    {
+        // For Even Formula condition : START
+        $is_even = '';
+
+        if (strpos($formula, 'custom_round_even') !== false) {
+            $formula = str_replace('custom_round_even', 'ceil', $formula);
+            $is_even = 1;
+        }
+        // For Even Formula condition : END
+
+        try {
+            $result = @eval('return ' . $formula . ';');
+        } catch (\Exception $e) {
+            $result = 0;
+        } catch (\ErrorException $e) {
+            $result = 0;
+        } catch (\ParseError $e) {
+            // Invalid Formula
+            $result = 0;
+        }
+
+        if (trim($result) == 'INF') {
+            // Divide by Zero
+            $result = 0;
+        }
+
+        // For Even Formula then convert into even number : START
+        if ($result && $is_even == 1) {
+            if ($result % 2 == 0) {
+                // If even no then no changes.
+                $result = $result;
+            } else {
+                // If odd then add 1 to make even
+                ++$result;
+                $result = $result;
+            }
+        }
+        // For Even Formula then convert into even number : END
+
+        return round($result, 2);
+    }
+
+
+
+
+
+    function getCompanyProfileOrderConditionSettingsPart2($userId = '', $getDataFor = '')
+    {
+        if (auth()->user()->isAdmin == 1 || $getDataFor == 'Retailer_Employee') {
+            $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
+                ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
+                ->where('user_info.id', $userId)
+                ->first();
+
+            return $data;
+        } else {
+            $data = UserInfo::select('user_info.created_by')
+                ->where('user_info.id', $userId)
+                ->first();
+
+            if ($data->created_by != '') {
+                $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
+                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.created_by')
+                    ->where('user_info.id', $userId)
+                    ->first();
+            } else {
+                $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
+                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
+                    ->where('user_info.id', $userId)
+                    ->first();
+            }
+
+            return $data;
+        }
+    }
+}
