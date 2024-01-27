@@ -786,6 +786,8 @@ trait OrderTrait
                     'op_op_id' => $op_op->op_op_id,
                     'id' => $op_op->id,
                     'att_op_id' => $options->att_op_id,
+                    'type' => 'input_with_select'
+
                 ];
 
                 if ($op_op->op_op_name == "Divider Rail  #1" || $op_op->op_op_name == "Divider Rail  #2") {
@@ -805,7 +807,7 @@ trait OrderTrait
                 } else {
                     $optionArray['input'] = [
                         // 'label' => $op_op->op_op_name,
-                        'input' => [
+                        
                             'name' => 'op_op_value_' . $attributeId . '[]',
                             // 'class' => 'form-control convert_text_fraction op_op_text_box_' . $op_op->op_op_id,
                             'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
@@ -813,12 +815,11 @@ trait OrderTrait
                             'onkeyup' => 'checkTextboxUpcharge()',
                             // 'data-level' => $level,
                             // 'data-attr-id' => $op_op->op_op_id,
-                        ],
+                        
                     ];
                 }
 
                 $optionArray['select'] = [
-                    'label' => 'Select Fraction',
                     // 'select' => [
                     // 'class' => 'form-control select_text_fraction key_text_fraction_' . $kk,
                     'name' => 'fraction_' . $attributeId . '[]',

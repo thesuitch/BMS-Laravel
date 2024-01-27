@@ -222,7 +222,7 @@ class OrderController extends Controller
     {
         $customerDetails = DB::table('customers')->where('id', $customer_id)->first();
         $shippingAddress = DB::table('shipping_address_info')->where('customer_id', $customer_id)->first();
-
+//   dd($shippingAddress);
 
         $resInfo = [];
 
@@ -245,7 +245,7 @@ class OrderController extends Controller
                     break;
             }
 
-            $resInfo =  [
+            $resInfo[] =  [
                 'billingAddressLabel' => $billingAddressLabel,
                 'customerDetails' => $customerDetails,
                 'customerAddress' => $customerAddress,
@@ -256,25 +256,30 @@ class OrderController extends Controller
             $resAddress = explode(",", $shippingAddress->address)[0];
             $addressLabel = "";
 
-            switch ($shippingAddress->billing_address_label) {
-                case 'is_residential':
-                    $addressLabel = "Residential";
-                    break;
-                case 'commercial':
-                    $addressLabel = "Commercial";
-                    break;
-                case 'storage_facility':
-                    $addressLabel = "Storage Facility";
-                    break;
-                case 'freight_terminal':
-                    $addressLabel = "Freight Terminal";
-                    break;
+            if(isset($shippingAddress->is_residential) && $shippingAddress->is_residential == 1)
+            {
+                $addressLabel = "Residential";
+            }
+            else if(isset($shippingAddress->commercial) && $shippingAddress->commercial == 1)
+            {
+                $addressLabel = "Commercial";
+               
+            }
+            else if(isset($shippingAddress->storage_facility) && $shippingAddress->storage_facility == 1)
+            {
+                $addressLabel = "Storage Facility";
+               
+            }
+            else if(isset($shippingAddress->freight_terminal) && $shippingAddress->freight_terminal == 1)
+            {
+                $addressLabel = "Freight Terminal";
+               
             }
 
-            $resInfo =  [
-                'addressLabel' => $addressLabel,
+            $resInfo[] =  [
+                'ShippingAddressLabel' => $addressLabel,
                 'shippingAddress' => $shippingAddress,
-                'resAddress' => $resAddress,
+                'ShippingAddress' => $resAddress,
             ];
         }
 

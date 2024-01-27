@@ -74,7 +74,7 @@ class CustomerController extends Controller
     {
         try {
             $customers = DB::table('customers')
-                ->select('customers.*', 'customers.is_taxable as customer_is_taxable', 'customers.enable_shipping_zone as customer_enable_shipping_zone', 'users.*', 'user_info.*')
+                ->select('customers.*', 'customers.is_taxable as customer_is_taxable', 'customers.enable_shipping_zone as customer_enable_shipping_zone')
                 ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
                 ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
                 ->where('customers.level_id', $this->level_id)
