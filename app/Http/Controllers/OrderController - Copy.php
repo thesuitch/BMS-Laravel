@@ -13,7 +13,7 @@ use App\Http\Requests\RoomCreateRequest;
 use hash;
 use Illuminate\Support\Facades\Hash as FacadesHash;
 
-class OrderController extends Controller
+class OrderControllerCopy extends Controller
 {
     use OrderTrait;
 
