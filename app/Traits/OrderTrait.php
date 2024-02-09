@@ -653,6 +653,7 @@ trait OrderTrait
                         'selected' => $sl1,
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                         'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price['price'], $height, $width, $height_fraction, $width_fraction)
+                        // 'contiprice' => 
                     ];
 
                     $attributeData['options'][] = $optionData;
@@ -734,17 +735,9 @@ trait OrderTrait
             if ($options->price_type == 1) {
 
                 $price_total = $mainPrice + optional($options)->price;
-
                 $contribution_price = !empty($options->price) ? $options->price : 0;
-
-                // print_r($options);
-                // $q .= '<input placeholder="hidden" type="text" value="' . $contribution_price . '" class="form-control contri_price">';
-
-                // For Drapery price static condition : START
                 $drapery_price = !empty($options->attribute_value) ? $options->attribute_value : 0;
-                // $q .= '<input placeholder="hidden" type="text" value="' . $drapery_price . '" class="drapery_attr_price_value">';
-                // $q .= '<input placeholder="hidden" type="text" value="' . $drapery_price . '" class="form-control drapery_attribute_price_value contri_price">';
-                // For Drapery price static condition : END
+            
             } else {
                 $cost_factor_data = $this->commonWholesalerToRetailerCommission($options->product_id, 5);
 
@@ -752,27 +745,19 @@ trait OrderTrait
                 $cost_factor_rate = $cost_factor_data['dealer_price'];
                 $price_total = round((($mainPrice * $cost_factor_rate * optional($options)->price) / 100), 2);
                 $contribution_price = !empty($price_total) ? $price_total : 0;
-                // $q .= '<input placeholder="hidden" type="text" value="' . $contribution_price . '" class="form-control contri_price">';
-                // echo $price_total.'-';
-                // echo $cost_factor_rate . '-';
-
-                // For Drapery price static condition : START
                 $drapery_price = !empty($options->attribute_value) ? $options->attribute_value : 0;
+
                 if ($drapery_price > 0) {
                     $drapery_price = ($drapery_price / 100);
                 }
-                // $q .= '<input placeholder="hidden" type="text" value="' . $drapery_price . '" class="drapery_attr_price_value">';
-                // $q .= '<input placeholder="hidden" type="text" value="' . $drapery_price . '" class="form-control drapery_attribute_price_value contri_price">';
-                // For Drapery price static condition : END
             }
         }
 
+        // $optionsArray[] = ['contiprice' => $contribution_price];
 
-        // dd();
 
         if ($options->option_type == 5) {
             // Text + Fraction
-
             $opops = DB::table('attr_options_option_tbl')
                 ->select('attr_options_option_tbl.*', 'product_attr_option_option.id', 'product_attr_option_option.product_id')
                 ->join('product_attr_option_option', 'attr_options_option_tbl.op_op_id', '=', 'product_attr_option_option.op_op_id')
@@ -806,49 +791,30 @@ trait OrderTrait
                     'op_op_id' => $op_op->op_op_id,
                     'id' => $op_op->id,
                     'att_op_id' => $options->att_op_id,
-                    'contiprice' => $contribution_price,
+                    // 'contiprice' => $contribution_price,
                     'type' => 'input_with_select',
 
                 ];
 
                 if ($op_op->op_op_name == "Divider Rail  #1" || $op_op->op_op_name == "Divider Rail  #2") {
                     $optionArray['input'] = [
-                        // 'label' => $op_op->op_op_name,
-                        // 'input' => [
                         'name' => 'op_op_value_' . $attributeId . '[]',
-                        // 'class' => 'form-control convert_text_fraction op_op_text_box_' . $op_op->op_op_id,
                         'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                        // 'required',
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attributeId, 1, $options->product_id, 2512),
-                        // 'data-level' => $level,
-                        // 'data-attr-id' => $op_op->op_op_id,
-                        // 'value' => '0',
-                        // ],
                     ];
                 } else {
                     $optionArray['input'] = [
-                        // 'label' => $op_op->op_op_name,
 
                         'name' => 'op_op_value_' . $attributeId . '[]',
-                        // 'class' => 'form-control convert_text_fraction op_op_text_box_' . $op_op->op_op_id,
                         'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attributeId, 1, $options->product_id, 2512),
-                        // 'required',
-                        // 'onkeyup' => 'checkTextboxUpcharge()',
-                        // 'data-level' => $level,
-                        // 'data-attr-id' => $op_op->op_op_id,
 
                     ];
                 }
 
                 $optionArray['select'] = [
-                    // 'select' => [
-                    // 'class' => 'form-control select_text_fraction key_text_fraction_' . $kk,
                     'name' => 'fraction_' . $attributeId . '[]',
-                    // 'data-placeholder' => '-- Select one --',
-                    'onchange' => 'checkTextboxUpcharge()',
-                    // 'data-level' => $level,
-                    // 'data-attr-id' => $op_op->op_op_id,
+                    'upcharge' => 'checkTextboxUpcharge()',
                     'options' => [
                         [
                             'value' => '',
@@ -861,11 +827,8 @@ trait OrderTrait
                             ];
                         }, $fractionOptions),
                     ],
-                    // ],
                 ];
-
                 $optionsArray[] = $optionArray;
-
                 $optionsArray[count($optionsArray) - 1]['contri_price'] = $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id);
             }
 
@@ -873,7 +836,6 @@ trait OrderTrait
         }
         if ($options->option_type == 4) {
 
-            // dd(4);
             // Multi option
             $opops = DB::table('product_attr_option_option')
                 ->select('attr_options_option_tbl.*', 'product_attr_option_option.id', 'product_attr_option_option.product_id')
@@ -882,8 +844,6 @@ trait OrderTrait
                 ->orderBy('attr_options_option_tbl.att_op_op_position', 'ASC')
                 ->orderBy('attr_options_option_tbl.op_op_id', 'ASC')
                 ->get();
-
-            // dd($opops->toSql());
 
             foreach ($opops as $op_op) {
                 $opopops = DB::table('attr_options_option_option_tbl')
@@ -930,10 +890,8 @@ trait OrderTrait
 
                         $selectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
-                            // 'selected' => $selected,
                             'label' => $opopop->att_op_op_op_name,
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice)
-
                         ];
                     }
 
@@ -985,32 +943,14 @@ trait OrderTrait
                             }
                         }
 
-                        // $class = 'cords_length';
-                        // $change = "onBlur='changeLength();' data-text-type='code-legth-val'";
-
                         $optionsArray[count($optionsArray) - 1]['cords_length_val'] = $cordVal;
                         $optionsArray[count($optionsArray) - 1]['change_height'] = $heightVal;
                         $optionsArray[count($optionsArray) - 1]['change_width'] = $widthVal;
-                    } else {
-                        // $class = '';
-                        // $change = '';
-                        // $tag = [];
-                    }
+                    } 
 
                     $optionsArray[count($optionsArray) - 1]['text_input'] = [
                         'label' => 'Text Input',
-                        // 'class' => 'cls_text_op_op_value ' . $class,
-                        // 'onkeyup' => $onKeyup,
-                        'name' => 'op_op_value_' . $attributeId . '[]',
-
-                        // 'attributes' => [
-                        //     'data-level' => $level,
-                        //     'data-attr-id' => $op_op->op_op_id,
-                        //     $change,
-                        //     'required',
-                        //     'data-attr-name' => $op_op->op_op_name,
-                        // ],
-                        // 'tag' => $tag,
+                        'name' => 'op_op_value_' . $attributeId . '[]'
                     ];
 
                     $optionsArray[count($optionsArray) - 1]['contri_price'] = $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id);
@@ -1029,19 +969,12 @@ trait OrderTrait
                     // For Drapery price : END
                 } elseif ($op_op->type == 6) {
 
-
                     $optionsArray[count($optionsArray) - 1]['type'] = 'multi_select';
-                    // $optionsArray[count($optionsArray) - 1]['onChange'] = 'MultiOptionOptionsOptionOptions()';
-
-
                     $multiselectOptions = [];
-
                     foreach ($opopops as $keyss => $opopop) {
                         $selected = ($opopop->att_op_op_op_default == '1') ? true : false;
-
                         $multiselectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
-                            // 'selected' => $selected,
                             'label' => $opopop->att_op_op_op_name,
                         ];
                     }
@@ -1067,12 +1000,6 @@ trait OrderTrait
                 ->toArray();
 
             $optionTypeArray = [
-                // 'input_hidden' => [
-                //     'type' => 'hidden',
-                //     'name' => 'op_op_value_' . $attributeId . '[]',
-                // ],
-
-                // 'select' => [
                 'id' => 'op_' . $options->att_op_id,
                 'name' => 'op_op_id_' . $attributeId . '[]',
                 'type' => 'select',
@@ -1082,16 +1009,10 @@ trait OrderTrait
                         'label' => '--Select one--',
                     ],
                 ],
-                // 'subAttributes' => 'OptionOptionsOption(this.value,' . $attributeId . ')',
-                // ],
-
-
-
             ];
 
             $selected_values = !empty($selected_option_type) ? explode('@', $selected_option_type) : [];
 
-            // dd($proAttOpId);
             foreach ($opops as $op_op) {
                 $val = $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id;
                 $selected = in_array($val, $selected_values) ? 'selected' : '';
@@ -1102,7 +1023,6 @@ trait OrderTrait
                 $optionTypeArray['options'][] = [
                     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                     'label' => $op_op->op_op_name,
-                    // 'subAttributes' => $op_op->op_op_id.'--'.$op_op->id.'--'.$attributeId.'--'.$mainPrice
                     'subAttributes' => $this->get_product_attr_op_op_op($op_op->op_op_id, $op_op->id, $attributeId, $mainPrice),
                 ];
             }
@@ -1126,8 +1046,7 @@ trait OrderTrait
                 $optionArray = [
 
                     'label' =>  $op_op->op_op_name,
-
-                    'input_text' => [
+                    // 'input' => [
                         'type' => 'text',
                         'data-level' => $level,
                         'data-attr-id' => $op_op->op_op_id,
@@ -1136,28 +1055,28 @@ trait OrderTrait
                         // 'class' => 'form-control cls_text_op_op_value ' . $ctm_class,
                         // 'required' => true,
                         // 'data-attr-name' => $op_op->op_op_name,
-                    ],
+                    // ],
 
-                    'input_hidden' => [
-                        'type' => 'hidden',
-                        'name' => 'op_op_id_' . $attributeId . '[]',
-                        'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                    ],
+                    // 'input_hidden' => [
+                    //     'type' => 'hidden',
+                    //     'name' => 'op_op_id_' . $attributeId . '[]',
+                    //     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
+                    // ],
 
-                    'contri_price' => $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id),
+                    // 'contri_price' => $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id),
 
-                    'drapery_price' => [
-                        'input_hidden' => [
-                            'type' => 'hidden',
-                            'value' => (!empty($op_op->att_op_op_attr_value) ? $op_op->att_op_op_attr_value : 0),
-                            // 'class' => 'drapery_attr_price_value',
-                        ],
-                        'input_hidden_form_control' => [
-                            'type' => 'hidden',
-                            'value' => (!empty($op_op->att_op_op_attr_value) ? $op_op->att_op_op_attr_value : 0),
-                            // 'class' => 'form-control drapery_attribute_price_value contri_price',
-                        ],
-                    ],
+                    // 'drapery_price' => [
+                    //     'input_hidden' => [
+                    //         'type' => 'hidden',
+                    //         'value' => (!empty($op_op->att_op_op_attr_value) ? $op_op->att_op_op_attr_value : 0),
+                    //         // 'class' => 'drapery_attr_price_value',
+                    //     ],
+                    //     'input_hidden_form_control' => [
+                    //         'type' => 'hidden',
+                    //         'value' => (!empty($op_op->att_op_op_attr_value) ? $op_op->att_op_op_attr_value : 0),
+                    //         // 'class' => 'form-control drapery_attribute_price_value contri_price',
+                    //     ],
+                    // ],
 
 
                 ];
@@ -1208,19 +1127,19 @@ trait OrderTrait
             $level = 1;
 
             $optionArray = [
-                'input_hidden' => [
-                    'type' => 'hidden',
-                    'value' => $options->att_op_id,
-                    'name' => 'op_id_' . $attributeId . '[]',
-                ],
+                // 'input_hidden' => [
+                //     'type' => 'hidden',
+                //     'value' => $options->att_op_id,
+                //     'name' => 'op_id_' . $attributeId . '[]',
+                // ],
 
-                'input_text' => [
+                // 'input_text' => [
                     'type' => 'text',
                     'data-level' => $level,
                     'data-attr-id' => @$options->att_op_id,
                     'onkeyup' => $onKeyup,
                     'name' => 'op_value_' . $attributeId . '[]',
-                ]
+                // ]
             ];
 
 
@@ -1512,13 +1431,7 @@ trait OrderTrait
         return $result;
     }
 
-
-
-
-
     // get Attributes end
-
-
 
 
     // For strint operator calculate price for upcharges : START
@@ -2118,9 +2031,6 @@ trait OrderTrait
 
         return trim($result) == 'INF' ? 0 : ($is_even ? ceil($result) : $result);
     }
-
-
-
 
 
     public function calculateUpCondition(
