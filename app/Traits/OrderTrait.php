@@ -487,7 +487,7 @@ trait OrderTrait
             }
 
             $result[] = [
-                'type' => 'text',
+                'type' => 'input',
                 'onKeyup' => 'getColorCode_select(this.value)',
                 'placeholder' => $color_label . ' Code',
             ];
@@ -667,7 +667,7 @@ trait OrderTrait
                     'attribute_id' => $attribute->attribute_id,
                 ];
                 $attributeData['input'] = [
-                    'type' => 'text',
+                    'type' => 'input',
                     'name' => 'attribute_value[]',
                     'onkeyup' => 'checkTextboxUpcharge()',
                 ];
@@ -1134,7 +1134,7 @@ trait OrderTrait
                 // ],
 
                 // 'input_text' => [
-                    'type' => 'text',
+                    'type' => 'input',
                     'data-level' => $level,
                     'data-attr-id' => @$options->att_op_id,
                     'onkeyup' => $onKeyup,
@@ -1253,7 +1253,7 @@ trait OrderTrait
 
             $output[] =
                 [
-                    'type' => 'text',
+                    'type' => 'input',
                     'value' => $op_op_op_id,
                     'name' => "op_op_value_' . $attribute_id . '[]",
                     'data-level' =>  $level,
@@ -1373,7 +1373,7 @@ trait OrderTrait
                 } elseif ($op_op_op->att_op_op_op_type == 1) {
                     $result[] = [
                         'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
-                        'type' => 'text',
+                        'type' => 'input',
                         'label' => $op_op_op->att_op_op_op_name
                     ];
                 }
