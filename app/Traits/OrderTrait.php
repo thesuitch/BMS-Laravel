@@ -652,7 +652,7 @@ trait OrderTrait
                         'label' => $op->option_name,
                         'selected' => $sl1,
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id.'_'.$op->att_op_id, 1, $product_id, $pattern_id),
-                        'subAttribute' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price['price'], $height, $width, $height_fraction, $width_fraction)
+                        'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price['price'], $height, $width, $height_fraction, $width_fraction)
                     ];
 
                     $attributeData['options'][] = $optionData;
@@ -932,7 +932,7 @@ trait OrderTrait
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
                             // 'selected' => $selected,
                             'label' => $opopop->att_op_op_op_name,
-                            'onchange' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice)
+                            'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice)
 
                         ];
                     }
@@ -1241,7 +1241,7 @@ trait OrderTrait
         if ($opopopop->att_op_op_op_price_type == 1) {
             $price_total = $main_price + optional($opopopop)->att_op_op_op_price;
             $contribution_price = !empty($opopopop->att_op_op_op_price) ? $opopopop->att_op_op_op_price : 0;
-            $output['data'][] =
+            $output[] =
                 [
                     'type' => 'hidden',
                     'value' => $contribution_price,
@@ -1262,7 +1262,7 @@ trait OrderTrait
             $price_total = ($main_price * $cost_factor_rate * optional($opopopop)->att_op_op_op_price) / 100;
             $contribution_price = !empty($price_total) ? $price_total : 0;
 
-            $output['data'][] = [
+            $output[] = [
                 'type' => 'hidden',
                 'value' => $contribution_price,
                 'name' => 'contri_price'
@@ -1272,7 +1272,7 @@ trait OrderTrait
 
         if ($opopopop->att_op_op_op_type == 2) {
 
-            $output['data'][] = [
+            $output[] = [
                 'type' => 'hidden',
                 'value' => $opopopop->att_op_op_op_name,
                 'name' => "op_op_value_' . $attribute_id . '[]"
@@ -1295,7 +1295,7 @@ trait OrderTrait
             //             <option value="">--Select one--</option>';
             // $output['select'];
 
-            $output['data'][] = [
+            $output[] = [
                 'type' => 'select',
                 'name' => "op_op_op_op_id_" . $attribute_id . "[]",
                 'onChange' => "OptionFive(this.value," . $attribute_id . ")",
@@ -1313,7 +1313,7 @@ trait OrderTrait
                 $val = $op_op_op_op->att_op_op_op_op_id . '_' . $op_op_op_id;
                 $selected = in_array($val, $selected_values) ? 'selected' : '';
                 $selected = !isset($selected_values) ? ($op_op_op_op->att_op_op_op_op_default == '1' ? 'selected' : '') : $selected;
-                $output['data'][2]['options'][] = [
+                $output[2]['options'][] = [
                     'value' => $op_op_op_op->att_op_op_op_op_id . '_' . $op_op_op_id . '" ' . $selected,
                     'label' => $op_op_op_op->att_op_op_op_op_name,
                     // 'selected' => $selected,
@@ -1322,14 +1322,14 @@ trait OrderTrait
         } elseif ($opopopop->att_op_op_op_type == 1) {
             $onKeyup = "checkTextboxUpcharge()";
             $level = 3;
-            $output['data'][] =
+            $output[] =
                 [
                     'type' => 'hidden',
                     'value' => $op_op_op_id,
                     'name' => "op_op_id_' . $attribute_id . '[]"
                 ];
 
-            $output['data'][] =
+            $output[] =
                 [
                     'type' => 'text',
                     'value' => $op_op_op_id,
@@ -1339,7 +1339,7 @@ trait OrderTrait
                 ];
         } else {
 
-            $output['data'][] =
+            $output[] =
                 [
                     'type' => 'hidden',
                     'value' => $opopopop->att_op_op_op_name,

@@ -27,7 +27,9 @@ Route::middleware('auth:api')->group(function () {
         Route::get('employees',  'getEmployees');
         Route::get('generate_order_id_based_on_format',  'generate_order_id_based_on_format');
         Route::get('existing_shipping_address/{customer_id}',  'existingShippingAddress');
+        Route::get('get_product_attr_op_op_op/{opOpId}/{proAttOpOpId}/{attributeId}/{mainPrice}/{selectedOptionTypeOpOp}',  'get_product_attr_op_op_op');
         
+
         Route::get('calculate/{upConditionHeight}/{upConditionHeightFraction}/{upConditionWidth}/{upConditionWidthFraction}/{upAttributeId}/{upLevel}/{productId}/{patternId}',  'calculateUpCondition');
         Route::get('price/{height}/{width}/{product_id}/{pattern_id}/{product_type}',  'getProductRowColPrice');
     });

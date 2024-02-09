@@ -35,9 +35,11 @@ class OrderController extends Controller
 
             $userId = auth()->user()->id;
 
-            $categories = Category::with(['products' => function ($query) {
-                $query->select('id', 'category_id', 'product_name', 'default');
-            }])
+            $categories = Category::with([
+                'products' => function ($query) {
+                    $query->select('id', 'category_id', 'product_name', 'default');
+                }
+            ])
                 ->select('id', 'category_name')
                 ->where('created_by', $userId)
                 ->where('status', 1)
@@ -61,7 +63,7 @@ class OrderController extends Controller
 
                 // custom labels
                 $custom_label = $this->getCustomLabelUserwise($createdBy, $category->id);
-                $category['custom_labels'] =  $custom_label;
+                $category['custom_labels'] = $custom_label;
             });
 
             $responseData = [
@@ -245,7 +247,7 @@ class OrderController extends Controller
                     break;
             }
 
-            $resInfo[] =  [
+            $resInfo[] = [
                 'billingAddressLabel' => $billingAddressLabel,
                 'customerDetails' => $customerDetails,
                 'customerAddress' => $customerAddress,
@@ -266,7 +268,7 @@ class OrderController extends Controller
                 $addressLabel = "Freight Terminal";
             }
 
-            $resInfo[] =  [
+            $resInfo[] = [
                 'ShippingAddressLabel' => $addressLabel,
                 'shippingAddress' => $shippingAddress,
                 'ShippingAddress' => $resAddress,
@@ -285,10 +287,378 @@ class OrderController extends Controller
     }
 
 
+    // public function get_product_attr_op_op_op($opOpId, $proAttOpOpId, $attributeId, $mainPrice, $selectedOptionTypeOpOp = '', $selectedOptionFifth = '')
+    // {
+    //     $onKeyup = "checkTextboxUpcharge($(this))";
+    //     $level = 3;
+
+    //     $opop = DB::table('attr_options_option_tbl')->where('op_op_id', $opOpId)->first();
+
+    //     $productAttrData = DB::table('product_attr_option_option')
+    //         ->select('product_attr_option_option.*')
+    //         ->where('op_op_id', $opOpId)
+    //         ->join('products', 'products.id', '=', 'product_attr_option_option.product_id')
+    //         ->first();
+
+    //     $productData = DB::table('products')->where('id', $productAttrData->product_id)->first();
+    //     $categoryId = $productData->category_id;
+
+    //     $fractionOption = '';
+    //     if ($categoryId != '') {
+    //         $hw1 = DB::table('categories')->select('fractions')->where('id', $categoryId)->first();
+    //         $fracs1 = $hw1->fractions;
+    //         $fracs = explode(",", $fracs1);
+    //         $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
+    //         foreach ($hw2 as $row) {
+    //             if (in_array($row->fraction_value, $fracs)) {
+    //                 $fractionOption .= '<option value="' . $row->id . '">' . $row->fraction_value . '</option>';
+    //             }
+    //         }
+    //         unset($hw2);
+    //     }
+
+    //     $q = '';
+    //     if ($opop->att_op_op_price_type == 1) {
+    //         $priceTotal = $mainPrice + @$opop->att_op_op_price;
+    //         $contributionPrice = (!empty($opop->att_op_op_price) ? $opop->att_op_op_price : 0);
+    //         $q .= '<input type="hidden" value="' . $contributionPrice . '" class="form-control contri_price">';
+    //     } else {
+    //         if (isset($productAttrData->product_id)) {
+    //             $costFactorData = $this->Common_wholesaler_to_retailer_commission($productAttrData->product_id);
+    //             $costFactorRate = $costFactorData['dealer_price'];
+    //         } else {
+    //             $costFactorRate = 1;
+    //         }
+    //         $priceTotal = ($mainPrice * $costFactorRate * @$opop->att_op_op_price) / 100;
+    //         $contributionPrice = (!empty($priceTotal) ? $priceTotal : 0);
+    //         $q .= '<input type="hidden" value="' . $contributionPrice . '" class="form-control contri_price">';
+    //     }
 
 
 
-   
+    //     if ($opop->type == 4) {
+    //         $opopop = DB::table('product_attr_option_option_option')
+    //             ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+    //             ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+    //             ->where('product_attr_option_option_option.attribute_id', $attributeId)
+    //             ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+    //             ->get();
 
-   
+    //         foreach ($opopop as $op_op_op) {
+    //             $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+
+    //             $q .= '<input type="hidden" name="op_op_op_id_' . $attributeId . '[]" value="' . $op_op_op->att_op_op_op_id . '_' . $opOpId . '">';
+
+    //             if ($op_op_op->att_op_op_op_type == 2) {
+    //                 $opopopops = DB::table('attr_op_op_op_op_tbl')
+    //                     ->where('attribute_id', $attributeId)
+    //                     ->where('op_op_op_id', $op_op_op->att_op_op_op_id)
+    //                     ->orderBy('att_op_op_op_op_position', 'ASC')
+    //                     ->get();
+
+    //                 $q .= '<input type="hidden" name="op_op_op_op_value_' . $attributeId . '[]"  class="form-control">';
+
+    //                 $q .= '<div class="row fifth_attr_row">
+    //                             <label class="col-sm-2 form-child-label">' . $op_op_op->att_op_op_op_name . '</label>
+    //                             <select class="form-control custom-select-css col-sm-6 select2 cls_op_five_' . $attributeId . '" id="op_op_op_op_id_' . $op_op_op->att_op_op_op_id . '" name="op_op_op_op_id_' . $attributeId . '[]" onChange="OptionFive(this.value,' . $attributeId . ')" required>
+    //                                 <option value="">--Select one--</option>';
+
+    //                 $selected = '';
+    //                 if (!empty($selectedOptionFifth)) {
+    //                     $selectedValues = explode('@', $selectedOptionFifth);
+    //                 }
+
+    //                 foreach ($opopopops as $kk => $opopopop) {
+    //                     if (isset($selectedValues)) {
+    //                         $val = $opopopop->att_op_op_op_op_id . '_' . $attributeId . '_' . $op_op_op->att_op_op_op_id;
+    //                         $selected = (in_array($val, $selectedValues)) ? 'selected' : '';
+    //                     }
+    //                     if (!isset($selectedValues)) {
+    //                         $selected = ($opopopop->att_op_op_op_op_default == '1') ? 'selected' : '';
+    //                     }
+
+    //                     $q .= '<option value="' . $opopopop->att_op_op_op_op_id . '_' . $attributeId . '_' . $op_op_op->att_op_op_op_id . '" ' . $selected . '>' . $opopopop->att_op_op_op_op_name . '</option>';
+    //                 }
+    //                 // unset($opopopops);
+
+    //                 $q .= '</select>';
+    //                 $q .= '<div class="col-sm-6" style="display:none;"></div>';
+    //                 $q .= '<div class="col-sm-12"></div>';
+    //                 $q .= '</div>';
+    //             } elseif ($op_op_op->att_op_op_op_type == 5) {
+    //                 $q .= '<br><div class="row">
+    //                             <label class="col-sm-2 form-child-label">' . $op_op_op->att_op_op_op_name . '</label>
+    //                             <input type="hidden" name="op_op_id_' . $attributeId . '[]" value="' . $op_op_op->att_op_op_op_id . '_' . $attributeId . '_' . $opOpId . '">
+    //                             <div class="col-sm-4">
+    //                                 <input type="text" value="0" name="op_op_value_' . $attributeId . '[]"  class="form-control convert_text_fraction  op_op_text_box_' . $attributeId . '" data-op_op_key="' . $kk . '" required onkeyup="checkTextboxUpcharge($(this))"   data-level="' . $level . '" data-attr-id="' . $attributeId . '">
+    //                             </div>';
+
+    //                 $q .= '<div class="col-sm-2">
+    //                             <select class="form-control select_text_fraction key_text_fraction_' . $kk . '" name="fraction_' . $attributeId . '[]" id=""  data-placeholder="-- Select one --"  onchange="checkTextboxUpcharge($(this))"  data-level="' . $level . '" data-attr-id="' . $attributeId . '">
+    //                                 <option value="">-- Select one --</option>';
+
+    //                 $q .= $fractionOption;
+
+    //                 $q .= '</select></div>';
+    //                 $q .= '<div class="col-sm-6" style="display:none;"></div>';
+    //                 $q .= '<div class="col-sm-12"></div>';
+    //                 $q .= '</div>';
+    //             } elseif ($op_op_op->att_op_op_op_type == 1) {
+    //                 $q .= '<br><div class="row">
+    //                             <label class="col-sm-2">' . $op_op_op->att_op_op_op_name . '</label>
+    //                             <div class="col-sm-3"><input type="text" data-level="' . $level . '"  data-attr-id="' . $op_op_op->att_op_op_op_id . '"  onkeyup="' . $onKeyup . '" name="op_op_op_value_' . $attributeId . '[]"  class="form-control ' . @$ctm_class . '"></div>
+    //                             <div class="col-sm-6" style="display:none;"></div>
+    //                         </div>';
+    //             }
+
+    //             // $q .= $this->contri_price($op_op_op->att_op_op_op_price_type, $op_op_op->att_op_op_op_price, $mainPrice, $productAttrData->product_id);
+    //         }
+    //         unset($opopop);
+    //     } elseif ($opop->type == 3) {
+    //         $opopop = DB::table('product_attr_option_option_option')
+    //             ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+    //             ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+    //             ->where('product_attr_option_option_option.attribute_id', $attributeId)
+    //             ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+    //             ->get();
+
+    //         $class = "";
+    //         foreach ($opopop as $op_op_op) {
+    //             $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+
+    //             $q .= '<br><div class="row">
+    //                         <label class="col-sm-2">' . $op_op_op->att_op_op_op_name . '</label>
+    //                         <input type="hidden" name="op_op_op_id_' . $attributeId . '[]" value="' . $op_op_op->att_op_op_op_id . '_' . $opOpId . '">
+    //                         <div class="col-sm-3"><input type="text" name="op_op_op_value_' . $attributeId . '[]"  class="form-control ' . $class . ' ' . @$ctm_class . '" data-level="' . $level . '"  data-attr-id="' . $op_op_op->att_op_op_op_id . '"  onkeyup="' . $onKeyup . '"></div>
+    //                         <div class="col-sm-6" style="display:none;"></div>
+    //                     </div>';
+
+    //             // $q .= $this->contri_price($op_op_op->att_op_op_op_price_type, $op_op_op->att_op_op_op_price, $mainPrice, $productAttrData->product_id);
+    //         }
+    //         unset($opopop);
+    //     } elseif ($opop->type == 2) {
+    //         $opopop = DB::table('product_attr_option_option_option')
+    //             ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+    //             ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+    //             ->where('product_attr_option_option_option.attribute_id', $attributeId)
+    //             ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+    //             ->get();
+
+    //         foreach ($opopop as $op_op_op) {
+    //             $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+
+    //             $q .= '<br><div class="row">
+    //                         <label class="col-sm-2">' . $op_op_op->att_op_op_op_name . '</label>
+    //                         <div class="col-sm-3"><input type="text" name="op_op_op_value_' . $attributeId . '[]"  class="form-control ' . $class . ' ' . @$ctm_class . '" data-level="' . $level . '"  data-attr-id="' . $op_op_op->att_op_op_op_id . '"  onkeyup="' . $onKeyup . '"></div>
+    //                         <div class="col-sm-6" style="display:none;"></div>
+    //                     </div>';
+
+    //             // $q .= $this->contri_price($op_op_op->att_op_op_op_price_type, $op_op_op->att_op_op_op_price, $mainPrice, $productAttrData->product_id);
+    //         }
+    //         unset($opopop);
+    //     } elseif ($opop->type == 2) {
+    //         $opopop = DB::table('product_attr_option_option_option')
+    //             ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+    //             ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+    //             ->where('product_attr_option_option_option.attribute_id', $attributeId)
+    //             ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+    //             ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+    //             ->get();
+
+    //         foreach ($opopop as $op_op_op) {
+    //             $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+
+    //             $q .= '<br><div class="row">
+    //                         <label class="col-sm-2">' . $op_op_op->att_op_op_op_name . '</label>
+    //                         <div class="col-sm-3"><input type="text" name="op_op_op_value_' . $attributeId . '[]"  class="form-control ' . $class . ' ' . @$ctm_class . '" data-level="' . $level . '"  data-attr-id="' . $op_op_op->att_op_op_op_id . '"  onkeyup="' . $onKeyup . '"></div>
+    //                         <div class="col-sm-6" style="display:none;"></div>
+    //                     </div>';
+
+    //             // $q .= $this->contri_price($op_op_op->att_op_op_op_price_type, $op_op_op->att_op_op_op_price, $mainPrice, $productAttrData->product_id);
+    //         }
+    //         unset($opopop);
+    //     } elseif ($opop->type == 1) {
+    //         $level = 2;
+    //         $ctm_class = "op_op_text_box_" . @$opOpId;
+    //         $q .= '<br>
+    //                 <div class="row">
+    //                     <label class="col-sm-2"></label>
+    //                     <div class="col-sm-3">
+    //                         <input type="hidden" value="' . @$opOpId . '"  name="op_op_id_' . $attributeId . '[]">
+    //                         <input type="text" data-level="' . $level . '" data-attr-id="' . @$opOpId . '" onkeyup="' . $onKeyup . '" name="op_op_value_' . $attributeId . '[]" class="form-control ' . @$ctm_class . '">
+    //                     </div>
+    //                     <div class="col-sm-6" style="display:none;"></div>
+    //                 </div>
+    //             <br>';
+    //     } else {
+    //         $q .= '';
+    //     }
+
+    //     echo $q;
+    // }
+
+    public function get_product_attr_op_op_op($opOpId, $proAttOpOpId, $attributeId, $mainPrice, $selectedOptionTypeOpOp = '', $selectedOptionFifth = '')
+    {
+        $result = [];
+
+        $onKeyup = "checkTextboxUpcharge($(this))";
+        $level = 3;
+
+        $opop = DB::table('attr_options_option_tbl')->where('op_op_id', $opOpId)->first();
+
+        $productAttrData = DB::table('product_attr_option_option')
+            ->select('product_attr_option_option.*')
+            ->where('op_op_id', $opOpId)
+            ->join('products', 'products.id', '=', 'product_attr_option_option.product_id')
+            ->first();
+
+        $productData = DB::table('products')->where('id', $productAttrData->product_id)->first();
+        $categoryId = $productData->category_id;
+
+        $fractionOption = [];
+        if ($categoryId != '') {
+            $hw1 = DB::table('categories')->select('fractions')->where('id', $categoryId)->first();
+            $fracs1 = $hw1->fractions;
+            $fracs = explode(",", $fracs1);
+            $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
+            foreach ($hw2 as $row) {
+                if (in_array($row->fraction_value, $fracs)) {
+                    $fractionOption[] = ['value' => $row->id, 'label' => $row->fraction_value];
+                }
+            }
+            unset($hw2);
+        }
+
+        $q = '';
+
+        if ($opop->att_op_op_price_type == 1) {
+            $priceTotal = $mainPrice + @$opop->att_op_op_price;
+            $contributionPrice = (!empty($opop->att_op_op_price) ? $opop->att_op_op_price : 0);
+            // $result['contributionPrice'] = $contributionPrice;
+        } else {
+            if (isset($productAttrData->product_id)) {
+                $costFactorData = $this->Common_wholesaler_to_retailer_commission($productAttrData->product_id);
+                $costFactorRate = $costFactorData['dealer_price'];
+            } else {
+                $costFactorRate = 1;
+            }
+            $priceTotal = ($mainPrice * $costFactorRate * @$opop->att_op_op_price) / 100;
+            $contributionPrice = (!empty($priceTotal) ? $priceTotal : 0);
+            $result['contributionPrice'] = $contributionPrice;
+        }
+
+        if ($opop->type == 4) {
+            // $options = [];
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            // dd($opopop);
+            foreach ($opopop as $op_op_op) {
+
+                if ($op_op_op->att_op_op_op_type == 2) {
+                    $opopopops = DB::table('attr_op_op_op_op_tbl')
+                        ->where('attribute_id', $attributeId)
+                        ->where('op_op_op_id', $op_op_op->att_op_op_op_id)
+                        ->orderBy('att_op_op_op_op_position', 'ASC')
+                        ->get();
+
+                    $result[] = [
+                        'id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'select',
+                        'name' => $op_op_op->att_op_op_op_name,
+
+                    ];
+
+                    foreach ($opopopops as $key => $opopopopsvalue) {
+                        $result[0]['option'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
+                    }
+                } elseif ($op_op_op->att_op_op_op_type == 5) {
+
+                    $result[]  = [
+                        'label' => $op_op_op->att_op_op_op_name,
+                        'id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'input_with_select',
+                        'input' => [
+                            'name' => 'op_op_value_' . $attributeId . '[]',
+                            'upcharge' => 'upcharge',
+                        ],
+                        'select' => $fractionOption
+                    ];
+                } elseif ($op_op_op->att_op_op_op_type == 1) {
+                    $result[] = [
+                        'id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'text',
+                        'name' => $op_op_op->att_op_op_op_name
+                    ];
+                }
+            }
+            unset($opopop);
+        } elseif ($opop->type == 3) {
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            foreach ($opopop as $op_op_op) {
+                $currentOption = [];
+
+                $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+                $currentOption['op_op_op_id'] = $op_op_op->att_op_op_op_id . '_' . $opOpId;
+
+                // Your common code for type 3 attributes goes here...
+
+                $result['options'][] = $currentOption;
+            }
+            unset($opopop);
+        } elseif ($opop->type == 2) {
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            foreach ($opopop as $op_op_op) {
+                $currentOption = [];
+
+                $ctm_class = "op_op_op_text_box_" . $op_op_op->att_op_op_op_id;
+                $currentOption['op_op_op_id'] = $op_op_op->att_op_op_op_id . '_' . $opOpId;
+
+                // Your common code for type 2 attributes goes here...
+
+                $result['options'][] = $currentOption;
+            }
+            unset($opopop);
+        } elseif ($opop->type == 1) {
+            $level = 2;
+            $ctm_class = "op_op_text_box_" . @$opOpId;
+            $currentOption = [];
+            $currentOption['op_op_id'] = $opOpId;
+            $currentOption['op_op_value'] = [];
+
+            $result['options'][] = $currentOption;
+        }
+
+
+        return $result;
+    }
 }
