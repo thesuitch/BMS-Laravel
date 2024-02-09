@@ -627,7 +627,7 @@ trait OrderTrait
             } elseif ($attribute->attribute_type == 2) {
 
                 $options = DB::table('attr_options')
-                    ->select('attr_options.*', 'product_attr_option.id','product_attr_option.product_id as product_id')
+                    ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id as product_id')
                     ->join('product_attr_option', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
                     ->where('product_attr_option.pro_attr_id', $attribute->id)
                     ->orderBy('attr_options.position', 'ASC')
@@ -651,7 +651,7 @@ trait OrderTrait
                         'value' => $op->id . '_' . $op->att_op_id,
                         'label' => $op->option_name,
                         'selected' => $sl1,
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id.'_'.$op->att_op_id, 1, $product_id, $pattern_id),
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                         'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price['price'], $height, $width, $height_fraction, $width_fraction)
                     ];
 
@@ -1067,22 +1067,23 @@ trait OrderTrait
                 ->toArray();
 
             $optionTypeArray = [
-                'input_hidden' => [
-                    'type' => 'hidden',
-                    'name' => 'op_op_value_' . $attributeId . '[]',
-                ],
+                // 'input_hidden' => [
+                //     'type' => 'hidden',
+                //     'name' => 'op_op_value_' . $attributeId . '[]',
+                // ],
 
-                'select' => [
+                // 'select' => [
                     'id' => 'op_' . $options->att_op_id,
                     'name' => 'op_op_id_' . $attributeId . '[]',
-                    'onChange' => 'OptionOptionsOption(this.value,' . $attributeId . ')',
+                    'type' => 'select',
                     'options' => [
                         [
                             'value' => '',
                             'label' => '--Select one--',
                         ],
                     ],
-                ],
+                    // 'subAttributes' => 'OptionOptionsOption(this.value,' . $attributeId . ')',
+                // ],
 
 
 
@@ -1090,6 +1091,7 @@ trait OrderTrait
 
             $selected_values = !empty($selected_option_type) ? explode('@', $selected_option_type) : [];
 
+            // dd($proAttOpId);
             foreach ($opops as $op_op) {
                 $val = $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id;
                 $selected = in_array($val, $selected_values) ? 'selected' : '';
@@ -1097,10 +1099,11 @@ trait OrderTrait
                     $selected = ($op_op->att_op_op_default == '1') ? 'selected' : '';
                 }
 
-                $optionTypeArray['select']['options'][] = [
+                $optionTypeArray['options'][] = [
                     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                     'label' => $op_op->op_op_name,
-                    // 'selected' => $selected,
+                    // 'subAttributes' => $op_op->op_op_id.'--'.$op_op->id.'--'.$attributeId.'--'.$mainPrice
+                    'subAttributes' => $this->get_product_attr_op_op_op($op_op->op_op_id, $op_op->id, $attributeId, $mainPrice),
                 ];
             }
 
@@ -1350,6 +1353,169 @@ trait OrderTrait
 
         return $output;
     }
+
+
+    public function get_product_attr_op_op_op($opOpId, $proAttOpOpId, $attributeId, $mainPrice, $selectedOptionTypeOpOp = '', $selectedOptionFifth = '')
+    {
+        $result = [];
+
+        $onKeyup = "checkTextboxUpcharge($(this))";
+        $level = 3;
+
+        $opop = DB::table('attr_options_option_tbl')->where('op_op_id', $opOpId)->first();
+
+        $productAttrData = DB::table('product_attr_option_option')
+            ->select('product_attr_option_option.*')
+            ->where('op_op_id', $opOpId)
+            ->join('products', 'products.id', '=', 'product_attr_option_option.product_id')
+            ->first();
+
+        $productData = DB::table('products')->where('id', $productAttrData->product_id)->first();
+        $categoryId = $productData->category_id;
+
+        $fractionOption = [];
+        if ($categoryId != '') {
+            $hw1 = DB::table('categories')->select('fractions')->where('id', $categoryId)->first();
+            $fracs1 = $hw1->fractions;
+            $fracs = explode(",", $fracs1);
+            $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
+            foreach ($hw2 as $row) {
+                if (in_array($row->fraction_value, $fracs)) {
+                    $fractionOption[] = ['value' => $row->id, 'label' => $row->fraction_value];
+                }
+            }
+            unset($hw2);
+        }
+
+        $q = '';
+
+        if ($opop->att_op_op_price_type == 1) {
+            $priceTotal = $mainPrice + @$opop->att_op_op_price;
+            $contributionPrice = (!empty($opop->att_op_op_price) ? $opop->att_op_op_price : 0);
+            // $result['contributionPrice'] = $contributionPrice;
+        } else {
+            if (isset($productAttrData->product_id)) {
+                $costFactorData = $this->Common_wholesaler_to_retailer_commission($productAttrData->product_id);
+                $costFactorRate = $costFactorData['dealer_price'];
+            } else {
+                $costFactorRate = 1;
+            }
+            $priceTotal = ($mainPrice * $costFactorRate * @$opop->att_op_op_price) / 100;
+            $contributionPrice = (!empty($priceTotal) ? $priceTotal : 0);
+            $result['contributionPrice'] = $contributionPrice;
+        }
+
+        if ($opop->type == 4) {
+            // $options = [];
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            // dd($opopop);
+            foreach ($opopop as $op_op_op) {
+
+                if ($op_op_op->att_op_op_op_type == 2) {
+                    $opopopops = DB::table('attr_op_op_op_op_tbl')
+                        ->where('attribute_id', $attributeId)
+                        ->where('op_op_op_id', $op_op_op->att_op_op_op_id)
+                        ->orderBy('att_op_op_op_op_position', 'ASC')
+                        ->get();
+
+                    $result[] = [
+                        'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'select',
+                        'label' => $op_op_op->att_op_op_op_name,
+
+                    ];
+
+                    foreach ($opopopops as $key => $opopopopsvalue) {
+                        $result[0]['option'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
+                    }
+                } elseif ($op_op_op->att_op_op_op_type == 5) {
+
+                    $result[]  = [
+                        'label' => $op_op_op->att_op_op_op_name,
+                        'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'input_with_select',
+                        'input' => [
+                            'upcharge' => 'upcharge',
+                        ],
+                        'select' => [
+                            'onchange' => 'checkTextboxUpcharge()',
+                            'options' =>  $fractionOption,
+                        ]
+
+                    ];
+                } elseif ($op_op_op->att_op_op_op_type == 1) {
+                    $result[] = [
+                        'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                        'type' => 'text',
+                        'label' => $op_op_op->att_op_op_op_name
+                    ];
+                }
+            }
+            unset($opopop);
+        } elseif ($opop->type == 3) {
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            foreach ($opopop as $op_op_op) {
+                $result[] = [
+                    'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                    'type' => 'input',
+                    'label' => $op_op_op->att_op_op_op_name
+                ];
+            }
+
+
+            unset($opopop);
+        } elseif ($opop->type == 2) {
+            $opopop = DB::table('product_attr_option_option_option')
+                ->select('product_attr_option_option_option.id', 'attr_options_option_option_tbl.*', 'product_attr_option_option_option.product_id')
+                ->join('attr_options_option_option_tbl', 'attr_options_option_option_tbl.att_op_op_op_id', '=', 'product_attr_option_option_option.op_op_op_id')
+                ->where('product_attr_option_option_option.attribute_id', $attributeId)
+                ->where('product_attr_option_option_option.pro_att_op_op_id', $proAttOpOpId)
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
+                ->orderBy('attr_options_option_option_tbl.att_op_op_op_id', 'ASC')
+                ->get();
+
+            foreach ($opopop as $op_op_op) {
+                $result[] = [
+                    'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                    'type' => 'input',
+                    'label' => $op_op_op->att_op_op_op_name
+                ];
+            }
+
+            unset($opopop);
+        } elseif ($opop->type == 1) {
+            $ctm_class = "op_op_text_box_" . $opOpId;
+            $result[] = [
+                'opOpId' => $opOpId,
+                'type' => 'input',
+                'class' => $ctm_class,
+                'level' => $level
+            ];
+        }
+
+        return $result;
+    }
+
+
+
+
+
     // get Attributes end
 
 
@@ -1938,38 +2104,6 @@ trait OrderTrait
             // ... (same as the provided PHP code for height and width not greater than or equal to 0)
         }
     }
-
-
-
-
-
-    // public function convert_formula_to_value($formula)
-    // {
-
-    //     // For Even Formula condition : START
-    //     $is_even = '';
-    //     if (strpos($formula, 'custom_round_even') !== false) {
-    //         $formula = str_replace('custom_round_even', 'ceil', $formula);
-    //         $is_even = 1;
-    //     }
-    //     // For Even Formula condition : END
-
-    //     try {
-    //         $result = @eval('return ' . $formula . ';');
-    //     } catch (Exception $e) {
-    //         $result = 0;
-    //     } catch (ErrorException $e) {
-    //         $result = 0;
-    //     } catch (ParseError $e) {
-    //         // Invalid Formula
-    //         $result = 0;
-    //     }
-
-    //     if (trim($result) == 'INF') {
-    //         // Divide by Zero
-    //         $result = 0;
-    //     }
-    // }
 
 
     public function convert_formula_to_value($formula)
