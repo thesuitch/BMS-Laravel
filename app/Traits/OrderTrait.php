@@ -1073,16 +1073,16 @@ trait OrderTrait
                 // ],
 
                 // 'select' => [
-                    'id' => 'op_' . $options->att_op_id,
-                    'name' => 'op_op_id_' . $attributeId . '[]',
-                    'type' => 'select',
-                    'options' => [
-                        [
-                            'value' => '',
-                            'label' => '--Select one--',
-                        ],
+                'id' => 'op_' . $options->att_op_id,
+                'name' => 'op_op_id_' . $attributeId . '[]',
+                'type' => 'select',
+                'options' => [
+                    [
+                        'value' => '',
+                        'label' => '--Select one--',
                     ],
-                    // 'subAttributes' => 'OptionOptionsOption(this.value,' . $attributeId . ')',
+                ],
+                // 'subAttributes' => 'OptionOptionsOption(this.value,' . $attributeId . ')',
                 // ],
 
 
@@ -1443,10 +1443,10 @@ trait OrderTrait
                         'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
                         'type' => 'input_with_select',
                         'input' => [
-                            'upcharge' => 'upcharge',
+                            'upcharge' => 'checkTextboxUpcharge',
                         ],
                         'select' => [
-                            'onchange' => 'checkTextboxUpcharge()',
+                            'upcharge' => 'checkTextboxUpcharge()',
                             'options' =>  $fractionOption,
                         ]
 
