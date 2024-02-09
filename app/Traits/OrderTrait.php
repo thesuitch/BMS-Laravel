@@ -1047,7 +1047,7 @@ trait OrderTrait
 
                     'label' =>  $op_op->op_op_name,
                     // 'input' => [
-                        'type' => 'text',
+                        'type' => 'input',
                         'data-level' => $level,
                         'data-attr-id' => $op_op->op_op_id,
                         'onkeyup' => $onKeyup,
