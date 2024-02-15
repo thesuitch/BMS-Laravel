@@ -371,6 +371,7 @@ trait OrderTrait
 
             $result = [
                 'label' => $pattern_label,
+                "type" => "select",
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
                     // ['value' => '0', 'label' => 'Manual Entry', 'selected' => $user_detail->enable_fabric_manual_entry == 1],
@@ -382,7 +383,7 @@ trait OrderTrait
                     'value' => $pattern->pattern_model_id,
                     'label' => $pattern->pattern_name,
                     'selected' => $pattern->default == '1',
-                    'colors' => $this->getColorModel($product_id, $pattern->pattern_model_id)
+                    'subAttributes' => $this->getColorModel($product_id, $pattern->pattern_model_id)
                 ];
             });
 
@@ -466,11 +467,14 @@ trait OrderTrait
             $category_idd = $product_color_data->category_id;
             $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
             $color_label =  $custom_label->order_color_label;
-
-            $result[] = [
+            $result = [
                 'label' => $color_label,
-                'onChange' => 'getColorCode(this.value)',
-
+                'type'  => 'input_with_select',
+                // '' => 
+            ];
+            $result['select'] = [
+                
+                'onChange' => 'getColorCode',
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
                     ['value' => '0', 'label' => 'Manual Entry', 'selected' => @$user_detail->enable_color_manual_entry == 1],
@@ -478,7 +482,7 @@ trait OrderTrait
             ];
 
             foreach ($colors as $color) {
-                $result[0]['options'][] = [
+                $result['select']['options'][] = [
                     'value' => $color->id,
                     'label' => $color->color_name,
                     'selected' => $color->default == '1',
@@ -486,13 +490,10 @@ trait OrderTrait
                 ];
             }
 
-            $result[] = [
-                'type' => 'input',
-                'onKeyup' => 'getColorCode_select(this.value)',
+            $result['input'] = [
+                'onKeyup' => 'getColorCode_select',
                 'placeholder' => $color_label . ' Code',
             ];
-
-
 
             return $result;
         } catch (\Exception $e) {
