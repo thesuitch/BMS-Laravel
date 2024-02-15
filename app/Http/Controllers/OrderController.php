@@ -37,7 +37,7 @@ class OrderController extends Controller
 
             $categories = Category::with([
                 'products' => function ($query) {
-                    $query->select('id', 'category_id', 'product_name', 'default');
+                    $query->select('id', 'category_id', 'product_name', 'default','hide_height_width','hide_pattern','hide_room');
                 }
             ])
                 ->select('id', 'category_name')
@@ -99,9 +99,18 @@ class OrderController extends Controller
     {
         try {
 
-            $data = [
 
+            $height = request()->get('height');
+            $width = request()->get('width');
+            $height_fraction = request()->get('height_fraction');
+            $width_fraction = request()->get('width_fraction');
+            $pattern_id = request()->get('pattern_id');
+            $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id , $width_fraction , $height_fraction);
+
+            // dd($main_price);
+            $data = [
                 'patterns' => $this->getColorPartanModel($product_id),
+                'main_price' =>  $main_price ,
                 'attributes' => $this->getProductToAttribute($product_id)
             ];
 
