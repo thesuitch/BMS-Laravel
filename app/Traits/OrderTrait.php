@@ -301,6 +301,8 @@ trait OrderTrait
             ->where('created_by', $createdBy)
             ->first();
 
+            // dd($defaultLabelData);
+
         return $this->fillMissingLabels($defaultLabelData);
     }
 
@@ -321,7 +323,8 @@ trait OrderTrait
 
         foreach ($labels as $label) {
             if (!isset($data->$label) || $data->$label == '') {
-                $data->$label = $defaultLabelData->$label ?? config('constants.DEFAULT_' . strtoupper($label) . '_LABEL');
+                // $data->$label = $defaultLabelData->$label ?? config('constants.DEFAULT_' . strtoupper($label) . '_LABEL');
+                $data->$label = $defaultLabelData->$label ?? 'ss';
             }
         }
 
@@ -369,7 +372,7 @@ trait OrderTrait
             $pattern_label =  $custom_label->order_pattern_label;
             // $pattern_label = 'pattern';
 
-            $result = [
+            $result[] = [
                 'label' => $pattern_label,
                 "type" => "select",
                 'options' => [
@@ -379,7 +382,7 @@ trait OrderTrait
             ];
 
             $pattern_models->each(function ($pattern) use (&$result, $product_id) {
-                $result['options'][] = [
+                $result[0]['options'][] = [
                     'value' => $pattern->pattern_model_id,
                     'label' => $pattern->pattern_name,
                     'selected' => $pattern->default == '1',
@@ -469,11 +472,10 @@ trait OrderTrait
             $color_label =  $custom_label->order_color_label;
             $result = [
                 'label' => $color_label,
-                'type'  => 'input_with_select',
+                'type'  => 'select_with_input',
                 // '' => 
             ];
             $result['select'] = [
-                
                 'onChange' => 'getColorCode',
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
@@ -522,7 +524,7 @@ trait OrderTrait
         // dd($width_fraction);
         $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
 
-        // print_r($main_price['price']);
+        // print_r($main_price);
         //  exit;
         $result = [];
 
@@ -603,7 +605,7 @@ trait OrderTrait
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'attribute_id' => $attribute->attribute_id,
+                    'name' => $attribute->attribute_id,
                     'options' => [],
                 ];
 
@@ -653,7 +655,7 @@ trait OrderTrait
                 // dd($attribute->id);
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'attribute_id' => $attribute->attribute_id,
+                    'name' => 'attribute_'.$attribute->attribute_id,
                     'type' => 'select',
                     'options' => [],
                 ];
@@ -667,9 +669,9 @@ trait OrderTrait
                         'value' => $op->id . '_' . $op->att_op_id,
                         'label' => $op->option_name,
                         'selected' => $sl1,
-                        'contribute_price' => $this->contributePrice($op->id,  $main_price['price']),
+                        'contribute_price' => $this->contributePrice($op->id,  $main_price),
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
-                        'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price['price'], $height, $width, $height_fraction, $width_fraction)
+                        'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price, $height, $width, $height_fraction, $width_fraction)
                     ];
 
                     $attributeData['options'][] = $optionData;
@@ -680,20 +682,18 @@ trait OrderTrait
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'attribute_id' => $attribute->attribute_id,
+                    'name' => 'attribute_'.$attribute->attribute_id,
+                    'type' => 'input_with_select'
                 ];
                 $attributeData['input'] = [
-                    'type' => 'input',
-                    'name' => 'attribute_value[]',
-                    'onkeyup' => 'checkTextboxUpcharge()',
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attribute->id . '_' . $attribute->attribute_id, 1, $product_id, $pattern_id),
                 ];
 
                 $attributeData['select'] = [
-                    'name ' => "fraction_" . $attribute->attribute_id . "[]",
                     'options' => $fraction_option,
                 ];
-
                 $result[] = $attributeData;
+                
             } elseif ($attribute->attribute_type == 1) {
                 $ctm_class = "text_box_" . $attribute->attribute_id;
                 $level = 0;
@@ -1883,8 +1883,9 @@ trait OrderTrait
 
 
 
-                $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
-                return response()->json($arr);
+                return $price;
+                // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
+                // return response()->json($arr);
             } else {
 
 
@@ -2140,7 +2141,7 @@ trait OrderTrait
                     "height" => @$height_final_formula
                 );
                 $arr = array('st' => $st, 'row' => $row, 'col' => $col, 'price' => $price, "area" => $s_area, "formula" => $formula);
-                return $arr;
+                return $price;
 
                 // ... (continue with the remaining cases)
             }
@@ -2162,8 +2163,10 @@ trait OrderTrait
                 $st = 1;
                 $price = 0;
             }
-            $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
-            return $arr;
+
+            return $price; 
+            // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
+            // return $arr;
 
             // ... (same as the provided PHP code for height and width not greater than or equal to 0)
         }
