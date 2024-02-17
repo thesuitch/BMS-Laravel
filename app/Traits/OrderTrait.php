@@ -655,7 +655,7 @@ trait OrderTrait
                 // dd($attribute->id);
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'name' => 'attribute_'.$attribute->attribute_id,
+                    'name' => 'op_id_'.$attribute->attribute_id,
                     'type' => 'select',
                     'options' => [],
                 ];
@@ -682,7 +682,7 @@ trait OrderTrait
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'name' => 'attribute_'.$attribute->attribute_id,
+                    'name' => 'op_id_'.$attribute->attribute_id,
                     'type' => 'input_with_select'
                 ];
                 $attributeData['input'] = [
@@ -841,7 +841,7 @@ trait OrderTrait
             foreach ($opops as $kk => $op_op) {
                 $optionArray = [
                     'label' => $op_op->op_op_name,
-                    'op_op_id' => $op_op->op_op_id,
+                    'name' => 'op_op_id_'.$op_op->op_op_id,
                     'id' => $op_op->id,
                     'att_op_id' => $options->att_op_id,
                     // 'contiprice' => $contribution_price,
@@ -908,9 +908,9 @@ trait OrderTrait
 
                 $optionsArray[] = [
                     'label' => $op_op->op_op_name,
-                    'op_op_id' => $op_op->op_op_id,
-                    'id' => $op_op->id,
-                    'att_op_id' => $options->att_op_id,
+                    'name' => 'op_op_id_'.$op_op->op_op_id,
+                    'op_op_id_'.$attributeId => $op_op->op_op_id.'_'.$op_op->id.'_'.$op_op->option_id,
+                    // 'att_op_id' => $options->att_op_id,
                 ];
 
                 if ($op_op->type == 2) {
@@ -1070,8 +1070,8 @@ trait OrderTrait
                 ->toArray();
 
             $optionTypeArray = [
-                'id' => 'op_' . $options->att_op_id,
-                'name' => 'op_op_id_' . $attributeId . '[]',
+                // 'id' => 'op_' . $options->att_op_id,
+                'name' => 'op_op_id_' . $attributeId,
                 'type' => 'select',
                 'options' => [
                     [
@@ -1464,7 +1464,7 @@ trait OrderTrait
                 ->get();
 
             // dd($opopop);
-            foreach ($opopop as $op_op_op) {
+            foreach ($opopop as $op_op_op_key =>  $op_op_op) {
 
                 if ($op_op_op->att_op_op_op_type == 2) {
                     $opopopops = DB::table('attr_op_op_op_op_tbl')
@@ -1472,22 +1472,25 @@ trait OrderTrait
                         ->where('op_op_op_id', $op_op_op->att_op_op_op_id)
                         ->orderBy('att_op_op_op_op_position', 'ASC')
                         ->get();
+                    //    dd($opopopops->toSql());
 
                     $result[] = [
-                        'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
-                        'type' => 'select',
+                        'name' => 'op_op_op_id_'.$op_op_op->att_op_op_op_id,
+                        'op_op_op_id_'.$op_op_op->attribute_id => $op_op_op->att_op_op_op_id.'_'.$op_op_op->att_op_op_id,
+                        'type' => 'selectff',
                         'label' => $op_op_op->att_op_op_op_name,
 
                     ];
 
                     foreach ($opopopops as $key => $opopopopsvalue) {
-                        $result[0]['options'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
+                        $result[$op_op_op_key]['options'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id.'_'.$opopopopsvalue->attribute_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
                     }
                 } elseif ($op_op_op->att_op_op_op_type == 5) {
 
                     $result[]  = [
                         'label' => $op_op_op->att_op_op_op_name,
-                        'att_op_op_op_id' => $op_op_op->att_op_op_op_id,
+                        'name' => 'op_op_op_id_'.$op_op_op->att_op_op_op_id,
+                        'op_op_op_id_'.$op_op_op->attribute_id => $op_op_op->att_op_op_op_id.'_'.$op_op_op->att_op_op_id,
                         'type' => 'input_with_select',
                         'input' => [
                             'upcharge' => 'checkTextboxUpcharge',
