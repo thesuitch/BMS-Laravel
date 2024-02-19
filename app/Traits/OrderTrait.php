@@ -1477,7 +1477,7 @@ trait OrderTrait
                     $result[] = [
                         'name' => 'op_op_op_id_'.$op_op_op->att_op_op_op_id,
                         'op_op_op_id_'.$op_op_op->attribute_id => $op_op_op->att_op_op_op_id.'_'.$op_op_op->att_op_op_id,
-                        'type' => 'selectff',
+                        'type' => 'select',
                         'label' => $op_op_op->att_op_op_op_name,
 
                     ];
