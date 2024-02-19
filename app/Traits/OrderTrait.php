@@ -470,12 +470,12 @@ trait OrderTrait
             $category_idd = $product_color_data->category_id;
             $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
             $color_label =  $custom_label->order_color_label;
-            $result = [
+            $result[0] = [
                 'label' => $color_label,
                 'type'  => 'select_with_input',
                 // '' => 
             ];
-            $result['select'] = [
+            $result[0]['select'] = [
                 'onChange' => 'getColorCode',
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
@@ -484,7 +484,7 @@ trait OrderTrait
             ];
 
             foreach ($colors as $color) {
-                $result['select']['options'][] = [
+                $result[0]['select']['options'][] = [
                     'value' => $color->id,
                     'label' => $color->color_name,
                     'selected' => $color->default == '1',
@@ -492,7 +492,7 @@ trait OrderTrait
                 ];
             }
 
-            $result['input'] = [
+            $result[0]['input'] = [
                 'onKeyup' => 'getColorCode_select',
                 'placeholder' => $color_label . ' Code',
             ];
