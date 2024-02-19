@@ -375,6 +375,7 @@ trait OrderTrait
             $result[] = [
                 'label' => $pattern_label,
                 "type" => "select",
+                "name" => "pattern",
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
                     // ['value' => '0', 'label' => 'Manual Entry', 'selected' => $user_detail->enable_fabric_manual_entry == 1],
@@ -473,7 +474,7 @@ trait OrderTrait
             $result[0] = [
                 'label' => $color_label,
                 'type'  => 'select_with_input',
-                // '' => 
+                'name' => "color" 
             ];
             $result[0]['select'] = [
                 'onChange' => 'getColorCode',
