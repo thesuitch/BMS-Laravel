@@ -32,6 +32,10 @@ Route::middleware('auth:api')->group(function () {
 
         Route::get('calculate/{upConditionHeight}/{upConditionHeightFraction}/{upConditionWidth}/{upConditionWidthFraction}/{upAttributeId}/{upLevel}/{productId}/{patternId}',  'calculateUpCondition');
         Route::get('price/{height}/{width}/{product_id}/{pattern_id}/{product_type}',  'getProductRowColPrice');
+
+        Route::post('store', 'store');
+
+
     });
 
     // Customer
