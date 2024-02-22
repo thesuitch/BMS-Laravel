@@ -301,7 +301,7 @@ trait OrderTrait
             ->where('created_by', $createdBy)
             ->first();
 
-            // dd($defaultLabelData);
+        // dd($defaultLabelData);
 
         return $this->fillMissingLabels($defaultLabelData);
     }
@@ -474,7 +474,7 @@ trait OrderTrait
             $result[0] = [
                 'label' => $color_label,
                 'type'  => 'select_with_input',
-                'name' => "color" 
+                'name' => "color"
             ];
             $result[0]['select'] = [
                 'onChange' => 'getColorCode',
@@ -536,7 +536,7 @@ trait OrderTrait
         // $result[]['main_pricea'] = $main_price;
 
 
-        $onKeyup = "checkTextboxUpcha   rge()";
+        // $onKeyup = "checkTextboxUpcha   rge()";
         $level = 1;
 
         $attributes = DB::table('product_attribute')
@@ -583,13 +583,13 @@ trait OrderTrait
         }
 
         if (!empty($p->price_style_type) && $p->price_style_type == 3) {
-            $result['pricestyle'] = $p->price_style_type;
-            $result['main_price'] = $p->fixed_price;
+            // $result['pricestyle'] = $p->price_style_type;
+            // $result['main_price'] = $p->fixed_price;
             $main_price = $p->fixed_price;
         } elseif (!empty($p->price_style_type) && $p->price_style_type == 2) {
-            $result['pricestyle'] = $p->price_style_type;
-            $result['sqr_price'] = $p->sqft_price;
-            $result['main_price'] = $p->sqft_price;
+            // $result['pricestyle'] = $p->price_style_type;
+            // $result['sqr_price'] = $p->sqft_price;
+            // $result['main_price'] = $p->sqft_price;
             $main_price = $p->sqft_price;
         }
 
@@ -607,6 +607,7 @@ trait OrderTrait
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => $attribute->attribute_id,
+                    'type' => 'select',
                     'options' => [],
                 ];
 
@@ -624,9 +625,9 @@ trait OrderTrait
 
                     $optionData = [
                         'label' => $op->op_op_name,
-                        'op_id' => $op->id . '_' . $op->att_op_id,
-                        'attr_id' => $op->att_op_id,
-                        'onkeyup' => $onKeyup,
+                        'value' => $op->id . '_' . $op->att_op_id,
+                        'attr_id' => $height . '' . $height_fraction . '' . $width . '' . $width_fraction . '' . $op->id . '_' . $op->att_op_id . '1' . $product_id . '' . $pattern_id,
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                     ];
 
                     $attributeData['options'][] = $optionData;
@@ -656,7 +657,7 @@ trait OrderTrait
                 // dd($attribute->id);
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'name' => 'op_id_'.$attribute->attribute_id,
+                    'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'select',
                     'options' => [],
                 ];
@@ -672,7 +673,7 @@ trait OrderTrait
                         'selected' => $sl1,
                         'contribute_price' => $this->contributePrice($op->id,  $main_price),
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
-                        'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price, $height, $width, $height_fraction, $width_fraction)
+                        'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price, $height, $width, $height_fraction, $width_fraction, $pattern_id)
                     ];
 
                     $attributeData['options'][] = $optionData;
@@ -683,7 +684,7 @@ trait OrderTrait
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'name' => 'op_id_'.$attribute->attribute_id,
+                    'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'input_with_select'
                 ];
                 $attributeData['input'] = [
@@ -694,7 +695,6 @@ trait OrderTrait
                     'options' => $fraction_option,
                 ];
                 $result[] = $attributeData;
-                
             } elseif ($attribute->attribute_type == 1) {
                 $ctm_class = "text_box_" . $attribute->attribute_id;
                 $level = 0;
@@ -702,9 +702,9 @@ trait OrderTrait
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
-                    'attribute_id' => $attribute->attribute_id,
+                    'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'input',
-                    'onkeyup' => $onKeyup,
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attribute->id . '_' . $attribute->attribute_id, 1, $product_id, $pattern_id),
                 ];
 
                 $result[] = $attributeData;
@@ -750,11 +750,8 @@ trait OrderTrait
 
         return $contribution_price;
     }
-    public function getProductAttrOptionOption($proAttOpId, $attributeId, $mainPrice, $height = 0, $width = 0, $height_fraction = 0, $width_fraction = 0, $individualCostFactor = 0, $selectedMultiOption = '')
+    public function getProductAttrOptionOption($proAttOpId, $attributeId, $mainPrice, $height = 0, $width = 0, $height_fraction = 0, $width_fraction = 0,  $pattern_id, $individualCostFactor = 0, $selectedMultiOption = '')
     {
-
-        $onKeyup = "checkTextboxUpcharge()";
-        $level = 2;
 
         $options = DB::table('product_attr_option')
             ->select('attr_options.*', 'product_attr_option.product_id', 'product_attr_option.id as adddd')
@@ -804,12 +801,7 @@ trait OrderTrait
             }
         }
 
-
-
-
         // $optionsArray[] = ['contiprice' => $contribution_price];
-
-
         if ($options->option_type == 5) {
             // Text + Fraction
             $opops = DB::table('attr_options_option_tbl')
@@ -842,9 +834,9 @@ trait OrderTrait
             foreach ($opops as $kk => $op_op) {
                 $optionArray = [
                     'label' => $op_op->op_op_name,
-                    'name' => 'op_op_id_'.$op_op->op_op_id,
-                    'id' => $op_op->id,
-                    'att_op_id' => $options->att_op_id,
+                    'name' => 'op_op_id_' . $op_op->op_op_id,
+                    // 'id' => $op_op->id,
+                    // 'att_op_id' => $options->att_op_id,
                     // 'contiprice' => $contribution_price,
                     'type' => 'input_with_select',
 
@@ -852,23 +844,23 @@ trait OrderTrait
 
                 if ($op_op->op_op_name == "Divider Rail  #1" || $op_op->op_op_name == "Divider Rail  #2") {
                     $optionArray['input'] = [
-                        'name' => 'op_op_value_' . $attributeId . '[]',
-                        'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attributeId, 1, $options->product_id, 2512),
+                        // 'name' => 'op_op_value_' . $attributeId . '[]',
+                        // 'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
                     ];
                 } else {
                     $optionArray['input'] = [
 
-                        'name' => 'op_op_value_' . $attributeId . '[]',
-                        'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attributeId, 1, $options->product_id, 2512),
+                        // 'name' => 'op_op_value_' . $attributeId . '[]',
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
 
                     ];
                 }
 
                 $optionArray['select'] = [
-                    'name' => 'fraction_' . $attributeId . '[]',
-                    'upcharge' => 'checkTextboxUpcharge()',
+                    // 'name' => 'fraction_' . $attributeId . '[]',
+                    // 'upcharge' => 'checkTextboxUpcharge()',
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
                     'options' => [
                         [
                             'value' => '',
@@ -883,7 +875,7 @@ trait OrderTrait
                     ],
                 ];
                 $optionsArray[] = $optionArray;
-                $optionsArray[count($optionsArray) - 1]['contri_price'] = $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id);
+                // $optionsArray[count($optionsArray) - 1]['contri_price'] = $this->contriPrice($op_op->att_op_op_price_type, $op_op->att_op_op_price, $mainPrice, $op_op->product_id);
             }
 
             unset($opops);
@@ -909,8 +901,8 @@ trait OrderTrait
 
                 $optionsArray[] = [
                     'label' => $op_op->op_op_name,
-                    'name' => 'op_op_id_'.$op_op->op_op_id,
-                    'op_op_id_'.$attributeId => $op_op->op_op_id.'_'.$op_op->id.'_'.$op_op->option_id,
+                    'name' => 'op_op_id_' . $op_op->op_op_id,
+                    'op_op_id_' . $attributeId => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
                     // 'att_op_id' => $options->att_op_id,
                 ];
 
@@ -1094,7 +1086,7 @@ trait OrderTrait
                 $optionTypeArray['options'][] = [
                     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                     'label' => $op_op->op_op_name,
-                    'subAttributes' => $this->get_product_attr_op_op_op($op_op->op_op_id, $op_op->id, $attributeId, $mainPrice),
+                    'subAttributes' => $this->get_product_attr_op_op_op($op_op->op_op_id, $op_op->id, $attributeId, $mainPrice, $height, $width, $height_fraction, $width_fraction, $pattern_id),
                 ];
             }
 
@@ -1112,17 +1104,14 @@ trait OrderTrait
                 ->get();
 
             foreach ($opops as $op_op) {
-                $ctm_class = "op_op_text_box_" . $op_op->op_op_id;
 
                 $optionArray = [
 
                     'label' =>  $op_op->op_op_name,
-                    // 'input' => [
                     'type' => 'input',
-                    'data-level' => $level,
-                    'data-attr-id' => $op_op->op_op_id,
-                    'onkeyup' => $onKeyup,
-                    'name' => 'op_op_value_' . $attributeId . '[]',
+                    'name' => 'op_op_id_' . $op_op->op_op_id,
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+
                     // 'class' => 'form-control cls_text_op_op_value ' . $ctm_class,
                     // 'required' => true,
                     // 'data-attr-name' => $op_op->op_op_name,
@@ -1166,19 +1155,16 @@ trait OrderTrait
                 ->get();
 
             $optionArray = [
-                'input_hidden' => [
-                    'type' => 'hidden',
-                    'name' => 'op_op_value_' . $attributeId . '[]',
-                ],
+                
 
-                'select' => [
+                // 'select' => [
                     'id' => 'op_' . $options->att_op_id,
-                    'name' => 'op_op_id_' . $attributeId . '[]',
-                    'onChange' => 'MultiOptionOptionsOption(this,' . $attributeId . ')',
-                    'data-placeholder' => '-- Select pattern/model --',
-                    'multiple' => true,
-                    'elements' => [],
-                ],
+                    'name' => 'op_op_id_' . $attributeId,
+                    // 'onChange' => 'MultiOptionOptionsOption(this,' . $attributeId . ')',
+                    // 'data-placeholder' => '-- Select pattern/model --',
+                    // 'multiple' => true,
+                    // 'elements' => [],
+                // ],
 
 
             ];
@@ -1188,29 +1174,17 @@ trait OrderTrait
                 $optionArray['options'][] = [
                     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                     'selected' => $selected,
-                    'text' => $op_op->op_op_name,
+                    'label' => $op_op->op_op_name,
                 ];
             }
 
             $optionsArray[] = $optionArray;
         } elseif ($options->option_type == 1) {
-            $ctm_class = "op_text_box_" . $options->att_op_id;
-            $level = 1;
 
             $optionArray = [
-                // 'input_hidden' => [
-                //     'type' => 'hidden',
-                //     'value' => $options->att_op_id,
-                //     'name' => 'op_id_' . $attributeId . '[]',
-                // ],
-
-                // 'input_text' => [
                 'type' => 'input',
-                'data-level' => $level,
-                'data-attr-id' => @$options->att_op_id,
-                'onkeyup' => $onKeyup,
-                'name' => 'op_value_' . $attributeId . '[]',
-                // ]
+                'name' => 'op_op_id_' . $options->att_op_id,
+                'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $options->att_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
             ];
 
 
@@ -1311,7 +1285,7 @@ trait OrderTrait
                 ];
             }
         } elseif ($opopopop->att_op_op_op_type == 1) {
-            $onKeyup = "checkTextboxUpcharge()";
+            // $onKeyup = "checkTextboxUpcharge()";
             $level = 3;
 
             $output[] =
@@ -1320,7 +1294,7 @@ trait OrderTrait
                     'value' => $op_op_op_id,
                     'name' => "op_op_value_' . $attribute_id . '[]",
                     'data-level' =>  $level,
-                    'onkeyup' => $onKeyup
+                    // 'onkeyup' => $onKeyup
                 ];
         } else {
 
@@ -1403,11 +1377,11 @@ trait OrderTrait
 
 
 
-    public function get_product_attr_op_op_op($opOpId, $proAttOpOpId, $attributeId, $mainPrice, $selectedOptionTypeOpOp = '', $selectedOptionFifth = '')
+    public function get_product_attr_op_op_op($opOpId, $proAttOpOpId, $attributeId, $mainPrice, $height, $width, $height_fraction, $width_fraction, $selectedOptionTypeOpOp = '', $selectedOptionFifth = '')
     {
         $result = [];
 
-        $onKeyup = "checkTextboxUpcharge($(this))";
+        // $onKeyup = "checkTextboxUpcharge($(this))";
         $level = 3;
 
         $opop = DB::table('attr_options_option_tbl')->where('op_op_id', $opOpId)->first();
@@ -1476,24 +1450,26 @@ trait OrderTrait
                     //    dd($opopopops->toSql());
 
                     $result[] = [
-                        'name' => 'op_op_op_id_'.$op_op_op->att_op_op_op_id,
-                        'op_op_op_id_'.$op_op_op->attribute_id => $op_op_op->att_op_op_op_id.'_'.$op_op_op->att_op_op_id,
+                        'name' => 'op_op_op_id_' . $op_op_op->att_op_op_op_id,
+                        'op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
                         'type' => 'select',
                         'label' => $op_op_op->att_op_op_op_name,
 
                     ];
 
                     foreach ($opopopops as $key => $opopopopsvalue) {
-                        $result[$op_op_op_key]['options'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id.'_'.$opopopopsvalue->attribute_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
+                        $result[$op_op_op_key]['options'][] = ['value' => $opopopopsvalue->att_op_op_op_op_id . '_' . $opopopopsvalue->attribute_id, 'label' => $opopopopsvalue->att_op_op_op_op_name];
                     }
                 } elseif ($op_op_op->att_op_op_op_type == 5) {
 
                     $result[]  = [
                         'label' => $op_op_op->att_op_op_op_name,
-                        'name' => 'op_op_op_id_'.$op_op_op->att_op_op_op_id,
-                        'op_op_op_id_'.$op_op_op->attribute_id => $op_op_op->att_op_op_op_id.'_'.$op_op_op->att_op_op_id,
+                        'name' => 'op_op_op_id_' . $op_op_op->att_op_op_op_id,
+                        'op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
                         'type' => 'input_with_select',
                         'input' => [
+                            // 'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op_op->id . '_' . $op_op_op->att_op_id, 1, $productAttrData->product_id, $pattern_id),
+
                             'upcharge' => 'checkTextboxUpcharge',
                         ],
                         'select' => [
@@ -1894,7 +1870,7 @@ trait OrderTrait
 
 
                 $p = DB::table('products')->where('id', $product_id)->first();
-                // echo $p->price_style_type;
+                // dd($p->price_style_type);
                 // exit;
 
 
@@ -1937,6 +1913,7 @@ trait OrderTrait
                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 3) {
                     $price = $p->fixed_price;
                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 4) {
+                    // group price
                     $pg = DB::table('price_model_mapping_tbl')
                         ->where('product_id', $product_id)
                         ->where('pattern_id', $pattern_id)
@@ -1972,9 +1949,6 @@ trait OrderTrait
                     }
                     $sqm = ($sqm_area) * ($pc);
                     $price = $sqm;
-
-
-
 
                     $st = 2;
                     $s_area = $sqm_area;
@@ -2168,7 +2142,7 @@ trait OrderTrait
                 $price = 0;
             }
 
-            return $price; 
+            return $price;
             // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
             // return $arr;
 
