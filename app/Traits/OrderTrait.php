@@ -16,232 +16,6 @@ use ParseError;
 trait OrderTrait
 {
 
-    /* get order condition setings from company_profile table and user related data from user_info table*/
-    function getCompanyProfileOrderConditionSettings()
-    {
-        if (auth()->user()->is_admin == 1) {
-
-            $data = DB::table('user_info as ui')
-                ->join('company_profile as cp', 'cp.user_id', '=', 'ui.id')
-                ->select([
-                    'ui.*',
-                    'cp.display_color_price',
-                    'cp.display_upcharges',
-                    'cp.website_status',
-                    'cp.display_partial_upcharges',
-                    'cp.show_upcharge_breakup',
-                    'cp.display_list_price',
-                    'cp.display_category',
-                    'cp.display_qty',
-                    'cp.display_product_qty',
-                    'cp.display_product_price',
-                    'cp.display_room',
-                    'cp.display_discount',
-                    'cp.display_total',
-                    'cp.display_paid',
-                    'cp.display_due',
-                    'cp.display_attributes',
-                    'cp.display_controller',
-                    'cp.room_require',
-                    'cp.enable_order_qty',
-                    'cp.separate_qty_attribute_price',
-                    'cp.show_quote_status',
-                    'cp.drapery_template',
-                    'cp.drapery_template_category_id',
-                    'cp.is_hide_room',
-                    'cp.is_taxable',
-                    'cp.enable_customer_account_type',
-                    'cp.enable_shipping_zone',
-                    'cp.is_enable_terms_condition',
-                    'cp.terms_condition_text',
-                    'cp.is_enable_print_download_footer',
-                    'cp.print_download_footer_text',
-                    'cp.display_total_values',
-                    'cp.hide_extra_discount',
-                    'cp.hide_upcharge',
-                    'cp.show_misc',
-                    'cp.default_receive_payment',
-                    'cp.custom_receive_payment',
-                    'cp.show_wholesaler_cost_factor',
-                    'cp.show_room',
-                    'cp.product_base_tax',
-                    'cp.product_base_shipping',
-                    'cp.default_customer_account_type',
-                    'cp.display_hardware',
-                    'cp.display_fabric_price',
-                    'cp.display_upload_window_image',
-                    'cp.special_instructions',
-                    'cp.order_id_format',
-                    'cp.phase_2_ordering',
-                    'cp.phase_2_ordering_instruction',
-                    'cp.phase_2_display_category',
-                    'cp.enable_order_form_qty',
-                    'cp.enable_order_form_qty_category',
-                    'cp.enable_attribute_image',
-                    'cp.enable_fabric_manual_entry',
-                    'cp.enable_color_manual_entry',
-                    'cp.display_est_delivery_date',
-                    'cp.enable_edit_order_stage',
-                    'cp.is_enable_order_days_comments',
-                    'cp.is_enable_order_days_comments_text',
-                    'cp.terms_condition_order_days',
-                    'cp.customer_based_shipping',
-                    'cp.disable_different_shipping_address',
-                    'cp.other_popup_text',
-                    'cp.wholesaler_delivery_option',
-                    'cp.other_popup_message'
-                ])
-                ->where('ui.id', auth()->user()->id)
-                ->first();
-        } else {
-
-            $data = DB::table('user_info as ui')
-                ->join('company_profile as cp', 'cp.user_id', '=', 'ui.created_by')
-                ->select([
-                    'ui.*',
-                    'cp.display_color_price',
-                    'cp.display_upcharges',
-                    'cp.website_status',
-                    'cp.display_partial_upcharges',
-                    'cp.show_upcharge_breakup',
-                    'cp.display_list_price',
-                    'cp.display_category',
-                    'cp.display_qty',
-                    'cp.display_product_qty',
-                    'cp.display_product_price',
-                    'cp.display_room',
-                    'cp.display_discount',
-                    'cp.display_total',
-                    'cp.display_paid',
-                    'cp.display_due',
-                    'cp.display_attributes',
-                    'cp.display_controller',
-                    'cp.room_require',
-                    'cp.enable_order_qty',
-                    'cp.separate_qty_attribute_price',
-                    'cp.show_quote_status',
-                    'cp.drapery_template',
-                    'cp.drapery_template_category_id',
-                    'cp.is_hide_room',
-                    'cp.is_taxable',
-                    'cp.enable_customer_account_type',
-                    'cp.enable_shipping_zone',
-                    'cp.is_enable_terms_condition',
-                    'cp.terms_condition_text',
-                    'cp.is_enable_print_download_footer',
-                    'cp.print_download_footer_text',
-                    'cp.display_total_values',
-                    'cp.hide_extra_discount',
-                    'cp.hide_upcharge',
-                    'cp.show_misc',
-                    'cp.default_receive_payment',
-                    'cp.custom_receive_payment',
-                    'cp.show_wholesaler_cost_factor',
-                    'cp.show_room',
-                    'cp.product_base_tax',
-                    'cp.product_base_shipping',
-                    'cp.default_customer_account_type',
-                    'cp.display_hardware',
-                    'cp.display_fabric_price',
-                    'cp.display_upload_window_image',
-                    'cp.special_instructions',
-                    'cp.order_id_format',
-                    'cp.phase_2_ordering',
-                    'cp.phase_2_ordering_instruction',
-                    'cp.phase_2_display_category',
-                    'cp.enable_order_form_qty',
-                    'cp.enable_order_form_qty_category',
-                    'cp.enable_attribute_image',
-                    'cp.enable_fabric_manual_entry',
-                    'cp.enable_color_manual_entry',
-                    'cp.display_est_delivery_date',
-                    'cp.enable_edit_order_stage',
-                    'cp.is_enable_order_days_comments',
-                    'cp.is_enable_order_days_comments_text',
-                    'cp.terms_condition_order_days',
-                    'cp.customer_based_shipping',
-                    'cp.disable_different_shipping_address',
-                    'cp.other_popup_text',
-                    'cp.wholesaler_delivery_option',
-                    'cp.other_popup_message'
-                ])
-                ->where('ui.id', auth()->user()->id)
-                ->first();
-        }
-        return $data;
-    }
-
-    // get checkRetailerConnectToWholesaler start
-    public function checkRetailerConnectToWholesaler($userId)
-    {
-        // if retailer not connect with wholesaler then return data
-        $data = DB::table('user_info')
-            ->where('wholesaler_connection', 0)
-            ->where('id', $userId)
-            ->first();
-
-        return $data;
-    }
-    // get checkRetailerConnectToWholesaler end
-
-    // get commonWholesalerToRetailerCommission start
-    public function commonWholesalerToRetailerCommission($productId, $customerId = 0)
-    {
-        if ($customerId != 0) {
-
-            if (auth()->user()->user_type == 'c') {
-                // It means retailer
-                $userInfo = $this->checkRetailerConnectToWholesaler($this->user_id);
-
-                if (isset($userInfo->id) && $userInfo->id != '') {
-                    // If no wholesaler connected, get retailer's custom label
-                    $createdBy = auth()->user()->id;
-                } else {
-                    // If wholesaler connected, get wholesaler's custom label
-                    // $createdBy = session()->get('main_b_id');
-                    $createdBy = auth()->user()->id;
-                }
-            } else {
-
-                // It means wholesaler
-                if (auth()->user()->is_admin == 1) {
-                    $createdBy = auth()->user()->id;
-                } else {
-                    // It means wholesaler employee
-                    $createdBy = auth()->user()->userinfo->created_by;
-
-                    if (empty($createdBy)) {
-                        $createdBy = auth()->user()->id;
-                    }
-                }
-            }
-
-            $product = DB::table('b_cost_factor_tbl')
-                ->select('dealer_cost_factor', 'individual_cost_factor')
-                ->where('product_id', $productId)
-                ->where('customer_id', $customerId)
-                ->where('created_by', $createdBy)
-                ->first();
-
-            $commission = [];
-
-            if (!empty($product)) {
-                $commission = ['dealer_price' => $product->dealer_cost_factor, 'individual_price' => $product->individual_cost_factor];
-            } else {
-                $product = DB::table('products')
-                    ->select('dealer_price', 'individual_price')
-                    ->where('id', $productId)
-                    ->first();
-
-                $commission = ['dealer_price' => $product->dealer_price, 'individual_price' => $product->individual_price];
-            }
-        } else {
-            $commission = ['dealer_price' => 1, 'individual_price' => 0];
-        }
-
-        return $commission;
-    }
-    // get commonWholesalerToRetailerCommission end
 
     // get contribute Price start
     public function contriPrice($priceType, $optionPrice, $mainPrice, $productId = '0')
@@ -253,7 +27,7 @@ trait OrderTrait
             $contributionPrice = !empty($optionPrice) ? $optionPrice : 0;
         } else {
             // Calculation for other priceType
-            $costFactorData = $this->commonWholesalerToRetailerCommission($productId);
+            $costFactorData = commonWholesalerToRetailerCommission($productId);
             $costFactorRate = $costFactorData['dealer_price'];
             $contributionPrice = ($mainPrice * $costFactorRate * $optionPrice) / 100;
 
@@ -269,7 +43,7 @@ trait OrderTrait
     public function getCustomLabelUserwise($createdBy, $categoryId = 0)
     {
         if (auth()->user()->user_type == 'c') {
-            $userInfo = $this->checkRetailerConnectToWholesaler($createdBy);
+            $userInfo = checkRetailerConnectToWholesaler($createdBy);
             $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? $createdBy : auth()->user()->main_b_id;
         }
 
@@ -324,14 +98,13 @@ trait OrderTrait
         foreach ($labels as $label) {
             if (!isset($data->$label) || $data->$label == '') {
                 // $data->$label = $defaultLabelData->$label ?? config('constants.DEFAULT_' . strtoupper($label) . '_LABEL');
-                $data->$label = $defaultLabelData->$label ?? 'ss';
+                $data->$label  = $defaultLabelData->$label ?? 'ss';
             }
         }
 
         return $data;
     }
     // get custom label end
-
 
 
 
@@ -359,13 +132,13 @@ trait OrderTrait
 
 
             if (auth()->user()->user_type == 'c') {
-                $userInfo = $this->checkRetailerConnectToWholesaler(auth()->user()->id);
+                $userInfo = checkRetailerConnectToWholesaler(auth()->user()->id);
                 $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth()->user()->main_b_id : auth()->user()->level_id;
             } else {
                 $createdBy = auth()->user()->level_id;
             }
 
-            $user_detail = $this->getCompanyProfileOrderConditionSettings();
+            $user_detail = getCompanyProfileOrderConditionSettings();
 
             $category_idd = $product->category_id;
             $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
@@ -405,12 +178,12 @@ trait OrderTrait
 
             return $result;
         } catch (\Exception $e) {
-            return response()->json([
+            return [
                 'status' => 'error',
                 'code' => 404,
-                'message' => 'Data not found ' . $e->getMessage(),
+                'message' => 'Data not found ',
                 'data' => []
-            ], 404);
+            ];
         }
     }
 
@@ -460,14 +233,14 @@ trait OrderTrait
 
 
             if (auth()->user()->user_type == 'c') {
-                $userInfo = $this->checkRetailerConnectToWholesaler(auth()->user()->id);
+                $userInfo = checkRetailerConnectToWholesaler(auth()->user()->id);
                 $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth()->user()->main_b_id : auth()->user()->level_id;
             } else {
                 $createdBy = auth()->user()->level_id;
             }
 
 
-            $user_detail = $this->getCompanyProfileOrderConditionSettings();
+            $user_detail = getCompanyProfileOrderConditionSettings();
             $category_idd = $product_color_data->category_id;
             $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
             $color_label =  $custom_label->order_color_label;
@@ -644,16 +417,6 @@ trait OrderTrait
                     ->orderBy('attr_options.att_op_id', 'ASC')
                     ->get();
 
-                // $options = DB::table('attr_options')
-                //     ->select('attr_options.*', 'product_attr_option.id')
-                //     ->join('product_attr_option', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
-                //     ->where('product_attr_option.pro_attr_id', $attribute->id)
-                //     ->orderBy('attr_options.position', 'ASC')
-                //     ->orderBy('attr_options.att_op_id', 'ASC')
-                //     ->get();
-
-
-
                 // dd($attribute->id);
                 $attributeData = [
                     'label' => $attribute->attribute_name,
@@ -696,9 +459,9 @@ trait OrderTrait
                 ];
                 $result[] = $attributeData;
             } elseif ($attribute->attribute_type == 1) {
-                $ctm_class = "text_box_" . $attribute->attribute_id;
-                $level = 0;
-                $height = $attribute->attribute_name;
+                // $ctm_class = "text_box_" . $attribute->attribute_id;
+                // $level = 0;
+                // $height = $attribute->attribute_name;
 
                 $attributeData = [
                     'label' => $attribute->attribute_name,
@@ -718,28 +481,35 @@ trait OrderTrait
     public function contributePrice($proAttOpId,  $mainPrice)
     {
 
+
+
         $options = DB::table('product_attr_option')
-            ->select('attr_options.*', 'product_attr_option.product_id', 'product_attr_option.id as adddd')
+            ->select('attr_options.*', 'product_attr_option.product_id', 'product_attr_option.id as adddd', 'attribute_tbl.attribute_name as parent_attribute')
             ->join('attr_options', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
+            ->join('attribute_tbl', 'attribute_tbl.attribute_id', '=', 'product_attr_option.attribute_id')
             ->where('product_attr_option.id', $proAttOpId)
             ->orderBy('attr_options.position', 'ASC')
             ->orderBy('attr_options.att_op_id', 'ASC')
             ->first();
+        $output = [];
+        // dd($proAttOpId);
 
         // price value 
         if (isset($options->price_type)) {
             if ($options->price_type == 1) {
 
+                // dd($mainPrice);
+
                 $price_total = $mainPrice + optional($options)->price;
                 $contribution_price = !empty($options->price) ? $options->price : 0;
                 $drapery_price = !empty($options->attribute_value) ? $options->attribute_value : 0;
             } else {
-                $cost_factor_data = $this->commonWholesalerToRetailerCommission($options->product_id, 5);
+                $cost_factor_data = commonWholesalerToRetailerCommission($options->product_id, 5);
 
                 // return $cost_factor_data;
                 $cost_factor_rate = $cost_factor_data['dealer_price'];
-                $price_total = round((($mainPrice * $cost_factor_rate * optional($options)->price) / 100), 2);
-                $contribution_price = !empty($price_total) ? $price_total : 0;
+                $price_total = (($mainPrice * $cost_factor_rate * optional($options)->price) / 100);
+                $contribution_price = round(!empty($price_total) ? $price_total : 0, 2);
                 $drapery_price = !empty($options->attribute_value) ? $options->attribute_value : 0;
 
                 if ($drapery_price > 0) {
@@ -748,7 +518,18 @@ trait OrderTrait
             }
         }
 
-        return $contribution_price;
+        // return $contribution_price.'--'.$options->option_name;
+        // return $data[] = [
+        //     'value' => $contribution_price,
+        //     'name' => $options->parrent_attribute.' ('.$options->option_name.')'
+        // ];
+
+        $output[] = [
+            'value' => $contribution_price,
+            'name' => $options->parent_attribute . ' (' . $options->option_name . ')'
+        ];
+
+        return $output;
     }
     public function getProductAttrOptionOption($proAttOpId, $attributeId, $mainPrice, $height = 0, $width = 0, $height_fraction = 0, $width_fraction = 0,  $pattern_id, $individualCostFactor = 0, $selectedMultiOption = '')
     {
@@ -787,7 +568,7 @@ trait OrderTrait
                 $contribution_price = !empty($options->price) ? $options->price : 0;
                 $drapery_price = !empty($options->attribute_value) ? $options->attribute_value : 0;
             } else {
-                $cost_factor_data = $this->commonWholesalerToRetailerCommission($options->product_id, 5);
+                $cost_factor_data = commonWholesalerToRetailerCommission($options->product_id, 5);
 
                 // return $cost_factor_data;
                 $cost_factor_rate = $cost_factor_data['dealer_price'];
@@ -1053,6 +834,7 @@ trait OrderTrait
 
             unset($opops);
         } elseif ($options->option_type == 2) {
+
             $opops = DB::table('product_attr_option_option')
                 ->select('attr_options_option_tbl.*', 'product_attr_option_option.id')
                 ->join('attr_options_option_tbl', 'attr_options_option_tbl.op_op_id', '=', 'product_attr_option_option.op_op_id')
@@ -1155,15 +937,15 @@ trait OrderTrait
                 ->get();
 
             $optionArray = [
-                
+
 
                 // 'select' => [
-                    'id' => 'op_' . $options->att_op_id,
-                    'name' => 'op_op_id_' . $attributeId,
-                    // 'onChange' => 'MultiOptionOptionsOption(this,' . $attributeId . ')',
-                    // 'data-placeholder' => '-- Select pattern/model --',
-                    // 'multiple' => true,
-                    // 'elements' => [],
+                'id' => 'op_' . $options->att_op_id,
+                'name' => 'op_op_id_' . $attributeId,
+                // 'onChange' => 'MultiOptionOptionsOption(this,' . $attributeId . ')',
+                // 'data-placeholder' => '-- Select pattern/model --',
+                // 'multiple' => true,
+                // 'elements' => [],
                 // ],
 
 
@@ -1197,10 +979,11 @@ trait OrderTrait
     public function multioption_price_value($op_op_op_id, $attribute_id, $main_price, $selected_option_fifth = '')
     {
         $opopopop = DB::table('attr_options_option_option_tbl')
-            ->select('*')
-            ->where('attribute_id', $attribute_id)
-            ->where('att_op_op_op_id', $op_op_op_id)
-            ->orderBy('att_op_op_op_position', 'ASC')
+            ->select('attr_options_option_option_tbl.*', 'attr_options_option_tbl.op_op_name as parent_attribute')
+            ->join('attr_options_option_tbl', 'attr_options_option_option_tbl.att_op_op_id', 'attr_options_option_tbl.op_op_id')
+            ->where('attr_options_option_option_tbl.attribute_id', $attribute_id)
+            ->where('attr_options_option_option_tbl.att_op_op_op_id', $op_op_op_id)
+            ->orderBy('attr_options_option_option_tbl.att_op_op_op_position', 'ASC')
             ->first();
         $output = [];
 
@@ -1211,9 +994,8 @@ trait OrderTrait
             $contribution_price = !empty($opopopop->att_op_op_op_price) ? $opopopop->att_op_op_op_price : 0;
             $output[] =
                 [
-                    // 'type' => 'hidden',
                     'value' => $contribution_price,
-                    'name' => $opopopop->att_op_op_op_name
+                    'name' => $opopopop->parent_attribute . ' (' . $opopopop->att_op_op_op_name . ')',
                 ];
         } else {
             $product_attr_data = DB::table('product_attr_option_option_option')
@@ -1262,7 +1044,7 @@ trait OrderTrait
 
             $output[] = [
                 'type' => 'select',
-                'name' => "op_op_op_op_id_" . $attribute_id . "[]",
+                'name' => "op_op_op_id_" . $attribute_id,
                 'onChange' => "OptionFive(this.value," . $attribute_id . ")",
                 'options' => [
                     [
@@ -1293,7 +1075,6 @@ trait OrderTrait
                     'type' => 'input',
                     'value' => $op_op_op_id,
                     'name' => "op_op_value_' . $attribute_id . '[]",
-                    'data-level' =>  $level,
                     // 'onkeyup' => $onKeyup
                 ];
         } else {
@@ -1341,7 +1122,7 @@ trait OrderTrait
     //             ->first();
 
     //         if ($productAttrData && isset($productAttrData->product_id)) {
-    //             $costFactorData = $this->commonWholesalerToRetailerCommission($productAttrData->product_id);
+    //             $costFactorData = commonWholesalerToRetailerCommission($productAttrData->product_id);
     //             $costFactorRate = $costFactorData['dealer_price'];
     //         } else {
     //             $costFactorRate = 1;
@@ -1504,8 +1285,6 @@ trait OrderTrait
                     'label' => $op_op_op->att_op_op_op_name
                 ];
             }
-
-
             unset($opopop);
         } elseif ($opop->type == 2) {
             $opopop = DB::table('product_attr_option_option_option')
@@ -1527,12 +1306,11 @@ trait OrderTrait
 
             unset($opopop);
         } elseif ($opop->type == 1) {
-            $ctm_class = "op_op_text_box_" . $opOpId;
+
             $result[] = [
                 'opOpId' => $opOpId,
                 'type' => 'input',
-                'class' => $ctm_class,
-                'level' => $level
+                // 'level' => $level
             ];
         }
 
@@ -1542,121 +1320,11 @@ trait OrderTrait
     // get Attributes end
 
 
-    // For strint operator calculate price for upcharges : START
-    function calculateTotalAmt($main_price, $operator, $amt)
-    {
-        // $final_amt = 0;
-        $final_amt = $main_price;
-        if (!is_numeric($amt)) {
-            $amt = 0;
-        }
-
-        if ($amt > 0) {
-            switch ($operator) {
-                case "+":
-                    $final_amt = $main_price + $amt;
-                    break;
-
-                case "/":
-                    $final_amt = $main_price / $amt;
-                    break;
-
-                case "%":
-                    $final_amt = (($main_price * $amt) / 100);
-                    break;
-
-                case "-":
-                    $final_amt = $main_price - $amt;
-                    break;
-
-                case "*":
-                    $final_amt = $main_price * $amt;
-                    break;
-            }
-        }
-        return $final_amt;
-    }
-    // For strint operator calculate price for upcharges : END
-
-    function convertFormulaToValue($formula)
-    {
-        // For Even Formula condition : START
-        $is_even = '';
-
-        if (strpos($formula, 'custom_round_even') !== false) {
-            $formula = str_replace('custom_round_even', 'ceil', $formula);
-            $is_even = 1;
-        }
-        // For Even Formula condition : END
-
-        try {
-            $result = @eval('return ' . $formula . ';');
-        } catch (\Exception $e) {
-            $result = 0;
-        } catch (\ErrorException $e) {
-            $result = 0;
-        } catch (\ParseError $e) {
-            // Invalid Formula
-            $result = 0;
-        }
-
-        if (trim($result) == 'INF') {
-            // Divide by Zero
-            $result = 0;
-        }
-
-        // For Even Formula then convert into even number : START
-        if ($result && $is_even == 1) {
-            if ($result % 2 == 0) {
-                // If even no then no changes.
-                $result = $result;
-            } else {
-                // If odd then add 1 to make even
-                ++$result;
-                $result = $result;
-            }
-        }
-        // For Even Formula then convert into even number : END
-
-        return round($result, 2);
-    }
 
 
 
 
 
-    function getCompanyProfileOrderConditionSettingsPart2($userId = '', $getDataFor = '')
-    {
-        if (auth()->user()->isAdmin == 1 || $getDataFor == 'Retailer_Employee') {
-            $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
-                ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
-                ->where('user_info.id', $userId)
-                ->first();
-
-            return $data;
-        } else {
-            $data = UserInfo::select('user_info.created_by')
-                ->where('user_info.id', $userId)
-                ->first();
-
-            if ($data->created_by != '') {
-                $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
-                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.created_by')
-                    ->where('user_info.id', $userId)
-                    ->first();
-            } else {
-                $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
-                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
-                    ->where('user_info.id', $userId)
-                    ->first();
-            }
-
-            return $data;
-        }
-    }
-
-
-    // $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
 
     public function getProductRowColPrice($height = null, $width = null, $product_id = null, $pattern_id = null, $width_fraction = null, $height_fraction = 0, $product_type = 0)
     {
@@ -2057,13 +1725,13 @@ trait OrderTrait
                             $width_condition_formula['custom_price']           = @$product_formula_data['width_custom_price'] ?? 0;
 
                             $width_final_formula = $this->make_attribute_formula($width_formula_arr, $order_attr_arr, $width, $height, $width_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $width_condition_formula);
-                            $final_width_val = $this->convert_formula_to_value($width_final_formula);
+                            $final_width_val = convert_formula_to_value($width_final_formula);
                             $width_price = $final_width_val;
 
                             // For Cuts if even width then we need to consider the roundup always : START
                             if (strpos($width_final_formula, 'custom_round_even') !== false) {
                                 $new_width_final_formula = str_replace('custom_round_even', 'ceil', $width_final_formula);
-                                $width_price = $this->convert_formula_to_value($new_width_final_formula);
+                                $width_price = convert_formula_to_value($new_width_final_formula);
                             }
                             // For Cuts if even width then we need to consider the roundup always : END
                         }
@@ -2085,13 +1753,13 @@ trait OrderTrait
                             $height_condition_formula['custom_price']           = @$product_formula_data['height_custom_price'] ?? 0;
 
                             $height_final_formula = $this->make_attribute_formula($height_formula_arr, $order_attr_arr, $width, $height, $height_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $height_condition_formula);
-                            $final_height_val = $this->convert_formula_to_value($height_final_formula);
+                            $final_height_val = convert_formula_to_value($height_final_formula);
                             $height_price = $final_height_val;
 
                             // For Cuts if even width then we need to consider the roundup always : START
                             if (strpos($height_final_formula, 'custom_round_even') !== false) {
                                 $new_height_final_formula = str_replace('custom_round_even', 'ceil', $height_final_formula);
-                                $height_price = $this->convert_formula_to_value($new_height_final_formula);
+                                $height_price = convert_formula_to_value($new_height_final_formula);
                             }
                             // For Cuts if even width then we need to consider the roundup always : END
                         }
@@ -2112,8 +1780,7 @@ trait OrderTrait
                     $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
                 }
 
-                $price = round($price, 2);
-
+                $price = round(intval($price), 2);
                 $formula = array(
                     "width" => @$width_final_formula,
                     "height" => @$height_final_formula
@@ -2135,7 +1802,7 @@ trait OrderTrait
                     ->first();
                 $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
 
-                $price = round($price, 2);
+                $price = round(intval($price), 2);
             } else {
 
                 $st = 1;
@@ -2151,20 +1818,6 @@ trait OrderTrait
     }
 
 
-    public function convert_formula_to_value($formula)
-    {
-        $is_even = strpos($formula, 'custom_round_even') !== false;
-
-        try {
-            $result = @eval('return ' . str_replace('custom_round_even', 'ceil', $formula) . ';');
-        } catch (Exception | ErrorException | ParseError $e) {
-            $result = 0;
-        }
-
-        return trim($result) == 'INF' ? 0 : ($is_even ? ceil($result) : $result);
-    }
-
-
     public function calculateUpCondition(
         $upConditionHeight = '0',
         $upConditionHeightFraction = '0',
@@ -2173,8 +1826,11 @@ trait OrderTrait
         $upAttributeId,
         $upLevel = '0',
         $productId = 0,
-        $patternId = 0
+        $patternId = 0,
+
     ) {
+
+
         $upAttributeIdArray = explode("_", $upAttributeId);
         $upchargeAttributeId = end($upAttributeIdArray);
         $finalFormula = "";
@@ -2183,7 +1839,7 @@ trait OrderTrait
 
         if (auth()->user()->user_type == 'c') {
             $userType = 'retailer';
-            $userInfo = $this->checkRetailerConnectToWholesaler(auth()->user()->user_id);
+            $userInfo = checkRetailerConnectToWholesaler(auth()->user()->user_id);
 
             if (isset($userInfo['id']) && $userInfo['id'] != '') {
                 $createdBy = auth()->user()->user_id;
@@ -2205,8 +1861,19 @@ trait OrderTrait
             }
         }
 
+        // $upData = DB::table('upcharges_price_condition')
+        //     ->join('upcharges_price_condition_attributes as upca', 'upcharges_price_condition.upcharges_price_condition_id', '=', 'upca.upcharges_price_condition_id')
+        //     ->where('upca.upcharge_attribute_id', $upchargeAttributeId)
+        //     ->where('upca.attribute_level', $upLevel)
+        //     ->where('upcharges_price_condition.created_by', $createdBy)
+        //     ->whereRaw('FIND_IN_SET(' . $productId . ', upcharges_price_condition.product_ids) <> 0')
+        //     ->where('upcharges_price_condition.is_active', 1)
+        //     ->get()
+        //     ->toArray();
         $upData = DB::table('upcharges_price_condition')
             ->join('upcharges_price_condition_attributes as upca', 'upcharges_price_condition.upcharges_price_condition_id', '=', 'upca.upcharges_price_condition_id')
+            ->join('attribute_tbl', 'attribute_tbl.attribute_id', 'upca.attr_id')
+            ->join('attr_options', 'attr_options.att_op_id', 'upca.upcharge_attribute_id')
             ->where('upca.upcharge_attribute_id', $upchargeAttributeId)
             ->where('upca.attribute_level', $upLevel)
             ->where('upcharges_price_condition.created_by', $createdBy)
@@ -2223,9 +1890,9 @@ trait OrderTrait
         $getImg = [];
 
         if ($createdBy == auth()->user()->level_id) {
-            $userDetail = $this->getCompanyProfileOrderConditionSettings(auth()->user()->level_id);
+            $userDetail = getCompanyProfileOrderConditionSettings(auth()->user()->level_id);
         } else {
-            $userDetail = $this->getCompanyProfileOrderConditionSettingsPart2($createdBy);
+            $userDetail = getCompanyProfileOrderConditionSettingsPart2($createdBy);
         }
 
         if ($userDetail->enable_attribute_image == 1) {
@@ -2256,7 +1923,7 @@ trait OrderTrait
         // $response['attribute_img'] = $img;
 
         if (count($upData) > 0) {
-            $costFactorData = $this->commonWholesalerToRetailerCommission($productId);
+            $costFactorData = commonWholesalerToRetailerCommission($productId);
             $costFactorRate = $costFactorData['dealer_price'];
 
             foreach ($upData as $key => $rec) {
@@ -2311,7 +1978,7 @@ trait OrderTrait
                                     if (is_array($per_inches_details_arr)) {
                                         foreach ($per_inches_details_arr as $key => $value) {
                                             $oper = $value['per_inches_operator'];
-                                            $per_ex_price = $this->calculateTotalAmt($per_ex_price, $oper, $value['per_inches_amt']);
+                                            $per_ex_price = calculateTotalAmt($per_ex_price, $oper, $value['per_inches_amt']);
                                         }
                                     }
 
@@ -2344,7 +2011,7 @@ trait OrderTrait
                                         if (is_array($price_details_arr)) {
                                             foreach ($price_details_arr as $key => $value) {
                                                 $oper = $value['price_details_operator'];
-                                                $manual_price = $this->calculateTotalAmt($manual_price, $oper, $value['price_details_value']);
+                                                $manual_price = calculateTotalAmt($manual_price, $oper, $value['price_details_value']);
                                             }
                                         }
                                     }
@@ -2382,7 +2049,7 @@ trait OrderTrait
                                     if (is_array($per_inches_details_arr)) {
                                         foreach ($per_inches_details_arr as $key => $value) {
                                             $oper = $value['per_inches_operator'];
-                                            $per_ex_price = $this->calculateTotalAmt($per_ex_price, $oper, $value['per_inches_amt']);
+                                            $per_ex_price = calculateTotalAmt($per_ex_price, $oper, $value['per_inches_amt']);
                                         }
                                     }
 
@@ -2415,7 +2082,7 @@ trait OrderTrait
                                         if (is_array($price_details_arr)) {
                                             foreach ($price_details_arr as $key => $value) {
                                                 $oper = $value['price_details_operator'];
-                                                $manual_price = $this->calculateTotalAmt($manual_price, $oper, $value['price_details_value']);
+                                                $manual_price = calculateTotalAmt($manual_price, $oper, $value['price_details_value']);
                                             }
                                         }
                                     }
@@ -2467,12 +2134,12 @@ trait OrderTrait
 
                             $finalFormula = $this->make_attribute_formula($actual_product_formula, $order_attr_arr, $final_width, $final_height, $extra_arr, $productId, $patternId, @$_POST['fabric_price'], $upcharges_condition_formula);
 
-                            $final_val = $this->convertFormulaToValue($finalFormula);
+                            $final_val = convertFormulaToValue($finalFormula);
                             $price = $final_val;
 
                             if (strpos($finalFormula, 'custom_round_even') !== false) {
                                 $new_final_formula = str_replace('custom_round_even', 'ceil', $finalFormula);
-                                $price = $this->convertFormulaToValue($new_final_formula);
+                                $price = convertFormulaToValue($new_final_formula);
                             }
                         }
 
@@ -2516,8 +2183,8 @@ trait OrderTrait
                         $final_up_condition_price = ($table_price != NULL ? $table_price->price : 0);
                     }
 
-                    $purpose = @$rec->purpose;
-                    $cost_factor = @$rec->cost_factor;
+                    $purpose = $rec->purpose;
+                    $cost_factor = $rec->cost_factor;
                     $cost_factor_price = 0;
 
                     if ($final_up_condition_price > 0) {
@@ -2528,16 +2195,23 @@ trait OrderTrait
                         }
                     }
 
+                    // $arr = [
+                    //     "upcharge_condition_id" => $rec->upcharges_price_condition_id,
+                    //     "price" => $final_up_condition_price,
+                    //     "cost_factor_price" => $cost_factor_price,
+                    //     "cost_factor_rate" => $costFactorRate,
+                    //     "display_name" => $display_name,
+                    //     "final_formula" => $finalFormula,
+                    //     "related_attr_class" => $related_attr_class,
+                    //     "display_purpose" => intval($purpose),
+
+                    // ];
                     $arr = [
-                        "upcharge_condition_id" => $rec->upcharges_price_condition_id,
-                        "price" => $final_up_condition_price,
-                        "cost_factor_price" => $cost_factor_price,
-                        "cost_factor_rate" => $costFactorRate,
-                        "display_name" => $display_name,
-                        "final_formula" => $finalFormula,
-                        "related_attr_class" => $related_attr_class,
-                        "display_purpose" => intval($purpose),
+                        "value" => $final_up_condition_price,
+                        // "name" => $rec->option_name
+                        "name" => $rec->attribute_name . ' (' . $rec->option_name . ')'
                     ];
+
 
                     $mainArr[] = $arr;
                 }
@@ -2549,5 +2223,43 @@ trait OrderTrait
         } else {
             return $response;
         }
+    }
+
+
+    public function getProductCommission($product_id, $customer_id)
+    {
+        $product = DB::table('b_cost_factor_tbl')->where('product_id', $product_id)
+            ->where('customer_id', $customer_id)
+            ->first(['dealer_cost_factor as dealer_price', 'individual_cost_factor as individual_price']);
+
+        if (!$product) {
+            $product = Product::where('id', $product_id)->first(['dealer_price', 'individual_price']);
+        }
+        if ($product) {
+            if ($product->dealer_price > 0) {
+                $discount_rate = 100 - ($product->dealer_price * 100);
+            } else {
+                $discount_rate = 0;
+            }
+        }
+        return $discount_rate ?? 0;
+    }
+
+
+    public function getMinMaxHeightWidth($product_id = null)
+    {
+        $response = [];
+        if ($product_id) {
+            $product = DB::table('products')->find($product_id);
+            if ($product && in_array($product->price_style_type, [5, 6])) {
+                $response[] = [
+                    'minw' => !empty($product->min_width) ? intval($product->min_width) : null,
+                    'minh' => !empty($product->min_height) ? intval($product->min_height) : null,
+                    'maxh' => !empty($product->max_height) ? intval($product->max_height) : null,
+                    'maxw' => !empty($product->max_width) ? intval($product->max_width) : null
+                ];
+            }
+        }
+        return $response;
     }
 }

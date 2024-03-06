@@ -37,7 +37,7 @@ class OrderController extends Controller
 
             $categories = Category::with([
                 'products' => function ($query) {
-                    $query->select('id', 'category_id', 'product_name', 'default','hide_height_width','hide_pattern','hide_room');
+                    $query->select('id', 'category_id', 'product_name', 'default', 'hide_height_width', 'hide_pattern', 'hide_room');
                 }
             ])
                 ->select('id', 'category_name')
@@ -105,13 +105,20 @@ class OrderController extends Controller
             $height_fraction = request()->get('height_fraction');
             $width_fraction = request()->get('width_fraction');
             $pattern_id = request()->get('pattern_id');
-            $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id , $width_fraction , $height_fraction);
+            $customer_id = request()->get('customer_id');
 
+            $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
+            $patterns = $this->getColorPartanModel($product_id);
+            $discount = $this->getProductCommission($product_id,$customer_id);
+            $MinMaxHeightWidth = $this->getMinMaxHeightWidth($product_id, $pattern_id);
+            $attributes =  $this->getProductToAttribute($product_id);
             // dd($main_price);
             $data = [
-                'patterns' => $this->getColorPartanModel($product_id),
-                'main_price' =>  $main_price ,
-                'attributes' => $this->getProductToAttribute($product_id)
+                'patterns' => $patterns,
+                'main_price' =>  $main_price,
+                'discount' => $discount,
+                'MinMaxHeightWidth' => $MinMaxHeightWidth,
+                'attributes' => $attributes
             ];
 
             return response()->json([
@@ -120,6 +127,7 @@ class OrderController extends Controller
                 'message' => 'Data retrieved successfully',
                 'data' => $data
             ]);
+
         } catch (\Exception $e) {
 
             return response()->json([
@@ -140,7 +148,7 @@ class OrderController extends Controller
             $userInfo = DB::table('user_info')->find($this->user_id);
             $companyName = $userInfo->company ?? DB::table('company_profile')->where('user_id', $userInfo->created_by)->value('company_name');
             $compName = $companyName ? str_replace(' ', '', $companyName) : 'XXXX';
-            $compProfileData = $this->getCompanyProfileOrderConditionSettings();
+            $compProfileData = getCompanyProfileOrderConditionSettings();
 
             if (optional($compProfileData)->order_id_format == 1) {
                 $wholesalerOrderFormat = DB::table('wholesaler_order_id_format')->where('level_id', $this->level_id)->first();
@@ -297,19 +305,11 @@ class OrderController extends Controller
 
 
 
-    function store(Request $request){
-
-
+    function store(Request $request)
+    {
         foreach ($request->att_options as $key => $attr) {
-
             // echo $key;
             print_r($attr);
         }
-        
     }
-   
-
-
-
-   
 }
