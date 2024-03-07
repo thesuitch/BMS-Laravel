@@ -11,7 +11,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
 
     function getCompanyProfileOrderConditionSettings()
     {
-        if (auth()->user()->is_admin == 1) {
+        if (auth('api')->user()->is_admin == 1) {
 
             $data = DB::table('user_info as ui')
                 ->join('company_profile as cp', 'cp.user_id', '=', 'ui.id')
@@ -83,7 +83,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
                     'cp.wholesaler_delivery_option',
                     'cp.other_popup_message'
                 ])
-                ->where('ui.id', auth()->user()->id)
+                ->where('ui.id', auth('api')->user()->id)
                 ->first();
         } else {
 
@@ -157,7 +157,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
                     'cp.wholesaler_delivery_option',
                     'cp.other_popup_message'
                 ])
-                ->where('ui.id', auth()->user()->id)
+                ->where('ui.id', auth('api')->user()->id)
                 ->first();
         }
         return $data;
@@ -188,29 +188,29 @@ if (!function_exists('commonWholesalerToRetailerCommission')) {
     {
         if ($customerId != 0) {
 
-            if (auth()->user()->user_type == 'c') {
+            if (auth('api')->user()->user_type == 'c') {
                 // It means retailer
-                $userInfo = checkRetailerConnectToWholesaler(auth()->user()->id);
+                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
 
                 if (isset($userInfo->id) && $userInfo->id != '') {
                     // If no wholesaler connected, get retailer's custom label
-                    $createdBy = auth()->user()->id;
+                    $createdBy = auth('api')->user()->id;
                 } else {
                     // If wholesaler connected, get wholesaler's custom label
                     // $createdBy = session()->get('main_b_id');
-                    $createdBy = auth()->user()->id;
+                    $createdBy = auth('api')->user()->id;
                 }
             } else {
 
                 // It means wholesaler
-                if (auth()->user()->is_admin == 1) {
-                    $createdBy = auth()->user()->id;
+                if (auth('api')->user()->is_admin == 1) {
+                    $createdBy = auth('api')->user()->id;
                 } else {
                     // It means wholesaler employee
-                    $createdBy = auth()->user()->userinfo->created_by;
+                    $createdBy = auth('api')->user()->userinfo->created_by;
 
                     if (empty($createdBy)) {
-                        $createdBy = auth()->user()->id;
+                        $createdBy = auth('api')->user()->id;
                     }
                 }
             }
@@ -247,7 +247,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettingsPart2')) {
 
     function getCompanyProfileOrderConditionSettingsPart2($userId = '', $getDataFor = '')
     {
-        if (auth()->user()->isAdmin == 1 || $getDataFor == 'Retailer_Employee') {
+        if (auth('api')->user()->isAdmin == 1 || $getDataFor == 'Retailer_Employee') {
             $data = UserInfo::select('user_info.*', 'company_profile.display_color_price', 'company_profile.display_upcharges', /* Add all other columns you need */)
                 ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
                 ->where('user_info.id', $userId)

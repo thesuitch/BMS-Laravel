@@ -18,12 +18,12 @@ class OrderController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
-            if (auth()->user()->is_admin == 1) {
-                $this->level_id = auth()->user()->user_id;
+            if (auth('api')->user()->is_admin == 1) {
+                $this->level_id = auth('api')->user()->user_id;
             } else {
-                $this->level_id = auth()->user()->userinfo->created_by;
+                $this->level_id = auth('api')->user()->userinfo->created_by;
             }
-            $this->user_id = auth()->user()->user_id;
+            $this->user_id = auth('api')->user()->user_id;
             return $next($request);
         });
     }
@@ -33,7 +33,7 @@ class OrderController extends Controller
     {
         try {
 
-            $userId = auth()->user()->id;
+            $userId = auth('api')->user()->id;
 
             $categories = Category::with([
                 'products' => function ($query) {
@@ -47,11 +47,11 @@ class OrderController extends Controller
                 ->orderBy('position')
                 ->get();
 
-            if (auth()->user()->user_type == 'c') {
-                $userInfo = $this->checkRetailerConnectToWholesaler(auth()->user()->id);
-                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth()->user()->main_b_id : auth()->user()->level_id;
+            if (auth('api')->user()->user_type == 'c') {
+                $userInfo = $this->checkRetailerConnectToWholesaler(auth('api')->user()->id);
+                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
             } else {
-                $createdBy = auth()->user()->level_id;
+                $createdBy = auth('api')->user()->level_id;
             }
 
             $categories->each(function ($category, $createdBy) {

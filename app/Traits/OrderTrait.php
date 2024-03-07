@@ -42,9 +42,9 @@ trait OrderTrait
     // get custom label start
     public function getCustomLabelUserwise($createdBy, $categoryId = 0)
     {
-        if (auth()->user()->user_type == 'c') {
+        if (auth('api')->user()->user_type == 'c') {
             $userInfo = checkRetailerConnectToWholesaler($createdBy);
-            $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? $createdBy : auth()->user()->main_b_id;
+            $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? $createdBy : auth('api')->user()->main_b_id;
         }
 
         if ($categoryId != 0) {
@@ -131,11 +131,11 @@ trait OrderTrait
                 ->get();
 
 
-            if (auth()->user()->user_type == 'c') {
-                $userInfo = checkRetailerConnectToWholesaler(auth()->user()->id);
-                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth()->user()->main_b_id : auth()->user()->level_id;
+            if (auth('api')->user()->user_type == 'c') {
+                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
             } else {
-                $createdBy = auth()->user()->level_id;
+                $createdBy = auth('api')->user()->level_id;
             }
 
             $user_detail = getCompanyProfileOrderConditionSettings();
@@ -232,11 +232,11 @@ trait OrderTrait
 
 
 
-            if (auth()->user()->user_type == 'c') {
-                $userInfo = checkRetailerConnectToWholesaler(auth()->user()->id);
-                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth()->user()->main_b_id : auth()->user()->level_id;
+            if (auth('api')->user()->user_type == 'c') {
+                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
             } else {
-                $createdBy = auth()->user()->level_id;
+                $createdBy = auth('api')->user()->level_id;
             }
 
 
@@ -627,13 +627,13 @@ trait OrderTrait
                     $optionArray['input'] = [
                         // 'name' => 'op_op_value_' . $attributeId . '[]',
                         // 'id' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
                     ];
                 } else {
                     $optionArray['input'] = [
 
                         // 'name' => 'op_op_value_' . $attributeId . '[]',
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
 
                     ];
                 }
@@ -641,7 +641,7 @@ trait OrderTrait
                 $optionArray['select'] = [
                     // 'name' => 'fraction_' . $attributeId . '[]',
                     // 'upcharge' => 'checkTextboxUpcharge()',
-                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
                     'options' => [
                         [
                             'value' => '',
@@ -892,7 +892,7 @@ trait OrderTrait
                     'label' =>  $op_op->op_op_name,
                     'type' => 'input',
                     'name' => 'op_op_id_' . $op_op->op_op_id,
-                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+                    'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
 
                     // 'class' => 'form-control cls_text_op_op_value ' . $ctm_class,
                     // 'required' => true,
@@ -966,7 +966,7 @@ trait OrderTrait
             $optionArray = [
                 'type' => 'input',
                 'name' => 'op_op_id_' . $options->att_op_id,
-                'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $options->att_op_id, auth()->user()->user_id, $options->product_id, $pattern_id),
+                'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $options->att_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
             ];
 
 
@@ -1837,26 +1837,26 @@ trait OrderTrait
         $mainArr = [];
         // $commonModel = new Common();
 
-        if (auth()->user()->user_type == 'c') {
+        if (auth('api')->user()->user_type == 'c') {
             $userType = 'retailer';
-            $userInfo = checkRetailerConnectToWholesaler(auth()->user()->user_id);
+            $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->user_id);
 
             if (isset($userInfo['id']) && $userInfo['id'] != '') {
-                $createdBy = auth()->user()->user_id;
+                $createdBy = auth('api')->user()->user_id;
             } else {
-                $createdBy = auth()->user()->main_b_id;
+                $createdBy = auth('api')->user()->main_b_id;
             }
         } else {
             $userType = 'wholesaler';
-            $isAdmin = auth()->user()->isAdmin;
+            $isAdmin = auth('api')->user()->isAdmin;
 
             if ($isAdmin == 1) {
-                $createdBy = auth()->user()->user_id;
+                $createdBy = auth('api')->user()->user_id;
             } else {
-                $createdBy = auth()->user()->admin_created_by;
+                $createdBy = auth('api')->user()->admin_created_by;
 
                 if (empty($createdBy)) {
-                    $createdBy = auth()->user()->user_id;
+                    $createdBy = auth('api')->user()->user_id;
                 }
             }
         }
@@ -1889,8 +1889,8 @@ trait OrderTrait
         $img = "";
         $getImg = [];
 
-        if ($createdBy == auth()->user()->level_id) {
-            $userDetail = getCompanyProfileOrderConditionSettings(auth()->user()->level_id);
+        if ($createdBy == auth('api')->user()->level_id) {
+            $userDetail = getCompanyProfileOrderConditionSettings(auth('api')->user()->level_id);
         } else {
             $userDetail = getCompanyProfileOrderConditionSettingsPart2($createdBy);
         }

@@ -59,6 +59,9 @@ class AuthController extends Controller
                 'error' => 'Unauthorized'
             ], Response::HTTP_UNAUTHORIZED);
         }
+        
+        // return auth()->user();
+        
         return $this->respondWithToken($token);
     }
 
@@ -85,6 +88,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
+            // 'data' => auth('api')->user(),
             'expires_in' => config('jwt.ttl') * 60
         ]);
     }
