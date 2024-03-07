@@ -524,7 +524,7 @@ trait OrderTrait
         //     'name' => $options->parrent_attribute.' ('.$options->option_name.')'
         // ];
 
-        $output[] = [
+        $output = [
             'value' => $contribution_price,
             'name' => $options->parent_attribute . ' (' . $options->option_name . ')'
         ];
@@ -992,7 +992,7 @@ trait OrderTrait
         if ($opopopop->att_op_op_op_price_type == 1) {
             $price_total = $main_price + optional($opopopop)->att_op_op_op_price;
             $contribution_price = !empty($opopopop->att_op_op_op_price) ? $opopopop->att_op_op_op_price : 0;
-            $output[] =
+            $output =
                 [
                     'value' => $contribution_price,
                     'name' => $opopopop->parent_attribute . ' (' . $opopopop->att_op_op_op_name . ')',
@@ -1012,7 +1012,7 @@ trait OrderTrait
             $price_total = ($main_price * $cost_factor_rate * optional($opopopop)->att_op_op_op_price) / 100;
             $contribution_price = !empty($price_total) ? $price_total : 0;
 
-            $output[] = [
+            $output = [
                 'type' => 'hidden',
                 'value' => $contribution_price,
                 'name' => 'contri_price'
@@ -2213,7 +2213,7 @@ trait OrderTrait
                     ];
 
 
-                    $mainArr[] = $arr;
+                    $mainArr = $arr;
                 }
             }
 
