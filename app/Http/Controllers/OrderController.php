@@ -99,6 +99,8 @@ class OrderController extends Controller
     {
         try {
 
+            return 1;
+
 
             $height = request()->get('height');
             $width = request()->get('width');
