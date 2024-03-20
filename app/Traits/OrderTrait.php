@@ -380,6 +380,7 @@ trait OrderTrait
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => $attribute->attribute_id,
+                    "attributes_type" => $attribute->attribute_type,
                     'type' => 'select',
                     'options' => [],
                 ];
@@ -399,6 +400,9 @@ trait OrderTrait
                     $optionData = [
                         'label' => $op->op_op_name,
                         'value' => $op->id . '_' . $op->att_op_id,
+                        'option_key_value' =>  $op->id . '_' . $op->att_op_id,
+                        'option_type' => $op->option_type,
+                        'option_id' => $op->att_op_id,
                         'attr_id' => $height . '' . $height_fraction . '' . $width . '' . $width_fraction . '' . $op->id . '_' . $op->att_op_id . '1' . $product_id . '' . $pattern_id,
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                     ];
@@ -422,10 +426,9 @@ trait OrderTrait
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'select',
+                    "attributes_type" => $attribute->attribute_type,
                     'options' => [],
                 ];
-
-                // $attributeData['op_value'] = '';
 
                 foreach ($options as $op) {
                     $sl1 = ($op->default == 1 ? 1 : 0);
@@ -434,6 +437,9 @@ trait OrderTrait
                         'value' => $op->id . '_' . $op->att_op_id,
                         'label' => $op->option_name,
                         'selected' => $sl1,
+                        'option_key_value' =>  $op->id . '_' . $op->att_op_id,
+                        'option_type' => $op->option_type,
+                        'option_id' => $op->att_op_id,
                         'contribute_price' => $this->contributePrice($op->id,  $main_price),
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                         'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price, $height, $width, $height_fraction, $width_fraction, $pattern_id)
@@ -448,10 +454,12 @@ trait OrderTrait
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
+                    "attributes_type" => $attribute->attribute_type,
                     'type' => 'input_with_select'
                 ];
                 $attributeData['input'] = [
                     'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attribute->id . '_' . $attribute->attribute_id, 1, $product_id, $pattern_id),
+                    // 'upcharge' => 'sdf',
                 ];
 
                 $attributeData['select'] = [
@@ -466,6 +474,7 @@ trait OrderTrait
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
+                    "attributes_type" => $attribute->attribute_type,
                     'type' => 'input',
                     'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attribute->id . '_' . $attribute->attribute_id, 1, $product_id, $pattern_id),
                 ];
@@ -620,6 +629,7 @@ trait OrderTrait
                     // 'att_op_id' => $options->att_op_id,
                     // 'contiprice' => $contribution_price,
                     'type' => 'input_with_select',
+                    'option_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id
 
                 ];
 
@@ -722,6 +732,7 @@ trait OrderTrait
                         $selectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
                             'label' => $opopop->att_op_op_op_name,
+                            'option_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
                             'subAttributes' => $this->AttrOptionOptionOption($opopop->att_op_op_op_id, $attributeId, $mainPrice),
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice),
 
@@ -817,6 +828,7 @@ trait OrderTrait
                         $multiselectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
                             'label' => $opopop->att_op_op_op_name,
+                            'option_key_value' => $opopop->att_op_op_id . '_' . $op_op->id . '_' . $opopop->op_id,
                             'subAttributes' => $this->AttrOptionOptionOption($opopop->att_op_op_op_id, $attributeId, $mainPrice),
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice),
 
@@ -1318,10 +1330,6 @@ trait OrderTrait
     }
 
     // get Attributes end
-
-
-
-
 
 
 
@@ -2246,20 +2254,95 @@ trait OrderTrait
     }
 
 
-    public function getMinMaxHeightWidth($product_id = null)
+    public function getMinMaxHeightWidth($product_id = null, $pattern_id = null)
     {
-        $response = [];
-        if ($product_id) {
-            $product = DB::table('products')->find($product_id);
-            if ($product && in_array($product->price_style_type, [5, 6])) {
-                $response[] = [
-                    'minw' => !empty($product->min_width) ? intval($product->min_width) : null,
-                    'minh' => !empty($product->min_height) ? intval($product->min_height) : null,
-                    'maxh' => !empty($product->max_height) ? intval($product->max_height) : null,
-                    'maxw' => !empty($product->max_width) ? intval($product->max_width) : null
-                ];
-            }
+        if (!$product_id) {
+            return [];
         }
+
+        $product = DB::table('products')->find($product_id);
+        if (!$product) {
+            return [];
+        }
+
+        $response = [];
+
+        switch ($product->price_style_type) {
+            case 5:
+            case 6:
+                $response = [
+                    'minw' => $product->min_width ? intval($product->min_width) : null,
+                    'minh' => $product->min_height ? intval($product->min_height) : null,
+                    'maxh' => $product->max_height ? intval($product->max_height) : null,
+                    'maxw' => $product->max_width ? intval($product->max_width) : null
+                ];
+                break;
+
+            case 4:
+                $group_id = DB::table('price_model_mapping_tbl')
+                    ->where('product_id', $product_id)
+                    ->where('pattern_id', $pattern_id)
+                    ->value('group_id') ?? '0';
+
+                $response = DB::table('price_style')
+                    ->select('row as maxw', 'col as maxh')
+                    ->where('style_id', $group_id)
+                    ->latest('row_id')
+                    ->first();
+                break;
+
+            case 1:
+            case 9:
+                $response = DB::table('price_style')
+                    ->select('row as maxw', 'col as maxh')
+                    ->where('style_id', $product->price_rowcol_style_id)
+                    ->latest('row_id')
+                    ->first();
+                break;
+        }
+
         return $response;
     }
+
+
+    // public function getMinMaxHeightWidth($product_id = null, $pattern_id = null)
+    // {
+
+
+    //     $response = [];
+    //     if ($product_id) {
+    //         $product = DB::table('products')->find($product_id);
+
+
+    //         if ($product && in_array($product->price_style_type, [5, 6])) {
+    //             $response = [
+    //                 'minw' => !empty($product->min_width) ? intval($product->min_width) : null,
+    //                 'minh' => !empty($product->min_height) ? intval($product->min_height) : null,
+    //                 'maxh' => !empty($product->max_height) ? intval($product->max_height) : null,
+    //                 'maxw' => !empty($product->max_width) ? intval($product->max_width) : null
+    //             ];
+    //         } elseif ($product->price_style_type == 4) {
+    //             // group price
+    //             $pg = DB::table('price_model_mapping_tbl')
+    //                 ->where('product_id', $product_id)
+    //                 ->where('pattern_id', $pattern_id)
+    //                 ->first();
+
+    //             $group_id = isset($pg->group_id) ? $pg->group_id : '0';
+    //             $response = DB::table('price_style')
+    //                 ->select('row as maxw', 'col as maxh')
+    //                 ->where('style_id', $group_id)
+    //                 ->latest('row_id')
+    //                 ->first();
+    //         } elseif (in_array($product->price_style_type, [1, 9])) {
+
+    //             $response = DB::table('price_style')
+    //                 ->select('row as maxw', 'col as maxh')
+    //                 ->where('style_id', $product->price_rowcol_style_id)
+    //                 ->latest('row_id')
+    //                 ->first();
+    //         }
+    //     }
+    //     return $response;
+    // }
 }

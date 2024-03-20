@@ -108,7 +108,7 @@ class OrderController extends Controller
 
             $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
             $patterns = $this->getColorPartanModel($product_id);
-            $discount = $this->getProductCommission($product_id,$customer_id);
+            $discount = $this->getProductCommission($product_id, $customer_id);
             $MinMaxHeightWidth = $this->getMinMaxHeightWidth($product_id, $pattern_id);
             $attributes =  $this->getProductToAttribute($product_id);
             // dd($main_price);
@@ -126,7 +126,6 @@ class OrderController extends Controller
                 'message' => 'Data retrieved successfully',
                 'data' => $data
             ]);
-
         } catch (\Exception $e) {
 
             return response()->json([
@@ -306,9 +305,137 @@ class OrderController extends Controller
 
     function store(Request $request)
     {
-        foreach ($request->att_options as $key => $attr) {
-            // echo $key;
-            print_r($attr);
+
+
+        foreach ($request->order_details['products'] as $p_key => $product) {
+
+            foreach ($product['attributes'] as $a_key => $attribute) {
+
+                $outputArray[] = [
+                    "attribute_id" => explode('_', $a_key)[2],
+                    "attribute_value" => "",
+                    "attributes_type" => "2",
+                    "options" => [
+                        [
+                            "option_type" => "0",
+                            "option_id" => explode('_', $attribute['value'])[1],
+                            "option_value" => "",
+                            "option_key_value" => $attribute['value']
+                        ]
+                    ],
+                    "opop" => [],
+                    "opopop" => [],
+                    "opopopop" => []
+                ];
+
+
+                foreach ($attribute as $nestedKey => $nestedValue) {
+                    if (strpos($nestedKey, 'op_op_id_') !== false) {
+
+                        if (@$nestedValue['label']) {
+                            $outputArray[count($outputArray) - 1]["opop"][] = [
+                                "op_op_id" => explode('_', $nestedKey)[3], // Assuming the ID is at index 3
+                                "op_op_value" => @$nestedValue['label'], // Assuming you want the label here
+                                "option_key_value" => @$nestedValue['option_key_value']
+                            ];
+                        }
+
+                        if (!isset($nestedValue['value'])) {
+
+                            if (isset($nestedValue['input']) && isset($nestedValue['select'])) {
+
+                                $outputArray[count($outputArray) - 1]["opop"][] = [
+                                    "op_op_id" => explode('_', $nestedKey)[3], // Assuming the ID is at index 3
+                                    "op_op_value" =>  @$nestedValue['input']['value'] . ' ' . @$nestedValue['select']['value'], // Assuming you want the label here
+                                    "option_key_value" => @$nestedValue['option_key_value']
+                                ];
+                            } else {
+
+                                if (is_array($nestedValue)) {
+
+                                    if (isset($nestedValue[0]['value'])) {
+                                        $outputArray[count($outputArray) - 1]["opop"][] = [
+                                            "op_op_id" => explode('_', $nestedKey)[3], // Assuming the ID is at index 3
+                                            "op_op_value" =>  $nestedValue['value'] ?? '', // Assuming you want the label here
+                                            "option_key_value" => $nestedValue[0]['option_key_value'],
+                                        ];
+                                    }
+
+                                    foreach ($nestedValue as $subnestedkey => $subnestedValue) {
+
+                                        if (strpos($subnestedkey, 'op_op_op_id_') !== false) {
+                                            $outputArray[count($outputArray) - 1]["opop"][] = [
+                                                "op_op_id" => explode('_', $nestedValue['value'])[0], // Assuming the ID is at index 3
+                                                "op_op_value" =>  @$nestedValue['label'], // Assuming you want the label here
+                                                "option_key_value" => @$nestedValue['value']
+                                            ];
+                                        } else {
+
+                                            $outputArray[count($outputArray) - 1]["opopop"][] = [
+                                                "op_op_op_id" => explode('_', $subnestedValue['value'])[0],
+                                                "op_op_op_value" => @$subnestedValue['label'],
+                                                "option_key_value" => @$subnestedValue['value']
+                                            ];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // if (is_array($nestedValue)) {
+                        //     foreach ($nestedValue as $key => $value) {
+                        //         if (strpos($key, 'op_op_op_id_') !== false) {
+                        //             // print_r($key) . '</br>';
+                        //         }
+                        //     }
+                        // }
+                    }
+
+
+
+
+
+
+                    // elseif (strpos($nestedKey, 'op_op_op_id_') !== false) {
+
+
+                    // if (@$nestedValue['label']) {
+                    //     $outputArray[count($outputArray) - 1]["opop"][] = [
+                    //         "op_op_id" => explode('_', $nestedKey)[3], // Assuming the ID is at index 3
+                    //         "op_op_value" => @$nestedValue['label'], // Assuming you want the label here
+                    //         "option_key_value" => @$nestedValue['option_key_value']
+                    //     ];
+                    // }
+
+                    // if (!isset($nestedValue['value'])) {
+
+                    //     if (isset($nestedValue['input']) && isset($nestedValue['select'])) {
+
+                    //         $outputArray[count($outputArray) - 1]["opop"][] = [
+                    //             "op_op_id" => explode('_', $nestedKey)[3], // Assuming the ID is at index 3
+                    //             "op_op_value" =>  @$nestedValue['input']['value'] . ' ' . @$nestedValue['select']['value'], // Assuming you want the label here
+                    //             "option_key_value" => @$nestedValue['option_key_value']
+                    //         ];
+                    //     } else {
+
+                    //         if (is_array($nestedValue)) {
+
+                    //             foreach ($nestedValue as $subnestedkey => $subnestedValue) {
+
+                    //                 $outputArray[count($outputArray) - 1]["opopop"][] = [
+                    //                     "op_op_op_id" => explode('_', $subnestedValue['value'])[0],
+                    //                     "op_op_op_value" => @$subnestedValue['label'],
+                    //                     "option_key_value" => @$subnestedValue['value']
+                    //                 ];
+                    //             }
+                    //         }
+                    //     }
+                    // }
+                    // }
+                }
+            }
         }
+
+        return $outputArray;
     }
 }
