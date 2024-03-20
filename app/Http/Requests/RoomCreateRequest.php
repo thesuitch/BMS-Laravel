@@ -23,7 +23,7 @@ class RoomCreateRequest extends FormRequest
     public function rules(): array
     {
         return  [
-            'error_message' => 'required|unique:rooms',
+            'room_name' => 'required|unique:rooms',
         ];
     }
 

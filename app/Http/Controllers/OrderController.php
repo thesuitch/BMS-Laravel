@@ -314,7 +314,7 @@ class OrderController extends Controller
                 $outputArray[] = [
                     "attribute_id" => explode('_', $a_key)[2],
                     "attribute_value" => "",
-                    "attributes_type" => "2",
+                    "attributes_type" =>  $attribute['attributes_type'],
                     "options" => [
                         [
                             "option_type" => "0",
