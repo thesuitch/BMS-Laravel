@@ -37,4 +37,6 @@ class RoomCreateRequest extends FormRequest
             'data'      => $validator->errors()
         ],422));
     }
+
+    
 }
