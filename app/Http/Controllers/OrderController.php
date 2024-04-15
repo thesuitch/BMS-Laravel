@@ -237,8 +237,8 @@ class OrderController extends Controller
 
     public function existingShippingAddress($customer_id)
     {
-        $customerDetails = DB::table('customers')->select('first_name','last_name','city','phone','email','address','billing_address_label','different_shipping_address')->where('id', $customer_id)->first();
-        $shippingAddress = DB::table('shipping_address_info')->select('first_name','last_name','city','phone','email','address','is_residential','commercial','storage_facility','freight_terminal')->where('customer_id', $customer_id)->first();
+        $customerDetails = DB::table('customers')->select('first_name','last_name','city','state','zip_code','country_code','phone','email','address','billing_address_label','different_shipping_address')->where('id', $customer_id)->first();
+        $shippingAddress = DB::table('shipping_address_info')->select('first_name','last_name','city','state','zip_code','country_code','phone','email','address','is_residential','commercial','storage_facility','freight_terminal')->where('customer_id', $customer_id)->first();
         //   dd($shippingAddress);
 
         $resInfo = [];
@@ -265,7 +265,7 @@ class OrderController extends Controller
             $resInfo[] = [
                 'addressLabel' => $billingAddressLabel,
                 'customerDetails' => $customerDetails,
-                'address' => $customerAddress,
+                // 'address' => $customerAddress,
             ];
             // $resInfo[] = [
             //     'billingAddressLabel' => $billingAddressLabel,
@@ -296,7 +296,7 @@ class OrderController extends Controller
             $resInfo[] = [
                 'addressLabel' => $addressLabel,
                 'customerDetails' => $shippingAddress,
-                'address' => $resAddress,
+                // 'address' => $resAddress,
             ];
         }
 
