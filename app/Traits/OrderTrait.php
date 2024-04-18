@@ -400,7 +400,7 @@ trait OrderTrait
                     $optionData = [
                         'label' => $op->op_op_name,
                         'value' => $op->id . '_' . $op->att_op_id,
-                        'op_key_value' =>  $op->id . '_' . $op->att_op_id,
+                        // 'op_key_value' =>  $op->id . '_' . $op->att_op_id,
                         'option_type' => $op->option_type,
                         'option_id' => $op->att_op_id,
                         'attr_id' => $height . '' . $height_fraction . '' . $width . '' . $width_fraction . '' . $op->id . '_' . $op->att_op_id . '1' . $product_id . '' . $pattern_id,
@@ -437,7 +437,7 @@ trait OrderTrait
                         'value' => $op->id . '_' . $op->att_op_id,
                         'label' => $op->option_name,
                         'selected' => $sl1,
-                        'op_key_value' =>  $op->id . '_' . $op->att_op_id,
+                        // 'op_key_value' =>  $op->id . '_' . $op->att_op_id,
                         'option_type' => $op->option_type,
                         'option_id' => $op->att_op_id,
                         'contribute_price' => $this->contributePrice($op->id,  $main_price),
@@ -629,7 +629,7 @@ trait OrderTrait
                     // 'att_op_id' => $options->att_op_id,
                     // 'contiprice' => $contribution_price,
                     'type' => 'input_with_select',
-                    'option_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id
+                    'op_op_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id
 
                 ];
 
@@ -1253,8 +1253,10 @@ trait OrderTrait
 
                     $result[] = [
                         'name' => 'op_op_op_id_' . $op_op_op->att_op_op_op_id,
-                        'op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
-                        'op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->attribute_id . '_' . $op_op_op->att_op_op_id,
+                        'op_op_op_op_id' =>  true,
+                        'op_op_op_key_value' => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
+                        // 'op_op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
+                        // 'op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->attribute_id . '_' . $op_op_op->att_op_op_id,
                         'type' => 'select',
                         'label' => $op_op_op->att_op_op_op_name,
 
@@ -1268,9 +1270,9 @@ trait OrderTrait
                     $result[]  = [
                         'label' => $op_op_op->att_op_op_op_name,
                         'name' => 'op_op_op_id_' . $op_op_op->att_op_op_op_id,
-                        'op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
-                        'op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->attribute_id . '_' . $op_op_op->att_op_op_id,
-
+                        // 'op_op_op_id_' . $op_op_op->attribute_id => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
+                        'op_op_id' => $op_op_op->att_op_op_op_id . '_' . $op_op_op->attribute_id . '_' . $op_op_op->att_op_op_id,
+                        'op_op_op_key_value' => $op_op_op->att_op_op_op_id . '_' . $op_op_op->att_op_op_id,
                         'type' => 'input_with_select',
                         'input' => [
                             // 'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op_op->id . '_' . $op_op_op->att_op_id, 1, $productAttrData->product_id, $pattern_id),
