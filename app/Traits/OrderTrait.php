@@ -693,7 +693,8 @@ trait OrderTrait
                 $optionsArray[] = [
                     'label' => $op_op->op_op_name,
                     'name' => 'op_op_id_' . $op_op->op_op_id,
-                    'op_op_id_' . $attributeId => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
+                    // 'op_op_id_' . $attributeId => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
+                    'op_op_op_id'  => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
                     // 'att_op_id' => $options->att_op_id,
                 ];
 
@@ -828,7 +829,7 @@ trait OrderTrait
                         $multiselectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
                             'label' => $opopop->att_op_op_op_name,
-                            'option_key_value' => $opopop->att_op_op_id . '_' . $op_op->id . '_' . $opopop->op_id,
+                            'op_op_key_value' => $opopop->att_op_op_id . '_' . $op_op->id . '_' . $opopop->op_id,
                             'subAttributes' => $this->AttrOptionOptionOption($opopop->att_op_op_op_id, $attributeId, $mainPrice),
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice),
 
@@ -1065,7 +1066,7 @@ trait OrderTrait
 
             $output[] = [
                 'type' => 'select',
-                'name' => "op_op_op_id_" . $attribute_id,
+                'name' => "op_op_op_op_id_" . $attribute_id,
                 'onChange' => "OptionFive(this.value," . $attribute_id . ")",
                 'options' => [
                     [
