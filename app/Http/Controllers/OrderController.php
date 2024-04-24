@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use App\Models\Customer;
 use Illuminate\Support\Facades\DB;
 use App\Traits\OrderTrait;
+use BarcodeGeneratorHTML;
+use Illuminate\Support\Facades\Storage;
+
 
 class OrderController extends Controller
 {
@@ -498,6 +502,17 @@ class OrderController extends Controller
     function store(Request $request)
     {
 
+
+
+
+        $order_id = $request->order_details['order_id'];
+        $customer_id = $request->order_details['customer_id'];
+        $side_mark = $request->order_details['side_mark'];
+
+        // return $this->generateBarcodeAndSave($customer_id, $order_id, $side_mark);
+
+        // exit;
+
         $opopop_input_value = '';
         $opopopop_input_value = '';
         $attrib = [];
@@ -542,15 +557,9 @@ class OrderController extends Controller
                 $op_op_op_s = [];
                 $op_op_op_op_s = [];
 
-
-
-
                 // Call the function to find keys
                 // findKeys($att, 'op_op_id_');
                 // exit;
-
-
-
 
                 $option_type = DB::table('attr_options')
                     ->select('attr_options.option_type')
@@ -574,7 +583,23 @@ class OrderController extends Controller
                 // exit;
 
                 foreach ($op_op_matchedKeys as $key => $value) {
-                    if ($value['type'] == 'input_with_select') {
+                    if (!isset($value['type'])) {
+                        $op_op_s[] = [
+                            'op_op_id' => explode('_', $value[0]['op_op_key_value'])[0],
+                            'op_op_value' => implode(', ', array_column($value, 'label')),
+                            'option_key_value' => $value[0]['op_op_key_value'],
+                        ];
+
+ 
+                        foreach ($value as $v) {
+
+                            $op_op_op_s[] = [
+                                'op_op_op_id' => explode('_', $v['value'])[0],
+                                'op_op_op_value' => $v['label'],
+                                'option_key_value' => $v['value'],
+                            ];
+                        }
+                    } else if (@$value['type'] == 'input_with_select') {
                         $op_op_s[] = [
                             'op_op_id' => @explode('_', $value['op_op_key_value'])[0],
                             'op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
@@ -643,74 +668,6 @@ class OrderController extends Controller
                     }
                 }
 
-                // $op_op_s[] = [
-                //     'data' => findKeys($att, 'op_op_id_',$matchedKeys)
-                // ];
-
-
-                // $opopid = request()->input('op_op_id_' . $att);
-                // $op_op_value = request()->input('op_op_value_' . $att);
-                // $fraction = request()->input('fraction_' . $att);
-                // $fr_key = 0;
-                // if ($opopid && is_array($opopid)) {
-                //     foreach ($opopid as $key => $opop) {
-                //         if (!empty($fraction) && count($fraction) > 0) {
-                //             // If fraction value
-                //             $op_op_s[] = [
-                //                 'op_op_id' => explode('_', $opop)[0],
-                //                 'op_op_value' => $op_op_value[$key] . ' ' . $fraction[$fr_key],
-                //                 'option_key_value' => $opop,
-                //             ];
-                //             $fr_key++;
-                //         } else {
-                //             // If not fraction value
-                //             $op_op_s[] = [
-                //                 'op_op_id' => explode('_', $opop)[0],
-                //                 'op_op_value' => $op_op_value[$key],
-                //                 'option_key_value' => $opop,
-                //             ];
-                //         }
-                //     }
-                // }
-
-                // $opopopid = request()->input('op_op_op_id_' . $att);
-                // $op_op_op_value = request()->input('op_op_op_value_' . $att);
-                // $opopop_input_value = $opopopid;
-
-                // if ($opopopid && is_array($opopopid)) {
-                //     foreach ($opopopid as $key => $opopop) {
-                //         $op_op_op_s[] = [
-                //             'op_op_op_id' => explode('_', $opopop)[0],
-                //             'op_op_op_value' => $op_op_op_value[$key],
-                //             'option_key_value' => $opopop,
-                //         ];
-                //     }
-                // }
-                // $opopopopid = request()->input('op_op_op_op_id_' . $att);
-                // $op_op_op_op_value = request()->input('op_op_op_op_value_' . $att);
-                // if ($opopopopid && is_array($opopopopid)) {
-                //     $opopopop_input_value = $opopopopid;
-
-                //     foreach ($opopopopid as $key => $opopopop) {
-
-                //         $op_op_op_op_s[] = [
-                //             'op_op_op_op_id' => explode('_', $opopopop)[0],
-                //             'op_op_op_op_value' => $op_op_op_op_value[$key],
-                //             'option_key_value' => $opopopop,
-                //         ];
-                //     }
-                // }
-
-                // IF Main attribute type is text + fraction then store the fraction value : START
-                // $main_attr_val = $attribute_value[@$main_attr_key];
-                // if ($attributes_type == 5) {
-                //     // Text + Fraction
-                //     $fraction = request()->input('fraction_' . $att);
-                //     if (count($fraction) > 0) {
-                //         $main_attr_val = $attribute_value[@$main_attr_key] . ' ' . $fraction[0];
-                //     }
-                // }
-                // // IF Main attribute type is text + fraction then store the fraction value : END
 
                 $attrib[] = [
                     'attribute_id' => $attr_id,
@@ -726,5 +683,85 @@ class OrderController extends Controller
 
 
         return $attrib;
+    }
+
+
+
+    public function generateBarcodeAndSave($customer_id, $order_id, $side_mark)
+    {
+        $barcode_img_path = '';
+
+        $show_b_customer_record = Customer::selectRaw("*, CONCAT_WS('-', first_name, last_name) as full_name")
+            ->where('id', $customer_id)
+            ->first();
+
+        $shipping_address_b_customer = DB::table('shipping_address_info')->where('customer_id', $customer_id)->get();
+        $company_profile = DB::table('company_profile')->where('user_id', $this->level_id)->get();
+
+
+        $order_array = [
+            "order_id" => $order_id,
+            "side_mark" => $side_mark,
+            "customer_name" => $show_b_customer_record->full_name
+        ];
+
+        $order_explode = explode('-', $order_array['order_id']);
+        $customer_explode = explode('-', $order_array['customer_name']);
+
+        $side_mark_string = $this->manageOrderBarcodeString($order_array['side_mark'], 4);
+        $customer_name = $this->manageOrderBarcodeString($customer_explode[0], 4);
+
+        $use_order_id = $order_explode[0];
+        $use_smark_nm = $side_mark_string;
+        $use_custo_nm = $customer_name;
+
+        $use_in_barcode_ord_id = $use_custo_nm . "-" . $use_smark_nm . "-" . $use_order_id;
+
+        if (!empty($use_in_barcode_ord_id)) {
+
+            $generator = new \Picqer\Barcode\BarcodeGeneratorJPG();
+            $image = $generator->getBarcode($use_in_barcode_ord_id, $generator::TYPE_CODE_128);
+            $barcode_img_path = 'assets/barcode/b/' . $order_id . '.jpg';
+            Storage::put($barcode_img_path, $image);
+            // return response($image)->header('Content-type', 'image/png');
+        }
+
+        // return $barcode_img_path;
+    }
+
+    public function manageOrderBarcodeString($sidemark_strings, $string_length)
+    {
+        $side_mark_explode = explode('-', $sidemark_strings);
+
+        if ($side_mark_explode) {
+            $barcode_array = array();
+            foreach ($side_mark_explode as $key => $smrk) {
+                $sring_len = strlen($smrk);
+
+                $side_mark = $smrk;
+
+                if ($sring_len != $string_length) {
+                    if ($sring_len < $string_length) {
+
+                        $loop_count = $string_length - $sring_len;
+
+                        for ($x = 1; $x <= $loop_count; $x++) {
+                            $side_mark .= "#";
+                        }
+                    } else {
+                        $side_mark = substr($smrk, 0, $string_length);
+                    }
+                } else {
+                    $side_mark = substr($smrk, 0, $string_length);
+                }
+
+                if ($key <= 1) {
+                    array_push($barcode_array, $side_mark);
+                }
+            }
+            return implode('-', $barcode_array);
+        }
+
+        return false;
     }
 }
