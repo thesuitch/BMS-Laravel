@@ -503,13 +503,13 @@ class OrderController extends Controller
     {
 
 
-       echo 1;
+    //    echo 1;
 
         $order_id = $request->order_details['order_id'];
         $customer_id = $request->order_details['customer_id'];
         $side_mark = $request->order_details['side_mark'];
 
-        // return $this->generateBarcodeAndSave($customer_id, $order_id, $side_mark);
+        return $this->generateBarcodeAndSave($customer_id, $order_id, $side_mark);
 
         // exit;
 
