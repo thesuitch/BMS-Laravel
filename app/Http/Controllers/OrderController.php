@@ -503,13 +503,13 @@ class OrderController extends Controller
     {
 
 
-    //    echo 1;
+        //    echo 1;
 
         $order_id = $request->order_details['order_id'];
         $customer_id = $request->order_details['customer_id'];
         $side_mark = $request->order_details['side_mark'];
 
-        return $this->generateBarcodeAndSave($customer_id, $order_id, $side_mark);
+        // return $this->generateBarcodeAndSave($customer_id, $order_id, $side_mark);
 
         // exit;
 
@@ -561,23 +561,30 @@ class OrderController extends Controller
                 // findKeys($att, 'op_op_id_');
                 // exit;
 
-                $option_type = DB::table('attr_options')
-                    ->select('attr_options.option_type')
-                    ->where('attr_options.att_op_id', explode('_', $att['value'])[1])
-                    ->first()->option_type;
+                if ($att['type'] != 'input') {
+
+                    $option_type = DB::table('attr_options')
+                        ->select('attr_options.option_type')
+                        ->where('attr_options.att_op_id', explode('_', $att['value'])[1])
+                        ->first()->option_type;
 
 
-                $options[] = [
-                    'option_type' => $option_type,
-                    'option_id' => explode('_', $att['value'])[1],
-                    'option_value' => $att['label'],
-                    'option_key_value' => $att['value'], //added by itsea, previously there was no value saving of attributes drop down, so added this
-                ];
+                    $options[] = [
+                        'option_type' => $option_type,
+                        'option_id' => explode('_', $att['value'])[1],
+                        'option_value' => $att['label'],
+                        'option_key_value' => $att['value'], //added by itsea, previously there was no value saving of attributes drop down, so added this
+                    ];
+                }
+
+
 
                 $op_op_matchedKeys = [];
                 findKeys($att, 'op_op_id_', $op_op_matchedKeys);
                 $op_op_op_matchedKeys = [];
                 findKeys($att, 'op_op_op_id_', $op_op_op_matchedKeys);
+                $op_op_op_op_matchedKeys = [];
+                findKeys($att, 'op_op_op_op_id_', $op_op_op_op_matchedKeys);
 
                 // print_r($matchedKeys);
                 // exit;
@@ -590,7 +597,7 @@ class OrderController extends Controller
                             'option_key_value' => $value[0]['op_op_key_value'],
                         ];
 
-  
+
                         foreach ($value as $v) {
 
                             $op_op_op_s[] = [
@@ -601,9 +608,21 @@ class OrderController extends Controller
                         }
                     } else if (@$value['type'] == 'input_with_select') {
                         $op_op_s[] = [
-                            'op_op_id' => @explode('_', $value['op_op_key_value'])[0],
+                            'op_op_id' => @explode('_', $value['input']['op_op_key_value'])[0],
                             'op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
-                            'option_key_value' => @$value['op_op_key_value']
+                            'option_key_value' => @$value['input']['op_op_key_value']
+                        ];
+                        // $op_op_s[] = [
+                        //     'op_op_id' => @explode('_', $value['op_op_key_value'])[0],
+                        //     'op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
+                        //     'option_key_value' => @$value['op_op_key_value']
+                        // ];
+                    } else if (@$value['type'] == 'input') {
+
+                        $op_op_s[] = [
+                            'op_op_id' => explode('_', $value['op_op_key_value'])[0],
+                            'op_op_value' => $value['value'],
+                            'option_key_value' => $value['op_op_key_value'],
                         ];
                     } else {
                         $op_op_s[] = [
@@ -636,14 +655,19 @@ class OrderController extends Controller
                     }
 
 
-                    if (isset($value['op_op_id'])) {
+                    if (isset($value['input']['op_op_id']) || isset($value['input']['op_op_id'])) {
 
                         if ($value['type'] == 'input_with_select') {
                             $op_op_s[] = [
-                                'op_op_id' => @explode('_', $value['op_op_id'])[0],
+                                'op_op_id' => @explode('_', $value['input']['op_op_id'])[0],
                                 'op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
-                                'option_key_value' => @$value['op_op_id']
+                                'option_key_value' => @$value['input']['op_op_id']
                             ];
+                            // $op_op_s[] = [
+                            //     'op_op_id' => @explode('_', $value['op_op_id'])[0],
+                            //     'op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
+                            //     'option_key_value' => @$value['op_op_id']
+                            // ];
                         } else {
                             $op_op_op_op_s[] = [
                                 'op_op_id' => @explode('_', $value['op_op_id'])[0],
@@ -655,9 +679,9 @@ class OrderController extends Controller
 
                     if ($value['type'] == 'input_with_select') {
                         $op_op_op_s[] = [
-                            'op_op_op_id' => @explode('_', $value['op_op_op_key_value'])[0],
+                            'op_op_op_id' => @explode('_', $value['input']['op_op_op_key_value'])[0],
                             'op_op_op_value' => @$value['input']['value'] . ' ' . @$value['select']['value'],
-                            'option_key_value' => @$value['op_op_op_key_value']
+                            'option_key_value' => @$value['input']['op_op_op_key_value']
                         ];
                     } else {
                         $op_op_op_s[] = [
@@ -666,6 +690,17 @@ class OrderController extends Controller
                             'option_key_value' => @$value['op_op_op_key_value']
                         ];
                     }
+                }
+
+
+
+                foreach ($op_op_op_op_matchedKeys as $key => $value) {
+
+                    $op_op_op_op_s[] = [
+                        'op_op_op_op_id' => @explode('_', $value['value'])[0],
+                        'op_op_op_op_value' => @$value['label'],
+                        'option_key_value' => @$value['value']
+                    ];
                 }
 
 

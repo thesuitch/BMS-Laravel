@@ -914,6 +914,7 @@ trait OrderTrait
                     'label' =>  $op_op->op_op_name,
                     'type' => 'input',
                     'name' => 'op_op_id_' . $op_op->op_op_id,
+                    'op_op_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
                     'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op_op->op_op_id, auth('api')->user()->user_id, $options->product_id, $pattern_id),
 
                     // 'class' => 'form-control cls_text_op_op_value ' . $ctm_class,
