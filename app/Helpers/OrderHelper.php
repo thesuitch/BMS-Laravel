@@ -164,6 +164,39 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
     }
 }
 
+// get order condition setings from company_profile table and user related data from user_info table
+if (!function_exists('getCompanyProfileOrderConditionSettingsPart2')) {
+
+    function getCompanyProfileOrderConditionSettingsPart2($user_id = '', $get_data_for = '')
+    {
+        if (auth('api')->user()->is_admin || $get_data_for == 'Retailer_Employee') {
+            $data = DB::table('user_info')
+                ->select('user_info.*', 'company_profile.*')
+                ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
+                ->where('user_info.id', $user_id)
+                ->first();
+        } else {
+            $userInfo = DB::table('user_info')->select('created_by')->where('id', $user_id)->first();
+            if ($userInfo->created_by) {
+                $data = DB::table('user_info')
+                    ->select('user_info.*', 'company_profile.*')
+                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
+                    ->where('user_info.id', $user_id)
+                    ->first();
+            } else {
+                $data = DB::table('user_info')
+                    ->select('user_info.*', 'company_profile.*')
+                    ->join('company_profile', 'company_profile.user_id', '=', 'user_info.id')
+                    ->where('user_info.id', $user_id)
+                    ->first();
+            }
+        }
+
+        return $data;
+    }
+}
+
+
 // get checkRetailerConnectToWholesaler start
 if (!function_exists('checkRetailerConnectToWholesaler')) {
 

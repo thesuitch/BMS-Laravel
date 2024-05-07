@@ -35,6 +35,8 @@ Route::middleware('jwt.verify')->group(function () {
         Route::get('price/{height}/{width}/{product_id}/{pattern_id}/{product_type}',  'getProductRowColPrice');
 
         Route::post('store', 'store');
+        Route::get('index', 'index');
+        Route::get('receipt/{order_id}', 'receipt');
     });
 
     // Customer

@@ -240,7 +240,7 @@ trait CustomerTrait
                 'state' => $customerData['shippingState'],
                 'is_residential' => $customerData['isResidential'],
                 'commercial' => $customerData['commercial'],
-                'storage_facility' => $customerData['storageFacility'] ,
+                'storage_facility' => $customerData['storageFacility'],
                 'freight_terminal' => $customerData['freightTerminal'],
                 'single_house' => $customerData['singleHouse'],
                 'condo' => $customerData['condo'],
