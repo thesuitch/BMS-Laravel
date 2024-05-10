@@ -95,6 +95,591 @@ class OrderController extends Controller
     }
 
 
+    // public function receipt($order_id)
+    // {
+
+    //     $orderd = DB::table('b_level_quatation_tbl')
+    //         ->select(
+    //             'b_level_quatation_tbl.*',
+    //             DB::raw('CONCAT(customers.first_name, " ", customers.last_name) as customer_name'),
+    //             'customers.id',
+    //             'customers.phone',
+    //             'customers.address',
+    //             'customers.city',
+    //             'customers.state',
+    //             'customers.zip_code',
+    //             'customers.country_code',
+    //             'customers.customer_no',
+    //             'customers.email',
+    //             'customers.id'
+    //         )
+    //         ->leftJoin('customers', 'customers.id', '=', 'b_level_quatation_tbl.customer_id')
+    //         ->where('b_level_quatation_tbl.order_id', $order_id)
+    //         ->first();
+
+    //     $company_profile = DB::table('company_profile')->select('*')
+    //         ->where('user_id', $this->level_id)
+    //         ->first();
+    //     $customer = DB::table('customers')->select('*')
+    //         ->where('id', $orderd->customer_id)
+    //         ->first();
+
+    //     // return $customer;
+
+
+
+    //     $shipping_method = "";
+    //     if ($orderd->ship_method && $orderd->ship_method != '') {
+    //         $ship_method = $orderd->ship_method;
+
+    //         switch ($ship_method) {
+    //             case 1:
+    //             case 8:
+    //                 $shipping_method = "Pick Up at {$company_profile->company_name}";
+    //                 break;
+    //             case 2:
+    //                 $shipping_method = "LTL -(Zone)";
+    //                 break;
+    //             case 3:
+    //                 $shipping_method = "Installation";
+    //                 break;
+    //             case 4:
+    //                 $shipping_detail = DB::table('order_shipping_carrier_details')
+    //                     ->where('order_id', $orderd->order_id)
+    //                     ->first();
+    //                 $service_data = DB::table('wholesaler_configured_easypost_carrieracc')
+    //                     ->where('level_id', $this->level_id)
+    //                     ->first();
+    //                 $account = explode(",", $service_data['account']);
+    //                 foreach ($account as $value) {
+    //                     if (strpos($value, $shipping_detail['carrier']) !== false) {
+    //                         $shipping_method = rtrim(explode("|", $value)[1], '"');
+    //                         break;
+    //                     }
+    //                 }
+    //                 break;
+    //             case 5:
+    //                 $shipping_method = "{$company_profile->company_name} Delivery";
+    //                 break;
+    //             case 7:
+    //                 $shipping_method = "Other";
+    //                 break;
+    //         }
+    //     }
+
+
+
+
+    //     if (!empty($company_profile->time_zone)) {
+    //         $date = new DateTime($orderd->order_date);
+    //         $date->setTimezone(new DateTimeZone(trim($company_profile->time_zone)));
+    //         $order_date_time_zone = $date->format('Y-m-d H:i:s');
+    //     } else {
+    //         $order_date_time_zone = $orderd->order_date;
+    //     }
+    //     $date_time_format = $this->date_time_format_by_profile($company_profile->date_format, $company_profile->time_format);
+
+    //     $order_date =  date_format(date_create($order_date_time_zone), $date_time_format);
+
+    //     $address_label = "";
+    //     $binfo = DB::table('company_profile')->where('user_id', $customer->customer_user_id)->first();
+    //     $b_c_info = DB::table('customers')->where('customer_user_id', $customer->customer_user_id)->first();
+
+    //     if (isset($b_c_info->billing_address_label)) {
+    //         switch ($b_c_info->billing_address_label) {
+    //             case 'is_residential':
+    //                 $address_label = "Residential";
+    //                 break;
+    //             case 'commercial':
+    //                 $address_label = "Commercial";
+    //                 break;
+    //             case 'storage_facility':
+    //                 $address_label = "Storage Facility";
+    //                 break;
+    //             case 'freight_terminal':
+    //                 $address_label = "Freight Terminal";
+    //                 break;
+    //             default:
+    //                 // handle unexpected cases if needed
+    //                 break;
+    //         }
+    //     }
+
+
+    //     if (!empty($orderd->customer_id)) {
+    //         $shipping_address_info = DB::table('shipping_address_info')->where('customer_id', $orderd->customer_id)->first();
+
+    //         if (isset($shipping_address_info->is_residential) && $shipping_address_info->is_residential == 1) {
+    //             $address_label = "Residential";
+    //         } else if (isset($shipping_address_info->commercial) && $shipping_address_info->commercial == 1) {
+    //             $address_label = "Commercial";
+    //         } else if (isset($shipping_address_info->storage_facility) && $shipping_address_info->storage_facility == 1) {
+    //             $address_label = "Storage Facility";
+    //         } else if (isset($shipping_address_info->freight_terminal) && $shipping_address_info->freight_terminal == 1) {
+    //             $address_label = "Freight Terminal";
+    //         }
+    //         $shipping_address_label = $address_label;
+    //     }
+
+
+    //     $order_details = DB::table('b_level_qutation_details')
+    //         ->select(
+    //             'b_level_qutation_details.*',
+    //             'products.product_name',
+    //             'categories.category_name',
+    //             'b_level_quatation_attributes.product_attribute',
+    //             'pattern_model_tbl.pattern_name',
+    //             'colors.color_name',
+    //             'colors.color_number'
+    //         )
+    //         ->leftJoin('products', 'products.id', '=', 'b_level_qutation_details.product_id')
+    //         ->leftJoin('categories', 'categories.id', '=', 'b_level_qutation_details.category_id')
+    //         ->leftJoin('b_level_quatation_attributes', 'b_level_quatation_attributes.fk_od_id', '=', 'b_level_qutation_details.row_id')
+    //         ->leftJoin('pattern_model_tbl', 'pattern_model_tbl.pattern_model_id', '=', 'b_level_qutation_details.pattern_model_id')
+    //         ->leftJoin('colors', 'colors.id', '=', 'b_level_qutation_details.color_id')
+    //         ->where('b_level_qutation_details.order_id', $order_id)
+    //         ->get();
+
+    //     // return $order_details;
+
+    //     $user_detail = getCompanyProfileOrderConditionSettings();
+
+
+    //     $data['barcode'] = asset($orderd->barcode);
+    //     $data['order_stage'] = ($orderd->order_stage == 1) ? "Quote" : "Order";
+    //     $data['order_date'] = $order_date;
+    //     $data['order_id'] = $orderd->order_id;
+    //     $data['side_mark'] = ($orderd->side_mark != '') ? $orderd->side_mark : $customer->side_mark;
+    //     $data['shipping_method'] = $shipping_method;
+    //     $data['wholesaler_info']['company_name'] = $company_profile->company_name;
+    //     $data['wholesaler_info']['address'] = $company_profile->address;
+    //     $data['wholesaler_info']['city'] = $company_profile->city;
+    //     $data['wholesaler_info']['zip_code'] = $company_profile->zip_code;
+    //     $data['wholesaler_info']['country_code'] = $company_profile->country_code;
+    //     $data['wholesaler_info']['phone'] = $company_profile->phone;
+    //     $data['wholesaler_info']['email'] = $company_profile->email;
+    //     if ($binfo) {
+    //         $data['sold_to']['label'] = 'Sold To:';
+
+    //         $data['sold_to']['name'] = (($b_c_info->customer_type == 'business') ? ($binfo->company_name ?? '') : $b_c_info->first_name . ' ' . $b_c_info->last_name);
+    //         $data['sold_to']['address_label'] = $address_label;
+    //         $data['sold_to']['address'] = $binfo->address;
+    //         $data['sold_to']['city'] = $binfo->city;
+    //         $data['sold_to']['state'] = $binfo->state;
+    //         $data['sold_to']['zip_code'] = $binfo->zip_code;
+    //         $data['sold_to']['country_code'] = $binfo->country_code;
+    //         $data['sold_to']['phone'] = $binfo->phone;
+    //         $data['sold_to']['email'] = $binfo->email;
+    //     }
+
+    //     $data['ship_to']['label'] = (($orderd->is_different_shipping == 1 && $orderd->is_different_shipping_type == 3) ? 'Pickup From:' : 'Ship To:');
+
+    //     if ($orderd->is_different_shipping == 1) {
+    //         $shipping_address_explode = explode(",", $orderd->different_shipping_address);
+    //         $shipping_address = $shipping_address_explode[0];
+
+    //         $data['ship_to']['name'] = $orderd->receiver_name;
+    //         $data['ship_to']['shipping_address_label'] = $shipping_address;
+    //         $data['ship_to']['shipping_address'] = $shipping_address;
+    //         $data['ship_to']['receiver_city'] = $orderd->receiver_city ?? '';
+    //         $data['ship_to']['receiver_state'] = $orderd->receiver_state ?? '';
+    //         $data['ship_to']['receiver_zip_code'] = $orderd->receiver_zip_code ?? '';
+    //         $data['ship_to']['receiver_country_code'] = $orderd->receiver_country_code ?? '';
+    //         $data['ship_to']['receiver_phone_no'] = $orderd->receiver_phone_no ?? '';
+    //         $data['ship_to']['receiver_email'] = ($b_c_info->customer_type == 'business') ? $orderd->receiver_email : '';
+    //     } else {
+    //         $data['ship_to']['name'] = (($b_c_info->customer_type == 'business') ? $binfo->company_name ?? '' : $b_c_info->first_name . ' ' . $b_c_info->last_name);
+    //         $data['ship_to']['shipping_address_label'] = $shipping_address_label;
+    //         if ($binfo) {
+
+    //             $data['ship_to']['shipping_address'] = $binfo->address;
+    //             $data['ship_to']['city'] = $binfo->city;
+    //             $data['ship_to']['state'] = $binfo->state;
+    //             $data['ship_to']['zip_code'] = $binfo->zip_code;
+    //             $data['ship_to']['country_code'] = $binfo->country_code;
+    //             $data['ship_to']['phone'] = $binfo->phone;
+    //             $data['ship_to']['email'] = $binfo->email;
+    //         }
+    //     }
+    //     $data['products'] = [];
+
+
+    //     $i = 1;
+    //     $total_qty = 0;
+    //     $total_final_price = 0;
+    //     $finalTotalPrice = 0;
+    //     $sub_total = array();
+    //     $finalTotal = array();
+    //     $total_tax = 0;
+
+
+    //     if ($user_detail->display_total_values == 1) {
+    //         $Totalwidth = array();
+    //         $Totalheight = array();
+    //         if ($company_profile->unit == 'inches') {
+    //             $Total_sqft = array();
+    //         }
+    //         if ($company_profile->unit == 'cm') {
+    //             $Total_sqm = array();
+    //         }
+    //     }
+
+    //     // return $order_details;
+    //     foreach ($order_details as $key => $item) {
+
+    //         // dd($item);
+    //         $total_qty += $item->product_qty;
+    //         $table_price = ($item->list_price - $item->upcharge_price);
+    //         $disc_price = ($table_price * $item->discount) / 100;
+    //         $list_price = ($table_price - $disc_price) * $item->product_qty;
+
+
+    //         $product_width = $item->width;
+    //         $product_height = $item->height;
+    //         $company_unit = $company_profile->unit;
+
+    //         array_push($sub_total, $item->unit_total_price);
+
+
+    //         $width_fraction = DB::table('width_height_fractions')->where('id', $item->width_fraction_id)->first();
+    //         $height_fraction = DB::table('width_height_fractions')->where('id', $item->height_fraction_id)->first();
+    //         if (!empty($width_fraction->decimal_value)) {
+    //             $decimal_width_value = $width_fraction->decimal_value;
+    //             $product_width = $item->width + $decimal_width_value;
+    //         }
+    //         if (!empty($height_fraction->decimal_value)) {
+    //             $decimal_height_value = $height_fraction->decimal_value;
+    //             $product_height = $item->height + $decimal_height_value;
+    //         }
+
+
+    //         if ($item->upcharge_price != '') {
+    //             $up_price = $item->upcharge_price;
+    //         } else {
+    //             $up_price = 0;
+    //         }
+    //         $unit_total_price    = number_format($list_price + $up_price, 2);
+    //         $finalUnitTotalPrice = str_replace(",", "", $unit_total_price);
+    //         array_push($finalTotal, $finalUnitTotalPrice);
+    //         $total_final_price += $list_price + $up_price;
+
+    //         $categoryData = DB::table('categories')->where('id', $item->category_id)->first();
+    //         $getProductData = DB::table('products')->where('id', $item->product_id)->first();
+
+
+    //         if ($user_detail->display_total_values == 1) {
+    //             $product_qty = (int) $item->product_qty;
+    //             $product_width1 = $product_width * $product_qty;
+    //             $product_height1 = $product_height * $product_qty;
+    //             array_push($Totalwidth, $product_width1);
+    //             array_push($Totalheight, $product_height1);
+
+    //             if ($company_unit == 'inches') {
+    //                 // $sqft = (($product_width*$product_height)/144) * $product_qty;
+
+    //                 //Get the particular value from table if they select the price style either sqft+table_price or table_price form products
+    //                 if ($getProductData->price_style_type == 1 || $getProductData->price_style_type == 9) {
+    //                     $prince = DB::table('price_style')->where('style_id', $getProductData->price_rowcol_style_id)
+    //                         ->where('row', $product_width)
+    //                         ->where('col', $product_height)
+    //                         ->first();
+
+    //                     $pc = ($prince != NULL ? $prince->price : 0);
+
+    //                     if (!empty($prince)) {
+    //                         // It means exact height and width match
+    //                         $st = 1;
+    //                     } else {
+    //                         // It means need to consider next greater value from price style
+    //                         $prince = DB::table('price_style')->where('style_id', $getProductData->price_rowcol_style_id)
+    //                             ->where('row', '>=', $product_width)
+    //                             ->where('col', '>=', $product_height)
+    //                             ->orderBy('row_id', 'asc')
+    //                             ->limit(1)
+    //                             ->first();
+    //                         $pc = ($prince != NULL ? $prince->price : 0);
+    //                         $st = 2;
+    //                     }
+
+    //                     // Calcualte with sqft + table price : START
+    //                     $sqft_price = 1;
+    //                     if ($getProductData->id != '' && @$item->pattern_model_id != '') {
+    //                         $sqft_data = DB::table('sqft_price_model_mapping_tbl')->where('product_id', $getProductData->id)->where('pattern_id', $item->pattern_model_id)->limit(1)->first();
+    //                         $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
+    //                     }
+    //                     $sqft =  round(($pc * $sqft_price), 2) * $product_qty;
+    //                 } else {
+    //                     $sqft = (($product_width * $product_height) / 144) * $product_qty;
+    //                 }
+
+    //                 array_push($Total_sqft, $sqft);
+    //             }
+    //             if ($company_unit == 'cm') {
+    //                 $sqm = (($product_width * $product_height) / 10000) * $product_qty;
+    //                 array_push($Total_sqm, $sqm);
+    //             }
+    //         }
+
+
+
+
+    //         // For Get Sub Category name : START
+    //         $sub_cat_name = '';
+    //         if (isset($item->sub_category_id) && $item->sub_category_id > 0) {
+    //             $sub_category_data = DB::get('categories')->where('id', $item->sub_category_id)->first();
+    //             if (isset($sub_category_data->category_id)) {
+    //                 $sub_cat_name = " (" . $sub_category_data->category_name . ") ";
+    //             }
+    //         }
+    //         // For Get Sub Category name : END
+
+
+    //         $is_cat_hide_room = DB::table('products')
+    //             ->select('categories.hide_room', 'categories.hide_color', 'products.hide_room as product_hide_room', 'products.hide_color as product_hide_color')
+    //             ->where('products.id', @$item->product_id)
+    //             ->join('categories', 'categories.id', '=', 'products.category_id')
+    //             ->first();
+
+
+
+
+    //         $data['products'][] = [
+    //             'product_qty' => $item->product_qty,
+    //             'name_of_product' => [
+    //                 'category' => ($user_detail->display_category == 1) ? $categoryData->category_name . $sub_cat_name : '',
+    //                 'product_name' => $item->product_name,
+    //                 'pattern' => ($item->pattern_name) ? $item->pattern_name : (($item->pattern_model_id == 0 && $item->manual_pattern_entry != null) ? $item->manual_pattern_entry : ''),
+    //                 'manual_color_entry' => ($is_cat_hide_room->product_hide_color == 0 && $is_cat_hide_room->hide_color == 0 && (@$item->pattern_model_id == 0 || @$item->color_id == 0) && @$item->manual_color_entry != null) ? $item->manual_color_entry : '',
+    //                 'width' => '', // Initialize width attribute
+    //                 'height' => '', // Initialize height attribute
+    //                 'color_number' => ($item->color_number != '' || $item->color_name != '') ? $item->color_number . ' ' . $item->color_name : '',
+    //                 'room' =>  ''
+    //             ],
+    //             'product_price' => $company_profile->currency . $table_price,
+    //             'discount' => ($user_detail->display_discount == 0 && $item->discount > 0) ? $item->discount . " %" : "0 %",
+    //             'list_price' => ($user_detail->display_list_price == 0) ? $company_profile->currency .  number_format($list_price, 2) : 0,
+    //             'upcharge' => [
+    //                 'upcharge_price' => '',
+    //                 'upcharge_details' => []
+    //             ],
+    //             'total_price' => $company_profile->currency . $unit_total_price,
+    //             'comments' => [
+    //                 'notes' => ($item->notes != '') ? 'Special Instruction :' .  $item->notes : '',
+    //                 'special_installer_notes' => ($item->special_installer_notes != '') ? "Note For Installer : " . $item->special_installer_notes : '',
+    //             ],
+    //             'status' => ''
+    //         ];
+
+    //         foreach ($data['products'] as $k => &$product) {
+
+    //             // add Height and width 
+    //             if ($user_detail->drapery_template != 1 || $user_detail->drapery_template_category_id != $item->category_id) {
+    //                 if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 2) {
+    //                     // dd();
+    //                     $product['name_of_product']['width'] = ' W: ' . $order_details[$k]->width . ' ' . @$width_fraction->fraction_value . ' ' . strtoupper($company_unit);
+    //                 }
+    //                 if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 1) {
+    //                     $product['name_of_product']['height'] = ' H: ' . $order_details[$k]->height . ' ' . @$height_fraction->fraction_value . ' ' . strtoupper($company_unit);
+    //                 }
+    //             }
+
+    //             // add room index
+    //             if ($user_detail->display_room == 0) {
+    //                 if ($getProductData->hide_room == 0 && $is_cat_hide_room->product_hide_room == 0) {
+    //                     if ($order_details[$k]->room_index != '') {
+    //                         $indexarr = json_decode($order_details[$k]->room_index, true);
+    //                         if ($indexarr != '') {
+    //                             $product['name_of_product']['room'] = implode(",", $indexarr);
+    //                         }
+    //                     } else {
+    //                         $product['name_of_product']['room'] = $order_details[$k]->room;
+    //                     }
+    //                 }
+    //             }
+
+    //             // add Upcharge price and Details
+    //             if ($user_detail->display_upcharges == 0 && $user_detail->display_partial_upcharges == 0) {
+    //                 // Display the upcharge price tooltip : START
+    //                 if ($user_detail->show_upcharge_breakup == 1) {
+    //                     $product['upcharge']['upcharge_details'] =  json_decode($order_details[$k]->upcharge_details);
+    //                 }
+    //                 // Display the upcharge price tooltip : END
+
+    //                 // Display the upcharge price : Start
+    //                 $product['upcharge']['upcharge_price'] = $company_profile->currency . number_format($order_details[$k]->upcharge_price, 2);
+    //                 // Display the upcharge price : END
+
+    //             }
+
+
+    //             // add status index
+    //             $mfg_label_data = DB::table('b_level_quotation_details_mfg_label')->where('fk_row_id', $order_details[$k]->row_id)->get();
+    //             if (count($mfg_label_data) > 0) {
+    //                 $mfg_status_data = '';
+    //                 foreach ($mfg_label_data as $mfg_key => $mfg_val) {
+    //                     // For mfg status color badge : START
+    //                     $status_name = $mfg_val->status;
+    //                     if ($mfg_val->status == 'Ready to be Shipped' && $mfg_val->is_save_scanned == 2) {
+    //                         $new_order_stage = '8';
+    //                     } else if ($mfg_val->status == 'Mfg Completed' && $mfg_val->is_save_scanned == 1 || ($mfg_val->status == 'Ready to be Shipped')) {
+    //                         $new_order_stage = '15';
+    //                         $status_name = 'Mfg Completed';
+    //                     } else if ($mfg_val->status == 'Mfg Canceled') {
+    //                         $new_order_stage = '16';
+    //                     } else if ($mfg_val->status == 'Mfg Label Printed') {
+    //                         $new_order_stage = '18';
+    //                     } else {
+    //                         $new_order_stage = '17';
+    //                         $status_name = 'Mfg Pending';
+    //                     }
+    //                     // For mfg status color badge : END
+
+    //                     $mfg_status_data =  $mfg_val->room . " is " . $status_name;
+    //                 }
+    //                 $product['status'] = $mfg_status_data;
+    //             }
+    //         }
+
+
+
+    //         if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 1) {
+    //             $selected_attributes = json_decode($item->product_attribute);
+    //             $attributes_data = [];
+
+    //             foreach ($selected_attributes as $atributes) {
+    //                 $attribute_entry = []; // Create an entry for each attribute
+
+    //                 $at_id = $atributes->attribute_id;
+    //                 $att_name = DB::table('attribute_tbl')->where('attribute_id', $at_id)->first();
+    //                 $attribute_entry['name'] = $att_name->attribute_name; // Save primary attribute name
+
+    //                 if (isset($atributes->options[0]->option_id) && $atributes->options[0]->option_id != '' && $atributes->attributes_type != 1) {
+    //                     $att_op_name = DB::table('attr_options')->where('att_op_id', $atributes->options[0]->option_id)->first();
+    //                     $attribute_value = $att_op_name->option_name;
+    //                 } elseif (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+    //                     $attribute_value = $atributes->attribute_value;
+    //                 }
+
+
+    //                 // Check if primary attribute has a value
+    //                 // if (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+    //                 $attribute_entry['value'] = $attribute_value; // Save primary attribute value
+    //                 // }
+
+    //                 // Append primary attribute directly to the attributes data array
+    //                 $attributes_data[] = $attribute_entry;
+
+    //                 // Check for sub-attributes
+    //                 if (isset($atributes->options[0]->option_type)) {
+    //                     if ($atributes->options[0]->option_type == 3 || $atributes->options[0]->option_type == 5 || $atributes->options[0]->option_type == 2 || $atributes->options[0]->option_type == 4 || $atributes->options[0]->option_type == 6) {
+    //                         if (sizeof($atributes->opop) > 0) {
+    //                             foreach ($atributes->opop as $secondLevelOpts) {
+    //                                 $secondLevelOpt = DB::table('attr_options_option_tbl')->where('op_op_id', $secondLevelOpts->op_op_id)->first();
+    //                                 $secondLevelOptName = $secondLevelOpt->op_op_name;
+
+    //                                 $secondLevelOptValue = "";
+    //                                 if ($secondLevelOpt->type == 1 || $secondLevelOpt->type == 0 || $secondLevelOpt->type == 2) {
+    //                                     $secondLevelOptValue = $secondLevelOpts->op_op_value;
+    //                                 }
+
+    //                                 // Append sub-attribute directly to the attributes data array
+    //                                 $attributes_data[] = [
+    //                                     'name' => $secondLevelOptName,
+    //                                     'value' => $secondLevelOptValue
+    //                                 ];
+
+    //                                 // Handle sub-attributes of type 4 (multioption with multiselect)
+    //                                 if ($atributes->options[0]->option_type == 4 && $secondLevelOpt->type == 6) {
+    //                                     // Logic to handle multiselect options
+    //                                 }
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+
+    //             // Append attributes data to the product
+    //             $data['products'][count($data['products']) - 1]['name_of_product']['attributes'] = $attributes_data;
+    //         }
+
+    //         if (@$orderd->is_product_base_tax == 1) {
+    //             $tax = $item->product_base_tax;
+    //             $total_tax += $tax;
+    //         }
+    //     }
+
+
+
+
+    //     // $finalTotalPrice = $orderd->subtotal;
+    //     $finalTotalPrice = $total_final_price;
+    //     // For Sales Tax : START
+    //     $customer_based_tax = 0;
+    //     if (@$orderd->is_product_base_tax == 1) {
+    //         $customer_based_tax = round($total_tax, 2);
+    //     } else {
+    //         if ($orderd->tax_percentage != '' && $orderd->tax_percentage > 0) {
+    //             $customer_based_tax = ($finalTotalPrice * $orderd->tax_percentage / 100);
+    //         }
+    //     }
+    //     // For Sales Tax : END
+
+    //     // Shipping percentage calculation : START
+    //     $shipping_charges = 0;
+    //     if ($orderd->shipping_percentage != '' && $orderd->shipping_percentage > 0) {
+    //         $shipping_charges = (($finalTotalPrice * $orderd->shipping_percentage) / 100);
+    //     }
+    //     // Shipping percentage calculation : END
+    //     if (isset($finalTotalPrice) && !empty($finalTotalPrice)) {
+    //         $finalTotalPrice = $finalTotalPrice;
+    //     } else {
+    //         $finalTotalPrice = 0;
+    //     }
+    //     // Shipping percentage calculation : END
+    //     $order_misc_charges = (isset($orderd->misc) && ($orderd->misc != '')) ? $orderd->misc : 0;
+    //     $order_other_charges = (isset($orderd->other_charge) && ($orderd->other_charge != '')) ? $orderd->other_charge : 0;
+    //     $shipping_installation_chargej = $orderd->installation_charge + $orderd->shipping_charges + $shipping_charges;
+    //     $grandtotals = ($finalTotalPrice + $customer_based_tax + $shipping_installation_chargej + $order_misc_charges + $order_other_charges) - $orderd->invoice_discount;
+    //     $checkdueamt = $grandtotals - $orderd->paid_amount;
+
+    //     $shipping_installation_charge = $orderd->installation_charge + $orderd->shipping_charges + $shipping_charges;
+    //     $order_misccharges = (isset($orderd->misc) && ($orderd->misc != '')) ? $orderd->misc : 0;
+    //     $allow_max_credit = $orderd->credit + $orderd->due;
+    //     $allow_max_discount = $orderd->invoice_discount + $orderd->due;
+
+    //     // Total Section Start
+    //     $data['total'] = [
+    //         'qty' => $total_qty,
+    //     ];
+    //     if ($user_detail->display_total_values == 1) {
+    //         $data['total']['width'] = array_sum($Totalwidth) . ' ' . $company_unit;
+    //         $data['total']['height'] = array_sum($Totalheight) . ' ' . $company_unit;
+    //         $data['total']['sqft_or_sqm'] = ($company_unit == 'inches' && array_sum($Total_sqft) != 0) ?
+    //             number_format(array_sum($Total_sqft), 2) : (($company_unit == 'cm' && array_sum($Total_sqm) != 0) ? number_format(array_sum($Total_sqm), 2) : 0);
+    //     }
+    //     $data['total']['price'] = $company_profile->currency . number_format($total_final_price, 2);
+    //     $data['total']['sales_tax'] =  $company_profile->currency . number_format(($customer_based_tax), 2);
+    //     $data['total']['sub_total'] =  $company_profile->currency . number_format(($finalTotalPrice), 2);
+    //     $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
+    //     $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
+    //     $data['total']['credit'] =  number_format($orderd->credit, 2);
+    //     $data['total']['allow_max_credit'] =  $allow_max_credit;
+    //     $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
+    //     $data['total']['allow_max_discount'] =  $allow_max_discount;
+    //     $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
+    //     $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
+    //     $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
+
+
+
+
+
+    //     return $data;
+    // }
+
+
+
+
     public function receipt($order_id)
     {
 
@@ -117,15 +702,13 @@ class OrderController extends Controller
             ->where('b_level_quatation_tbl.order_id', $order_id)
             ->first();
 
+
         $company_profile = DB::table('company_profile')->select('*')
             ->where('user_id', $this->level_id)
             ->first();
         $customer = DB::table('customers')->select('*')
             ->where('id', $orderd->customer_id)
             ->first();
-
-        // return $customer;
-
 
 
         $shipping_method = "";
@@ -180,6 +763,11 @@ class OrderController extends Controller
         $date_time_format = $this->date_time_format_by_profile($company_profile->date_format, $company_profile->time_format);
 
         $order_date =  date_format(date_create($order_date_time_zone), $date_time_format);
+        
+        $barcodeUrl = asset($orderd->barcode);
+
+        $logoUrl = asset('assets/b_level/uploads/appsettings/' . $company_profile->logo);
+
 
         $address_label = "";
         $binfo = DB::table('company_profile')->where('user_id', $customer->customer_user_id)->first();
@@ -221,7 +809,35 @@ class OrderController extends Controller
             $shipping_address_label = $address_label;
         }
 
-        $data['barcode'] = asset($orderd->barcode);
+
+        // return 1;
+        // return $b_c_info;
+
+        $order_details = DB::table('b_level_qutation_details')
+            ->select(
+                'b_level_qutation_details.*',
+                'products.product_name',
+                'categories.category_name',
+                'b_level_quatation_attributes.product_attribute',
+                'pattern_model_tbl.pattern_name',
+                'colors.color_name',
+                'colors.color_number'
+            )
+            ->leftJoin('products', 'products.id', '=', 'b_level_qutation_details.product_id')
+            ->leftJoin('categories', 'categories.id', '=', 'b_level_qutation_details.category_id')
+            ->leftJoin('b_level_quatation_attributes', 'b_level_quatation_attributes.fk_od_id', '=', 'b_level_qutation_details.row_id')
+            ->leftJoin('pattern_model_tbl', 'pattern_model_tbl.pattern_model_id', '=', 'b_level_qutation_details.pattern_model_id')
+            ->leftJoin('colors', 'colors.id', '=', 'b_level_qutation_details.color_id')
+            ->where('b_level_qutation_details.order_id', $order_id)
+            ->get();
+
+        // return $order_details;
+
+        $user_detail = getCompanyProfileOrderConditionSettings();
+
+
+        $data['barcode'] = (file_exists(public_path($orderd->barcode))) ? asset($barcodeUrl) : '';
+        $data['logo'] = (file_exists(public_path('assets/b_level/uploads/appsettings/' . $company_profile->logo))) ? $logoUrl : '';
         $data['order_stage'] = ($orderd->order_stage == 1) ? "Quote" : "Order";
         $data['order_date'] = $order_date;
         $data['order_id'] = $orderd->order_id;
@@ -277,6 +893,377 @@ class OrderController extends Controller
                 $data['ship_to']['email'] = $binfo->email;
             }
         }
+        $data['products'] = [];
+
+
+        $i = 1;
+        $total_qty = 0;
+        $total_final_price = 0;
+        $finalTotalPrice = 0;
+        $sub_total = array();
+        $finalTotal = array();
+        $total_tax = 0;
+
+
+        if ($user_detail->display_total_values == 1) {
+            $Totalwidth = array();
+            $Totalheight = array();
+            if ($company_profile->unit == 'inches') {
+                $Total_sqft = array();
+            }
+            if ($company_profile->unit == 'cm') {
+                $Total_sqm = array();
+            }
+        }
+
+        // return $order_details;
+        foreach ($order_details as $key => $item) {
+
+            // dd($item);
+            $total_qty += $item->product_qty;
+            $table_price = ($item->list_price - $item->upcharge_price);
+            $disc_price = ($table_price * $item->discount) / 100;
+            $list_price = ($table_price - $disc_price) * $item->product_qty;
+
+
+            $product_width = $item->width;
+            $product_height = $item->height;
+            $company_unit = $company_profile->unit;
+
+            array_push($sub_total, $item->unit_total_price);
+
+
+            $width_fraction = DB::table('width_height_fractions')->where('id', $item->width_fraction_id)->first();
+            $height_fraction = DB::table('width_height_fractions')->where('id', $item->height_fraction_id)->first();
+            if (!empty($width_fraction->decimal_value)) {
+                $decimal_width_value = $width_fraction->decimal_value;
+                $product_width = $item->width + $decimal_width_value;
+            }
+            if (!empty($height_fraction->decimal_value)) {
+                $decimal_height_value = $height_fraction->decimal_value;
+                $product_height = $item->height + $decimal_height_value;
+            }
+
+
+            if ($item->upcharge_price != '') {
+                $up_price = $item->upcharge_price;
+            } else {
+                $up_price = 0;
+            }
+            $unit_total_price    = number_format($list_price + $up_price, 2);
+            $finalUnitTotalPrice = str_replace(",", "", $unit_total_price);
+            array_push($finalTotal, $finalUnitTotalPrice);
+            $total_final_price += $list_price + $up_price;
+
+            $categoryData = DB::table('categories')->where('id', $item->category_id)->first();
+            $getProductData = DB::table('products')->where('id', $item->product_id)->first();
+
+
+            if ($user_detail->display_total_values == 1) {
+                $product_qty = (int) $item->product_qty;
+                $product_width1 = $product_width * $product_qty;
+                $product_height1 = $product_height * $product_qty;
+                array_push($Totalwidth, $product_width1);
+                array_push($Totalheight, $product_height1);
+
+                if ($company_unit == 'inches') {
+                    // $sqft = (($product_width*$product_height)/144) * $product_qty;
+
+                    //Get the particular value from table if they select the price style either sqft+table_price or table_price form products
+                    if ($getProductData->price_style_type == 1 || $getProductData->price_style_type == 9) {
+                        $prince = DB::table('price_style')->where('style_id', $getProductData->price_rowcol_style_id)
+                            ->where('row', $product_width)
+                            ->where('col', $product_height)
+                            ->first();
+
+                        $pc = ($prince != NULL ? $prince->price : 0);
+
+                        if (!empty($prince)) {
+                            // It means exact height and width match
+                            $st = 1;
+                        } else {
+                            // It means need to consider next greater value from price style
+                            $prince = DB::table('price_style')->where('style_id', $getProductData->price_rowcol_style_id)
+                                ->where('row', '>=', $product_width)
+                                ->where('col', '>=', $product_height)
+                                ->orderBy('row_id', 'asc')
+                                ->limit(1)
+                                ->first();
+                            $pc = ($prince != NULL ? $prince->price : 0);
+                            $st = 2;
+                        }
+
+                        // Calcualte with sqft + table price : START
+                        $sqft_price = 1;
+                        if ($getProductData->id != '' && @$item->pattern_model_id != '') {
+                            $sqft_data = DB::table('sqft_price_model_mapping_tbl')->where('product_id', $getProductData->id)->where('pattern_id', $item->pattern_model_id)->limit(1)->first();
+                            $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
+                        }
+                        $sqft =  round(($pc * $sqft_price), 2) * $product_qty;
+                    } else {
+                        $sqft = (($product_width * $product_height) / 144) * $product_qty;
+                    }
+
+                    array_push($Total_sqft, $sqft);
+                }
+                if ($company_unit == 'cm') {
+                    $sqm = (($product_width * $product_height) / 10000) * $product_qty;
+                    array_push($Total_sqm, $sqm);
+                }
+            }
+
+
+
+
+            // For Get Sub Category name : START
+            $sub_cat_name = '';
+            if (isset($item->sub_category_id) && $item->sub_category_id > 0) {
+                $sub_category_data = DB::get('categories')->where('id', $item->sub_category_id)->first();
+                if (isset($sub_category_data->category_id)) {
+                    $sub_cat_name = " (" . $sub_category_data->category_name . ") ";
+                }
+            }
+            // For Get Sub Category name : END
+
+
+            $is_cat_hide_room = DB::table('products')
+                ->select('categories.hide_room', 'categories.hide_color', 'products.hide_room as product_hide_room', 'products.hide_color as product_hide_color')
+                ->where('products.id', @$item->product_id)
+                ->join('categories', 'categories.id', '=', 'products.category_id')
+                ->first();
+
+
+
+
+            $data['products'][] = [
+                'product_qty' => $item->product_qty,
+                'name_of_product' => [
+                    'category' => ($user_detail->display_category == 1) ? $categoryData->category_name . $sub_cat_name : '',
+                    'product_name' => $item->product_name,
+                    'pattern' => ($item->pattern_name) ? $item->pattern_name : (($item->pattern_model_id == 0 && $item->manual_pattern_entry != null) ? $item->manual_pattern_entry : ''),
+                    'manual_color_entry' => ($is_cat_hide_room->product_hide_color == 0 && $is_cat_hide_room->hide_color == 0 && (@$item->pattern_model_id == 0 || @$item->color_id == 0) && @$item->manual_color_entry != null) ? $item->manual_color_entry : '',
+                    'width' => '', // Initialize width attribute
+                    'height' => '', // Initialize height attribute
+                    'color_number' => ($item->color_number != '' || $item->color_name != '') ? $item->color_number . ' ' . $item->color_name : '',
+                    'room' =>  ''
+                ],
+                'product_price' => $company_profile->currency . $table_price,
+                'discount' => ($user_detail->display_discount == 0 && $item->discount > 0) ? $item->discount . " %" : "0 %",
+                'list_price' => ($user_detail->display_list_price == 0) ? $company_profile->currency .  number_format($list_price, 2) : 0,
+                'upcharge' => [
+                    'upcharge_price' => '',
+                    'upcharge_details' => []
+                ],
+                'total_price' => $company_profile->currency . $unit_total_price,
+                'comments' => [
+                    'notes' => ($item->notes != '') ? 'Special Instruction :' .  $item->notes : '',
+                    'special_installer_notes' => ($item->special_installer_notes != '') ? "Note For Installer : " . $item->special_installer_notes : '',
+                ],
+                'status' => ''
+            ];
+
+            foreach ($data['products'] as $k => &$product) {
+
+                // add Height and width 
+                if ($user_detail->drapery_template != 1 || $user_detail->drapery_template_category_id != $item->category_id) {
+                    if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 2) {
+                        // dd();
+                        $product['name_of_product']['width'] = ' W: ' . $order_details[$k]->width . ' ' . @$width_fraction->fraction_value . ' ' . strtoupper($company_unit);
+                    }
+                    if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 1) {
+                        $product['name_of_product']['height'] = ' H: ' . $order_details[$k]->height . ' ' . @$height_fraction->fraction_value . ' ' . strtoupper($company_unit);
+                    }
+                }
+
+                // add room index
+                if ($user_detail->display_room == 0) {
+                    if ($getProductData->hide_room == 0 && $is_cat_hide_room->product_hide_room == 0) {
+                        if ($order_details[$k]->room_index != '') {
+                            $indexarr = json_decode($order_details[$k]->room_index, true);
+                            if ($indexarr != '') {
+                                $product['name_of_product']['room'] = implode(",", $indexarr);
+                            }
+                        } else {
+                            $product['name_of_product']['room'] = $order_details[$k]->room;
+                        }
+                    }
+                }
+
+                // add Upcharge price and Details
+                if ($user_detail->display_upcharges == 0 && $user_detail->display_partial_upcharges == 0) {
+                    // Display the upcharge price tooltip : START
+                    if ($user_detail->show_upcharge_breakup == 1) {
+                        $product['upcharge']['upcharge_details'] =  json_decode($order_details[$k]->upcharge_details);
+                    }
+                    // Display the upcharge price tooltip : END
+
+                    // Display the upcharge price : Start
+                    $product['upcharge']['upcharge_price'] = $company_profile->currency . number_format($order_details[$k]->upcharge_price, 2);
+                    // Display the upcharge price : END
+
+                }
+
+
+                // add status index
+                $mfg_label_data = DB::table('b_level_quotation_details_mfg_label')->where('fk_row_id', $order_details[$k]->row_id)->get();
+                if (count($mfg_label_data) > 0) {
+                    $mfg_status_data = '';
+                    foreach ($mfg_label_data as $mfg_key => $mfg_val) {
+                        // For mfg status color badge : START
+                        $status_name = $mfg_val->status;
+                        if ($mfg_val->status == 'Ready to be Shipped' && $mfg_val->is_save_scanned == 2) {
+                            $new_order_stage = '8';
+                        } else if ($mfg_val->status == 'Mfg Completed' && $mfg_val->is_save_scanned == 1 || ($mfg_val->status == 'Ready to be Shipped')) {
+                            $new_order_stage = '15';
+                            $status_name = 'Mfg Completed';
+                        } else if ($mfg_val->status == 'Mfg Canceled') {
+                            $new_order_stage = '16';
+                        } else if ($mfg_val->status == 'Mfg Label Printed') {
+                            $new_order_stage = '18';
+                        } else {
+                            $new_order_stage = '17';
+                            $status_name = 'Mfg Pending';
+                        }
+                        // For mfg status color badge : END
+
+                        $mfg_status_data =  $mfg_val->room . " is " . $status_name;
+                    }
+                    $product['status'] = $mfg_status_data;
+                }
+            }
+
+
+
+            if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 1) {
+                $selected_attributes = json_decode($item->product_attribute);
+                $attributes_data = [];
+
+                foreach ($selected_attributes as $atributes) {
+                    $attribute_entry = []; // Create an entry for each attribute
+
+                    $at_id = $atributes->attribute_id;
+                    $att_name = DB::table('attribute_tbl')->where('attribute_id', $at_id)->first();
+                    $attribute_entry['name'] = $att_name->attribute_name; // Save primary attribute name
+
+                    if (isset($atributes->options[0]->option_id) && $atributes->options[0]->option_id != '' && $atributes->attributes_type != 1) {
+                        $att_op_name = DB::table('attr_options')->where('att_op_id', $atributes->options[0]->option_id)->first();
+                        $attribute_value = $att_op_name->option_name;
+                    } elseif (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+                        $attribute_value = $atributes->attribute_value;
+                    }
+
+
+                    // Check if primary attribute has a value
+                    // if (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+                    $attribute_entry['value'] = $attribute_value; // Save primary attribute value
+                    // }
+
+                    // Append primary attribute directly to the attributes data array
+                    $attributes_data[] = $attribute_entry;
+
+                    // Check for sub-attributes
+                    if (isset($atributes->options[0]->option_type)) {
+                        if ($atributes->options[0]->option_type == 3 || $atributes->options[0]->option_type == 5 || $atributes->options[0]->option_type == 2 || $atributes->options[0]->option_type == 4 || $atributes->options[0]->option_type == 6) {
+                            if (sizeof($atributes->opop) > 0) {
+                                foreach ($atributes->opop as $secondLevelOpts) {
+                                    $secondLevelOpt = DB::table('attr_options_option_tbl')->where('op_op_id', $secondLevelOpts->op_op_id)->first();
+                                    $secondLevelOptName = $secondLevelOpt->op_op_name;
+
+                                    $secondLevelOptValue = "";
+                                    if ($secondLevelOpt->type == 1 || $secondLevelOpt->type == 0 || $secondLevelOpt->type == 2) {
+                                        $secondLevelOptValue = $secondLevelOpts->op_op_value;
+                                    }
+
+                                    // Append sub-attribute directly to the attributes data array
+                                    $attributes_data[] = [
+                                        'name' => $secondLevelOptName,
+                                        'value' => $secondLevelOptValue
+                                    ];
+
+                                    // Handle sub-attributes of type 4 (multioption with multiselect)
+                                    if ($atributes->options[0]->option_type == 4 && $secondLevelOpt->type == 6) {
+                                        // Logic to handle multiselect options
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Append attributes data to the product
+                $data['products'][count($data['products']) - 1]['name_of_product']['attributes'] = $attributes_data;
+            }
+
+            if (@$orderd->is_product_base_tax == 1) {
+                $tax = $item->product_base_tax;
+                $total_tax += $tax;
+            }
+        }
+
+
+
+
+        // $finalTotalPrice = $orderd->subtotal;
+        $finalTotalPrice = $total_final_price;
+        // For Sales Tax : START
+        $customer_based_tax = 0;
+        if (@$orderd->is_product_base_tax == 1) {
+            $customer_based_tax = round($total_tax, 2);
+        } else {
+            if ($orderd->tax_percentage != '' && $orderd->tax_percentage > 0) {
+                $customer_based_tax = ($finalTotalPrice * $orderd->tax_percentage / 100);
+            }
+        }
+        // For Sales Tax : END
+
+        // Shipping percentage calculation : START
+        $shipping_charges = 0;
+        if ($orderd->shipping_percentage != '' && $orderd->shipping_percentage > 0) {
+            $shipping_charges = (($finalTotalPrice * $orderd->shipping_percentage) / 100);
+        }
+        // Shipping percentage calculation : END
+        if (isset($finalTotalPrice) && !empty($finalTotalPrice)) {
+            $finalTotalPrice = $finalTotalPrice;
+        } else {
+            $finalTotalPrice = 0;
+        }
+        // Shipping percentage calculation : END
+        $order_misc_charges = (isset($orderd->misc) && ($orderd->misc != '')) ? $orderd->misc : 0;
+        $order_other_charges = (isset($orderd->other_charge) && ($orderd->other_charge != '')) ? $orderd->other_charge : 0;
+        $shipping_installation_chargej = $orderd->installation_charge + $orderd->shipping_charges + $shipping_charges;
+        $grandtotals = ($finalTotalPrice + $customer_based_tax + $shipping_installation_chargej + $order_misc_charges + $order_other_charges) - $orderd->invoice_discount;
+        $checkdueamt = $grandtotals - $orderd->paid_amount;
+
+        $shipping_installation_charge = $orderd->installation_charge + $orderd->shipping_charges + $shipping_charges;
+        $order_misccharges = (isset($orderd->misc) && ($orderd->misc != '')) ? $orderd->misc : 0;
+        $allow_max_credit = $orderd->credit + $orderd->due;
+        $allow_max_discount = $orderd->invoice_discount + $orderd->due;
+
+        // Total Section Start
+        $data['total'] = [
+            'qty' => $total_qty,
+        ];
+        if ($user_detail->display_total_values == 1) {
+            $data['total']['width'] = array_sum($Totalwidth) . ' ' . $company_unit;
+            $data['total']['height'] = array_sum($Totalheight) . ' ' . $company_unit;
+            $data['total']['sqft_or_sqm'] = ($company_unit == 'inches' && array_sum($Total_sqft) != 0) ?
+                number_format(array_sum($Total_sqft), 2) : (($company_unit == 'cm' && array_sum($Total_sqm) != 0) ? number_format(array_sum($Total_sqm), 2) : 0);
+        }
+        $data['total']['price'] = $company_profile->currency . number_format($total_final_price, 2);
+        $data['total']['sales_tax'] =  $company_profile->currency . number_format(($customer_based_tax), 2);
+        $data['total']['sub_total'] =  $company_profile->currency . number_format(($finalTotalPrice), 2);
+        $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
+        $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
+        $data['total']['credit'] =  number_format($orderd->credit, 2);
+        $data['total']['allow_max_credit'] =  $allow_max_credit;
+        $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
+        $data['total']['allow_max_discount'] =  $allow_max_discount;
+        $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
+        $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
+        $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
+
+
+
 
 
         return $data;
@@ -1065,7 +2052,8 @@ class OrderController extends Controller
             $generator = new \Picqer\Barcode\BarcodeGeneratorJPG();
             $image = $generator->getBarcode($use_in_barcode_ord_id, $generator::TYPE_CODE_128);
             $barcode_img_path = 'assets/barcode/b/' . $order_id . '.jpg';
-            Storage::put($barcode_img_path, $image);
+            Storage::disk('public')->put($barcode_img_path, $image);
+            // Storage::put($barcode_img_path, $image);
             // return response($image)->header('Content-type', 'image/png');
         }
 
