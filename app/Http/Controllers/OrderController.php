@@ -1802,7 +1802,9 @@ class OrderController extends Controller
 
                 /// misc data isdert
                 $miscData =  $request->order_details['misc'];
-                DB::table('misc_breakdown_details')->insert($miscData);
+                if(isset($miscData)){
+                    DB::table('misc_breakdown_details')->insert($miscData);
+                }
             }
 
             return response()->json([
