@@ -763,7 +763,7 @@ class OrderController extends Controller
         $date_time_format = $this->date_time_format_by_profile($company_profile->date_format, $company_profile->time_format);
 
         $order_date =  date_format(date_create($order_date_time_zone), $date_time_format);
-        
+
         $barcodeUrl = asset($orderd->barcode);
 
         $logoUrl = asset('assets/b_level/uploads/appsettings/' . $company_profile->logo);
@@ -852,7 +852,6 @@ class OrderController extends Controller
         $data['wholesaler_info']['email'] = $company_profile->email;
         if ($binfo) {
             $data['sold_to']['label'] = 'Sold To:';
-
             $data['sold_to']['name'] = (($b_c_info->customer_type == 'business') ? ($binfo->company_name ?? '') : $b_c_info->first_name . ' ' . $b_c_info->last_name);
             $data['sold_to']['address_label'] = $address_label;
             $data['sold_to']['address'] = $binfo->address;
@@ -894,7 +893,6 @@ class OrderController extends Controller
             }
         }
         $data['products'] = [];
-
 
         $i = 1;
         $total_qty = 0;
@@ -1255,9 +1253,9 @@ class OrderController extends Controller
         $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
         $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
         $data['total']['credit'] =  number_format($orderd->credit, 2);
-        $data['total']['allow_max_credit'] =  $allow_max_credit;
+        $data['total']['allow_max_credit'] =  round($allow_max_credit,2);
         $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
-        $data['total']['allow_max_discount'] =  $allow_max_discount;
+        $data['total']['allow_max_discount'] =  round($allow_max_discount,2);
         $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
         $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
         $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
