@@ -1253,9 +1253,9 @@ class OrderController extends Controller
         $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
         $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
         $data['total']['credit'] =  number_format($orderd->credit, 2);
-        $data['total']['allow_max_credit'] =  round($allow_max_credit,2);
+        $data['total']['allow_max_credit'] =  number_format(($allow_max_credit),2);
         $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
-        $data['total']['allow_max_discount'] =  round($allow_max_discount,2);
+        $data['total']['allow_max_discount'] =  number_format(($allow_max_discount),2);
         $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
         $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
         $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
