@@ -2321,44 +2321,327 @@ trait OrderTrait
     }
 
 
-    // public function getMinMaxHeightWidth($product_id = null, $pattern_id = null)
-    // {
 
 
-    //     $response = [];
-    //     if ($product_id) {
-    //         $product = DB::table('products')->find($product_id);
+    // Stage update : Start
+    function createMfgLebelEntry($order_id)
+    {
+        $is_already_mfg_label = DB::table('b_level_quotation_details_mfg_label')->where('order_id', $order_id)->count();
+
+        if (!$is_already_mfg_label) {
+            $productData = DB::table('b_level_qutation_details')->where('order_id', $order_id)->get();
+
+            foreach ($productData as $order_product_data) {
+                // Add data in b_level_quotation_details_mfg_label table start
+                $roomValue = json_decode($order_product_data->room_index, true);
+
+                foreach ($roomValue as $room_value) {
+                    $tempDetailData = [
+                        'fk_row_id' => $order_product_data->row_id,
+                        'order_id' => $order_id,
+                        'room' => $room_value,
+                        'product_id' => $order_product_data->product_id,
+                        'product_qty' => 1,
+                        'list_price' => $order_product_data->list_price,
+                        'upcharge_price' => $order_product_data->upcharge_price,
+                        'upcharge_label' => $order_product_data->upcharge_label,
+                        'discount' => $order_product_data->discount,
+                        'unit_total_price' => $order_product_data->unit_total_price,
+                        'category_id' => $order_product_data->category_id,
+                        'sub_category_id' => $order_product_data->sub_category_id,
+                        'pattern_model_id' => $order_product_data->pattern_model_id,
+                        'manual_pattern_entry' => $order_product_data->manual_pattern_entry,
+                        'manual_color_entry' => $order_product_data->manual_color_entry,
+                        'fabric_price' => $order_product_data->fabric_price,
+                        'color_id' => $order_product_data->color_id,
+                        'width' => $order_product_data->width,
+                        'height' => $order_product_data->height,
+                        'height_fraction_id' => $order_product_data->height_fraction_id,
+                        'width_fraction_id' => $order_product_data->width_fraction_id,
+                        'notes' => $order_product_data->notes,
+                        'room_index' => $order_product_data->room_index
+                    ];
+
+                    DB::table('b_level_quotation_details_mfg_label')->insert($tempDetailData);
+                }
+                // Add data in b_level_quotation_details_mfg_label table end
+            }
+        }
+    }
+    function removeMfgLebelEntry($order_id)
+    {
+        DB::table('b_level_quotation_details_mfg_label')->whereIn('order_id', $order_id)->delete();
+
+    }
+    // stage update : End 
 
 
-    //         if ($product && in_array($product->price_style_type, [5, 6])) {
-    //             $response = [
-    //                 'minw' => !empty($product->min_width) ? intval($product->min_width) : null,
-    //                 'minh' => !empty($product->min_height) ? intval($product->min_height) : null,
-    //                 'maxh' => !empty($product->max_height) ? intval($product->max_height) : null,
-    //                 'maxw' => !empty($product->max_width) ? intval($product->max_width) : null
-    //             ];
-    //         } elseif ($product->price_style_type == 4) {
-    //             // group price
-    //             $pg = DB::table('price_model_mapping_tbl')
-    //                 ->where('product_id', $product_id)
-    //                 ->where('pattern_id', $pattern_id)
-    //                 ->first();
 
-    //             $group_id = isset($pg->group_id) ? $pg->group_id : '0';
-    //             $response = DB::table('price_style')
-    //                 ->select('row as maxw', 'col as maxh')
-    //                 ->where('style_id', $group_id)
-    //                 ->latest('row_id')
-    //                 ->first();
-    //         } elseif (in_array($product->price_style_type, [1, 9])) {
+    // Modify Amount for order receipt : Start
 
-    //             $response = DB::table('price_style')
-    //                 ->select('row as maxw', 'col as maxh')
-    //                 ->where('style_id', $product->price_rowcol_style_id)
-    //                 ->latest('row_id')
-    //                 ->first();
-    //         }
-    //     }
-    //     return $response;
-    // }
+    // Update Shipping Installation Chatges : Start
+    function updateShippingInstallationCharge($amount,$order_id)
+    {
+
+        $quotationData = DB::table('b_level_quatation_tbl')
+            ->where('order_id', $order_id)
+            ->where('level_id', $this->level_id)
+            ->first();
+
+        if ($quotationData) {
+            $oldShippingCharges = $quotationData->shipping_charges;
+            $oldInstallationCharge = $quotationData->installation_charge;
+            $due = $quotationData->due;
+            $grandTotal = $quotationData->grand_total;
+            $oldShippingPercentage = number_format((($quotationData->subtotal * $quotationData->shipping_percentage) / 100), 2);
+            $newGrandTotal = $grandTotal - ($oldShippingCharges + $oldInstallationCharge + $oldShippingPercentage) + $amount;
+            $newDue = $due - ($oldShippingCharges + $oldInstallationCharge + $oldShippingPercentage) + $amount;
+
+            DB::table('b_level_quatation_tbl')
+                ->where('order_id', $order_id)
+                ->update([
+                    'shipping_charges' => $amount,
+                    'installation_charge' => 0,
+                    'shipping_percentage' => 0,
+                    'grand_total' => $newGrandTotal,
+                    'due' => $newDue,
+                ]);
+
+                $message = 'Shipping/Installation Charge applied Successfully.';
+                return response()->json(['success' => true, 'message' => $message], 200);
+
+        } else {
+
+                $message = 'Something went wrong. Please try again';
+                return response()->json(['success' => false, 'message' => $message], 400);
+        }
+    }
+    // Update Shipping Installation Chatges : End
+
+
+    // Update Credit Amount : Start
+    function updateCredit($credit,$order_id) {
+    
+        $quotationData = DB::table('b_level_quatation_tbl')
+            ->where('order_id', $order_id)
+            ->where('level_id', $this->level_id) // Assuming $this->level_id exists in your controller
+            ->first();
+
+        if($quotationData){
+            $oldCredit = $quotationData->credit;
+            $grandTotal = $quotationData->grand_total;
+            $due = $quotationData->due;
+
+            $newGrandTotal = $grandTotal + $oldCredit - $credit;
+            $newDue = $due + $oldCredit - $credit;
+
+            DB::table('b_level_quatation_tbl')
+                ->where('order_id', $order_id)
+                ->update([
+                    'credit' => $credit,
+                    'grand_total' => $newGrandTotal,
+                    'due' => $newDue,
+                ]);
+
+                $message = 'Credit Applied Successfully.';
+                return response()->json(['success' => true, 'message' => $message], 200);
+
+        } else {
+
+                $message = 'Something went wrong. Please try again';
+                return response()->json(['success' => false, 'message' => $message], 400);
+        }
+    }
+    // Update Credit Amount : End
+
+
+    // Update Discount Amount : Start
+    function updateDiscount($amount , $order_id) {
+    
+        $quotation_data = DB::table('b_level_quatation_tbl')
+                            ->where('order_id', $order_id)
+                            ->where('level_id', $this->level_id)
+                            ->first();
+                            // return $quotation_data;
+    
+        if($quotation_data){
+    
+            $old_invoice_discount = $quotation_data->invoice_discount;
+            $grand_total = $quotation_data->grand_total;
+            $due = $quotation_data->due;
+    
+            $new_grand_total = $grand_total + $old_invoice_discount - $amount;
+            $new_due = $due + $old_invoice_discount - $amount;
+    
+            $new_data = [
+                'invoice_discount' => $amount, 
+                'grand_total' => $new_grand_total, 
+                'due' => $new_due, 
+            ];
+    
+            DB::table('b_level_quatation_tbl')
+                ->where('order_id', $order_id)
+                ->update($new_data);
+    
+                $message = 'Extra Discount Applied Successfully.';
+                return response()->json(['success' => true, 'message' => $message], 200);
+        } else {
+            $message = 'Something went wrong. Please try again.';
+            return response()->json(['success' => false, 'message' => $message], 400);
+        }
+    }
+    // Update Discount Amount : End
+
+    // Modify Amount for order receipt : End
+
+
+    // Calculate the wholesaler to retailer / retailer to wholesaler total : Start
+    public function retailerToWholesalerCalculation($order_id) {
+        
+        // Calculate sub total
+        $quote_total_price = DB::table('b_level_qutation_details')
+            ->where('order_id', $order_id)
+            ->sum('unit_total_price');
+
+        $controller_total_price = DB::table('order_controller_cart_item')
+            ->where('order_id', $order_id)
+            ->sum('item_total_price');
+
+        $hardware_total_price = DB::table('order_hardware_cart_item')
+            ->where('order_id', $order_id)
+            ->sum('item_total_price');
+
+        $component_total_price = DB::table('order_component_cart_item')
+            ->where('order_id', $order_id)
+            ->sum('component_total_price');
+
+        $sub_total_price = round(($quote_total_price + $controller_total_price + $component_total_price + $hardware_total_price), 2);
+
+        $quote_data = DB::table('b_level_quatation_tbl')
+            ->where('order_id', $order_id)
+            ->first();
+
+        $shipping_charges = !empty($quote_data->shipping_charges) ? $quote_data->shipping_charges : 0;
+        $installation_charge = !empty($quote_data->installation_charge) ? $quote_data->installation_charge : 0;
+        $misc = !empty($quote_data->misc) ? $quote_data->misc : 0;
+        $credit = !empty($quote_data->credit) ? $quote_data->credit : 0;
+        $invoice_discount = !empty($quote_data->invoice_discount) ? $quote_data->invoice_discount : 0;
+        $paid_amount = !empty($quote_data->paid_amount) ? $quote_data->paid_amount : 0;
+
+        // Calculate grand total
+        $sales_tax_per = isset($quote_data->tax_percentage) ? $quote_data->tax_percentage : 0;
+        $sales_product_base_tax = @$quote_data->is_product_base_tax ? 1 : 0;
+        $sales_tax_amt = 0;
+
+        if ($sales_tax_per > 0) {
+            $sales_tax_amt = (($sub_total_price * $sales_tax_per) / 100);
+        }
+
+        if (@$sales_product_base_tax) {
+            $quote_tax_total_price = DB::table('b_level_qutation_details')
+                ->where('order_id', $order_id)
+                ->sum('product_base_tax');
+
+            $controller_tax_total_price = DB::table('order_controller_cart_item')
+                ->where('order_id', $order_id)
+                ->sum('product_base_tax');
+
+            $hardware_tax_total_price = DB::table('order_hardware_cart_item')
+                ->where('order_id', $order_id)
+                ->sum('product_base_tax');
+
+            $component_tax_total_price = DB::table('order_component_cart_item')
+                ->where('order_id', $order_id)
+                ->sum('product_base_tax');
+            
+            $sales_tax_amt = round(($quote_tax_total_price + $controller_tax_total_price + $hardware_tax_total_price + $component_tax_total_price), 2);
+        }
+
+        $shipping_zone_per = isset($quote_data->shipping_percentage) ? $quote_data->shipping_percentage : 0;
+        $shipping_zone_amt = 0;
+
+        if ($shipping_zone_per > 0) {
+            $shipping_zone_amt = (($sub_total_price * $shipping_zone_per) / 100);
+        }
+
+        $grand_total = round(($sub_total_price + $sales_tax_amt + $shipping_zone_amt + $shipping_charges + $installation_charge + $misc - $credit - $invoice_discount), 2); 
+
+        // Calculate due amount
+        $due_amount = round(($grand_total - $paid_amount), 2);
+
+        // Update final amount
+        $data = [
+            'subtotal' => $sub_total_price,
+            'grand_total' => $grand_total,
+            'due' => $due_amount,
+        ];
+
+        DB::table('b_level_quatation_tbl')
+            ->where('order_id', $order_id)
+            ->update($data);
+
+        return true;
+    }
+    // Calculate the wholesaler to retailer / retailer to wholesaler total : End
+
+
+
+    // Calculate shipping_percentage and update for wholesaler to retailer : Start
+    public function retailerToWholesalerShippingCalculation($customer_id, $order_id, $level_id)
+    {
+        // Get customer Zone
+        $customer_data = DB::table('customers')
+                            ->where('id', $customer_id)
+                            ->first();
+
+        // Calculate sub total
+        $quote_total_price = DB::table('b_level_qutation_details')
+                                ->where('order_id', $order_id)
+                                ->sum('unit_total_price');
+
+        $controller_total_price = DB::table('order_controller_cart_item')
+                                    ->where('order_id', $order_id)
+                                    ->sum('item_total_price');
+
+        $hardware_total_price = DB::table('order_hardware_cart_item')
+                                    ->where('order_id', $order_id)
+                                    ->sum('item_total_price');
+
+        $component_total_price = DB::table('order_component_cart_item')
+                                    ->where('order_id', $order_id)
+                                    ->sum('component_total_price');
+
+        $sub_total_price = round(($quote_total_price + $controller_total_price + $hardware_total_price + $component_total_price), 2);
+
+        // Get the New sales tax once update the order
+        $new_sales_tax_percentage = @$customer_data->is_taxable == 1 ? ($customer_data->tax_percentage ?? 0) : 0;
+
+        // Get zone wise percentage
+        if ($customer_data->enable_shipping_zone == 1) {
+            // If shipping zone is enable then get shipping percentage
+            $zone_details = DB::table('shipping_zones')
+                                ->where('zone_id', $customer_data->zone)
+                                ->where('min_price', '<=', $sub_total_price)
+                                ->where('max_price', '>=', $sub_total_price)
+                                ->where('level_id', $level_id)
+                                ->first();
+        }
+
+        $shipping_percentage = $zone_details->percentage ?? 0;
+
+        // Update Shipping percentage
+        DB::table('b_level_quatation_tbl')
+            ->where('order_id', $order_id)
+            ->update([
+                'shipping_percentage' => $shipping_percentage,
+                'tax_percentage' => $new_sales_tax_percentage,
+            ]);
+
+        return true;
+    }
+    // Calculate shipping_percentage and update for wholesaler to retailer : End
+
+
+
+
 }

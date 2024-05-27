@@ -34,10 +34,31 @@ Route::middleware('jwt.verify')->group(function () {
         Route::get('calculate/{upConditionHeight}/{upConditionHeightFraction}/{upConditionWidth}/{upConditionWidthFraction}/{upAttributeId}/{upLevel}/{productId}/{patternId}',  'calculateUpCondition');
         Route::get('price/{height}/{width}/{product_id}/{pattern_id}/{product_type}',  'getProductRowColPrice');
 
+       
+       
         Route::post('store', 'store');
+        Route::get('edit/{orde_id}', 'editOrder');
+        Route::put('update', 'UpdateOrder');
+        Route::get('edit/item/{id}', 'editOrderItem');
+        Route::put('update/item', 'UpdateOrderItem');
         Route::get('index', 'index');
+        Route::get('quotes', 'quotes');
         Route::get('receipt/{order_id}', 'receipt');
+        Route::put('stage/update/{stage}/{orderId}', 'setOrderStage');
+        Route::get('/retailer-order-stages','getAllRetailerOrderStage');
+
+        Route::post('modify_amount', 'modify_amount');
+
+        // Delete Apis
+        Route::delete('delete/{order_id}', 'deleteOrder');
+        Route::delete('delete_multi_orders', 'deleteMultiOrders');
+        Route::delete('order_product_delete/{row_id}', 'order_product_delete');
+        Route::delete('order_controller_delete/{row_id}', 'OrderControllerDelete');
+        Route::delete('order_component_delete/{row_id}', 'OrderComponentDelete');
+        Route::delete('order_hardware_delete/{row_id}', 'OrderHardwareDelete');
     });
+
+
 
     // Customer
     Route::controller(CustomerController::class)->prefix('customer')->group(function () {

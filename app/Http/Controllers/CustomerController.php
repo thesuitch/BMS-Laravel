@@ -72,16 +72,24 @@ class CustomerController extends Controller
 
     function getCustomer()
     {
+        
         try {
             $customers = DB::table('customers')
-                ->select('customers.*', 'customers.is_taxable as customer_is_taxable', 'customers.enable_shipping_zone as customer_enable_shipping_zone')
-                ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
-                ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
-                ->where('customers.level_id', $this->level_id)
-                ->where('users.status', 1)
-                ->where('user_info.wholesaler_connection', 1)
-                ->orderBy('customers.id', 'desc')
-                ->get();
+            ->select('customers.*', 'customers.is_taxable as customer_is_taxable', 'customers.enable_shipping_zone as customer_enable_shipping_zone')
+            ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
+            ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
+            ->where('customers.level_id', $this->level_id)
+            ->where('users.status', 1)
+            ->where('user_info.wholesaler_connection', 1)
+            ->orderBy('customers.id', 'desc');
+    
+        if(auth()->user()->is_admin != 1) {
+            // if(!$is_action_allow_display_all_customer) {
+            $customers->whereRaw("FIND_IN_SET(".auth('api')->id().", customers.responsible_employee) <> 0");
+            // }
+        }
+    
+        $customers = $customers->get();
 
             if ($customers->isEmpty()) {
                 throw new \Exception();
