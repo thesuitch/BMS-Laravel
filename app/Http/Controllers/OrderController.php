@@ -1136,12 +1136,25 @@ class OrderController extends Controller
             $MinMaxHeightWidth = $this->getMinMaxHeightWidth($product_id, $pattern_id);
             $attributes =  $this->getProductToAttribute($product_id);
             // dd($main_price);
+
+            $p = DB::table('products')->where('id', $product_id)->first();
+
+            $f_w = @explode('.',$width)[1];
+            $f_h = @explode('.',$height)[1];
+
+            $fraction_w = $this->get_height_width_fraction($f_w, $p->category_id);
+            $fraction_h = $this->get_height_width_fraction($f_h);
+
+
             $data = [
+                'fraction_w' => $fraction_w,
+                'fraction_h' => $fraction_h,
                 'patterns' => $patterns,
                 'main_price' =>  $main_price,
                 'discount' => $discount,
                 'MinMaxHeightWidth' => $MinMaxHeightWidth,
                 'attributes' => $attributes
+               
             ];
 
             return response()->json([
@@ -3597,6 +3610,98 @@ class OrderController extends Controller
             $list_price = ($table_price - $disc_price) * $item->product_qty;
 
 
+           
+
+
+             /// Room data : Start
+             $room_datacounter = [];                
+             $room = $item->room;
+             $old_rooms = json_decode(@$item->room_index, true);
+        
+             // Check if json_decode returned null and assign an empty array if it did
+             if (is_null($old_rooms)) {
+                 $old_rooms = [];
+             }
+             
+             foreach ($old_rooms as $key_val => $val) {
+                 $room_datacounter[$room][$key_val] = @$item->row_id;
+             }
+
+             $roomcoun_arr = array();
+             if(!empty($room_datacounter))
+             {
+                 foreach($room_datacounter as $key=>$val)
+                 {
+                     foreach($val as $k=>$v)
+                     {
+                             $counter = $k+1;
+                             $roomcoun_arr[$v][]=$key." ".$counter."<=>".$k;
+                     }
+                     if(count($val)<1){
+                         // unset($data['room_datacounter'][$key]);
+                     }
+                 }
+             }
+
+
+             $missingarraykey=array();
+             $hiddencounterarr = array();
+             if(isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id])>0)
+             {
+
+                 $cat_data = DB::table('products')
+                 ->select(
+                     'categories.hide_room',
+                     'categories.hide_color',
+                     'products.hide_room as product_hide_room',
+                     'products.hide_color as product_hide_color',
+                     'products.enable_combo_product',
+                     'products.is_taxable',
+                     'products.product_base_shipping_status'
+                 )
+                 ->join('categories', 'categories.id', '=', 'products.category_id')
+                 ->where('products.id', $item->product_id)
+                 ->first();
+                 
+               
+                 $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
+                 foreach($roomcoun_arr[$item->row_id] as $key=>$val)
+                 {
+                     $val = explode("<=>",$val);
+                     $hiddencounterarr[$val[1]]=$val[0];
+                     $sorthiddencounterarr[$val[1]]=$val[0];
+                 }
+                 ksort($sorthiddencounterarr);
+                //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
+                //  {
+                    //  $data['room_data'][] = $sorthiddencounterarr; 
+                     $room_data = $sorthiddencounterarr;
+
+                     // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
+                //  }
+                 // else
+                     //echo "N/A";
+                 $sessionarray = @$room_datacounter[$item->room];
+                 $firstkey = 0; // get first index of array
+                 @end($sessionarray);         
+                 $lastkey = @max(array_keys($sessionarray));  // get last index of array
+                 for($sessionidex = $firstkey;$sessionidex <= $lastkey;$sessionidex++)
+                 {
+                      if(!@array_key_exists($sessionidex,$sessionarray)) // check key exist or not
+                         array_push($missingarraykey,$sessionidex);
+                 }
+                 //print_r($hiddencounterarr);
+                 @end($hiddencounterarr);   
+                 $lastkeyofitemarray = @max(array_keys($hiddencounterarr)); 
+                 unset($sorthiddencounterarr);
+
+             }
+
+             $roomindex_data = json_encode($hiddencounterarr);
+            
+         /// Room data : End
+        
+           
             $data['products'][] = [
                 "row_id" => $item->row_id,
                 "selectedCategory" => [
@@ -3638,7 +3743,8 @@ class OrderController extends Controller
                 "height" => (string)$item->height,
                 "quantity" => $item->product_qty,
                 "mainPrice" => $table_price,
-                "roomIndex" => json_decode($item->room_index) ?? $item->room_index,
+                "roomIndex" => $roomindex_data,
+                "room" => $room_data,
                 "widthFraction" => [
                     "value" => $widthFraction->decimal_value ?? '',
                     "label" => $widthFraction->fraction_value ?? '',
@@ -3661,198 +3767,16 @@ class OrderController extends Controller
                
             ];
 
-            // $data['products'][] = [
-            //     'row_id' => $item->row_id,
-            //     'product_qty' => $item->product_qty,
-            //     'name_of_product' => [
-            //         'category' => ($user_detail->display_category == 1) ? $categoryData->category_name . $sub_cat_name : '',
-            //         'product_name' => $item->product_name,
-            //         'pattern' => ($item->pattern_name) ? $item->pattern_name : (($item->pattern_model_id == 0 && $item->manual_pattern_entry != null) ? $item->manual_pattern_entry : ''),
-            //         'manual_color_entry' => ($is_cat_hide_room->product_hide_color == 0 && $is_cat_hide_room->hide_color == 0 && (@$item->pattern_model_id == 0 || @$item->color_id == 0) && @$item->manual_color_entry != null) ? $item->manual_color_entry : '',
-            //         'width' => $item->width, // Initialize width attribute
-            //         'height' => $item->height, // Initialize height attribute
-            //         'color_number' => ($item->color_number != '' || $item->color_name != '') ? $item->color_number . ' ' . $item->color_name : '',
-            //         'room' =>  $room_data ?? '' 
-            //     ],
-            //     'room_index' => json_decode($item->room_index) ?? $item->room_index,
-            //     'product_price' => $company_profile->currency . $table_price,
-            //     'discount' => ($user_detail->display_discount == 0 && $item->discount > 0) ? $item->discount . " %" : "0 %",
-            //     'list_price' => ($user_detail->display_list_price == 0) ? $company_profile->currency .  number_format($list_price, 2) : 0,
-            //     'upcharge' => [
-            //         'upcharge_price' => $item->upcharge_price,
-            //         'upcharge_details' => $item->upcharge_details,
-            //     ],
-            //     'total_price' => $company_profile->currency . $unit_total_price,
-            //     'comments' => [
-            //         'notes' => ($item->notes != '') ? 'Special Instruction :' .  $item->notes : '',
-            //         'special_installer_notes' => ($item->special_installer_notes != '') ? "Note For Installer : " . $item->special_installer_notes : '',
-            //     ],
-            //     'attributes' => $this->editAttributeData($item->row_id)
-                        
-            // ];
-
-            // foreach ($data['products'] as $k => &$product) {
-
-            //     // add Height and width 
-            //     if ($user_detail->drapery_template != 1 || $user_detail->drapery_template_category_id != $item->category_id) {
-            //         if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 2) {
-            //             // dd();
-            //             $product['name_of_product']['width'] = ' W: ' . $order_details[$k]->width . ' ' . @$width_fraction->fraction_value . ' ' . strtoupper($company_unit);
-            //         }
-            //         if ($getProductData->hide_height_width == 0 || $getProductData->hide_height_width == 1) {
-            //             $product['name_of_product']['height'] = ' H: ' . $order_details[$k]->height . ' ' . @$height_fraction->fraction_value . ' ' . strtoupper($company_unit);
-            //         }
-            //     }
-
-                // add room index
-                // if ($user_detail->display_room == 0) {
-                    // if ($getProductData->hide_room == 0 && $is_cat_hide_room->product_hide_room == 0) {
-                        
-                        // $data['product']['name_of_product']['room'] = $item->room_index;
-
-                        // if ($item->room_index != '') {
-                        //     // $indexarr = json_decode($order_details[$k]->room_index, true);
-                        //     $indexarr = $item->room_index;
-                        //     if ($indexarr != '') {
-                        //         // return $indexarr;
-                        //         $data['product']['name_of_product']['room'] =  $indexarr;
-                        //     }
-                        // } else {
-                        //     $data['product']['name_of_product']['room'] = $item->room;
-                        // }
-                //     }
-                // }
-
-            //     // dd($order_details[$k]->room_index);
-
-
-            //     // add Upcharge price and Details
-            //     if ($user_detail->display_upcharges == 0 && $user_detail->display_partial_upcharges == 0) {
-            //         // Display the upcharge price tooltip : START
-            //         if ($user_detail->show_upcharge_breakup == 1) {
-
-            //             // convert string to array  
-            //             $input_string = $order_details[$k]->upcharge_details;
-            //             $input_string = trim($input_string, '[]');
-            //             $key_value_pairs = explode('},{', $input_string);
-            //             $result = [];
-            //             foreach ($key_value_pairs as $pair) {
-            //                 preg_match('/upcharge_label:(.*?),upcharge_val:(.*)/', $pair, $matches);
-            //                 $result[] = [
-            //                     'upcharge_label' => isset($matches[1]) ? trim($matches[1]) : '',
-            //                     'upcharge_val' => isset($matches[2]) ? trim($matches[2]) : ''
-            //                 ];
-            //             }
-
-            //             $product['upcharge']['upcharge_details'] =  $result;
-            //         }
-            //         // Display the upcharge price tooltip : END
-
-            //         // Display the upcharge price : Start
-            //         $product['upcharge']['upcharge_price'] = $company_profile->currency . number_format($order_details[$k]->upcharge_price, 2);
-            //         // Display the upcharge price : END
-
-            //     }
-
-
-            //     // add status index
-            //     $mfg_label_data = DB::table('b_level_quotation_details_mfg_label')->where('fk_row_id', $order_details[$k]->row_id)->get();
-            //     if (count($mfg_label_data) > 0) {
-            //         $mfg_status_data = '';
-            //         foreach ($mfg_label_data as $mfg_key => $mfg_val) {
-            //             // For mfg status color badge : START
-            //             $status_name = $mfg_val->status;
-            //             if ($mfg_val->status == 'Ready to be Shipped' && $mfg_val->is_save_scanned == 2) {
-            //                 $new_order_stage = '8';
-            //             } else if ($mfg_val->status == 'Mfg Completed' && $mfg_val->is_save_scanned == 1 || ($mfg_val->status == 'Ready to be Shipped')) {
-            //                 $new_order_stage = '15';
-            //                 $status_name = 'Mfg Completed';
-            //             } else if ($mfg_val->status == 'Mfg Canceled') {
-            //                 $new_order_stage = '16';
-            //             } else if ($mfg_val->status == 'Mfg Label Printed') {
-            //                 $new_order_stage = '18';
-            //             } else {
-            //                 $new_order_stage = '17';
-            //                 $status_name = 'Mfg Pending';
-            //             }
-            //             // For mfg status color badge : END
-
-            //             $mfg_status_data =  $mfg_val->room . " is " . $status_name;
-            //         }
-            //         $product['status'] = $mfg_status_data;
-            //     }
-            // }
-
-
-          
-            // [{"attribute_id":"132","attribute_value":"2649_312","attributes_type":2,"options":[{"option_type":5,"option_id":"312","option_value":"2 on One","option_key_value":"2649_312"}],"opop":[{"op_op_id":"172","op_op_value":"32 4","option_key_value":"172_1195_312"},{"op_op_id":"173","op_op_value":"12 2","option_key_value":"173_1196_312"}],"opopop":[],"opopopop":[]},{"attribute_id":"7","attribute_value":"2651_6","attributes_type":2,"options":[{"option_type":0,"option_id":"6","option_value":"IB","option_key_value":"2651_6"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"8","attribute_value":"2654_9","attributes_type":2,"options":[{"option_type":0,"option_id":"9","option_value":"Yes","option_key_value":"2654_9"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"9","attribute_value":"2656_11","attributes_type":2,"options":[{"option_type":0,"option_id":"11","option_value":"Wand Tilter","option_key_value":"2656_11"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"10","attribute_value":"2658_13","attributes_type":2,"options":[{"option_type":0,"option_id":"13","option_value":"Right","option_key_value":"2658_13"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"11","attribute_value":"2660_15","attributes_type":2,"options":[{"option_type":0,"option_id":"15","option_value":"Cordless Lift","option_key_value":"2660_15"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"12","attribute_value":"2662_17","attributes_type":2,"options":[{"option_type":0,"option_id":"17","option_value":"Left","option_key_value":"2662_17"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"13","attribute_value":"2664_19","attributes_type":2,"options":[{"option_type":0,"option_id":"19","option_value":"Yes","option_key_value":"2664_19"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"14","attribute_value":"2666_21","attributes_type":2,"options":[{"option_type":0,"option_id":"21","option_value":"2 1/2" Standard","option_key_value":"2666_21"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"15","attribute_value":"2669_24","attributes_type":2,"options":[{"option_type":5,"option_id":"24","option_value":"Yes","option_key_value":"2669_24"}],"opop":[{"op_op_id":"6","op_op_value":"12 2","option_key_value":"6_1200_24"}],"opopop":[],"opopopop":[]},{"attribute_id":"16","attribute_value":"2671_26","attributes_type":2,"options":[{"option_type":0,"option_id":"26","option_value":"High Position","option_key_value":"2671_26"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"17","attribute_value":"2674_29","attributes_type":2,"options":[{"option_type":0,"option_id":"29","option_value":"1/2" Returns","option_key_value":"2674_29"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"18","attribute_value":"2679_34","attributes_type":2,"options":[{"option_type":5,"option_id":"34","option_value":"Both Bottom Cutout","option_key_value":"2679_34"}],"opop":[{"op_op_id":"12","op_op_value":"21 3","option_key_value":"12_1206_34"},{"op_op_id":"13","op_op_value":"21222 2","option_key_value":"13_1207_34"}],"opopop":[],"opopopop":[]},{"attribute_id":"19","attribute_value":"2681_36","attributes_type":2,"options":[{"option_type":5,"option_id":"36","option_value":"Yes","option_key_value":"2681_36"}],"opop":[{"op_op_id":"14","op_op_value":"12 2","option_key_value":"14_1208_36"}],"opopop":[],"opopopop":[]}]
-
-            // if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 1) {
-            //     $selected_attributes = json_decode($item->product_attribute);
-
-            //     // return $selected_attributes;
-            //     $attributes_data = [];
-
-            //     foreach ($selected_attributes as $atributes) {
-            //         $attribute_entry = []; // Create an entry for each attribute
-
-            //         $at_id = $atributes->attribute_id;
-            //         $att_name = DB::table('attribute_tbl')->where('attribute_id', $at_id)->first();
-            //         $attribute_entry['name'] = $att_name->attribute_name; // Save primary attribute name
-
-            //         if (isset($atributes->options[0]->option_id) && $atributes->options[0]->option_id != '' && $atributes->attributes_type != 1) {
-            //             $att_op_name = DB::table('attr_options')->where('att_op_id', $atributes->options[0]->option_id)->first();
-            //             $attribute_value = $att_op_name->option_name;
-            //         } elseif (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
-            //             $attribute_value = $atributes->attribute_value;
-            //         }
-
-
-            //         // Check if primary attribute has a value
-            //         // if (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
-            //         $attribute_entry['value'] = $attribute_value; // Save primary attribute value
-            //         // }
-
-            //         // Append primary attribute directly to the attributes data array
-            //         $attributes_data[] = $attribute_entry;
-
-            //         // Check for sub-attributes
-            //         if (isset($atributes->options[0]->option_type)) {
-            //             if ($atributes->options[0]->option_type == 3 || $atributes->options[0]->option_type == 5 || $atributes->options[0]->option_type == 2 || $atributes->options[0]->option_type == 4 || $atributes->options[0]->option_type == 6) {
-            //                 if (sizeof($atributes->opop) > 0) {
-            //                     foreach ($atributes->opop as $secondLevelOpts) {
-            //                         $secondLevelOpt = DB::table('attr_options_option_tbl')->where('op_op_id', $secondLevelOpts->op_op_id)->first();
-            //                         $secondLevelOptName = @$secondLevelOpt->op_op_name;
-
-            //                         $secondLevelOptValue = "";
-            //                         if (@$secondLevelOpt->type == 1 || @$secondLevelOpt->type == 0 || @$secondLevelOpt->type == 2) {
-            //                             $secondLevelOptValue = $secondLevelOpts->op_op_value;
-            //                         }
-
-            //                         // Append sub-attribute directly to the attributes data array
-            //                         $attributes_data[] = [
-            //                             'name' => $secondLevelOptName,
-            //                             'value' => $secondLevelOptValue
-            //                         ];
-
-            //                         // Handle sub-attributes of type 4 (multioption with multiselect)
-            //                         if (@$atributes->options[0]->option_type == 4 && @$secondLevelOpt->type == 6) {
-            //                             // Logic to handle multiselect options
-            //                         }
-            //                     }
-            //                 }
-            //             }
-            //         }
-            //     }
-
-            //     // Append attributes data to the product
-            //     $data['products'][count($data['products']) - 1]['name_of_product']['attributes'] = $attributes_data;
-            // }
-
+            
             if (@$orderd->is_product_base_tax == 1) {
                 $tax = $item->product_base_tax;
                 $total_tax += $tax;
             }
+
+
+           
+
+
         }
 
         $order_controller_cart_item = DB::table('order_controller_cart_item')->where('order_id', $order_id)->get();
@@ -4019,7 +3943,6 @@ class OrderController extends Controller
         // $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
         // $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
 
-
         return $data;
     }
 
@@ -4047,6 +3970,12 @@ class OrderController extends Controller
 
         return response()->json($statusData);
     }
+
+
+
+
+   
+
 
 
 }

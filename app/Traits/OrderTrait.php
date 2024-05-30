@@ -2644,4 +2644,44 @@ trait OrderTrait
 
 
 
+    public function get_height_width_fraction($g_val, $category_id = 0)
+    {
+        if (isset($g_val) && !empty($g_val)) {
+            if ($category_id > 0) {
+                $hw = DB::table('width_height_fractions')->select('*')
+                    ->where('decimal_value' ,'>=', "0." . $g_val)
+                    ->orderBy('decimal_value', 'asc')
+                    ->get();
+                $hw1 = DB::table('categories')->select('*')
+                        ->where('id', $category_id)
+                        ->limit(1)
+                        ->first();
+                if(isset($hw1->fractions) && $hw1->fractions != '') {
+                    $category_fractions = explode(',', $hw1->fractions);
+                    $hwf = 0;
+                    foreach ($hw as $key => $value) {
+                        if (in_array($value->fraction_value,$category_fractions)){
+                            $hwf = $value->id;
+                            break;
+                        }
+                    }
+                    return  $hwf;
+                }else{
+                    return  0;
+                }        
+            }else{
+                $hw = DB::table('width_height_fractions')->select('*')
+                    ->where('decimal_value','>=', "0." . $g_val)
+                    ->orderBy('decimal_value', 'asc')
+                    ->limit(1)
+                    ->first();
+                $hwf = isset($hw->id)?$hw->id:0;  
+                return  $hwf;
+            }  
+        }else{
+            return 0;
+        }    
+    }
+
+
 }
