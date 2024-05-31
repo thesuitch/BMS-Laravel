@@ -1083,7 +1083,15 @@ class OrderController extends Controller
                 // fractions
                 $category_get = Category::findOrFail($category->id);
                 $selectedFractions = $category_get->getSelectedFractions();
-                $category['fractions'] = $selectedFractions->toArray();
+
+                $default_f[] = [
+                    "id" => '',
+                    "fraction_value" => '--Select--',
+                    "decimal_value" => ''
+                ];
+                
+                $category['fractions'] = array_merge($default_f, $selectedFractions->toArray());
+                
 
                 // custom labels
                 $custom_label = $this->getCustomLabelUserwise($createdBy, $category->id);
