@@ -48,6 +48,7 @@ Route::middleware('jwt.verify')->group(function () {
         Route::get('/retailer-order-stages','getAllRetailerOrderStage');
 
         Route::post('modify_amount', 'modify_amount');
+        Route::get('filter_options', 'filterOptions');
 
         // Delete Apis
         Route::delete('delete/{order_id}', 'deleteOrder');

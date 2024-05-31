@@ -3968,10 +3968,65 @@ class OrderController extends Controller
             $status->child_statuses = $childStatusData;
         }
 
-        return response()->json($statusData);
+        return $statusData;
     }
 
-
+    public function filterOptions() {
+        $user = auth()->user();
+        $userId = $user->id;
+        $isAdmin = $user->is_admin;
+    
+        // Customer Data : start
+        $customersQuery = DB::table('customers')
+            ->select('customers.id', 'customers.customer_user_id', 'customers.first_name', 'customers.last_name', 'customers.company', 'customers.customer_no')
+            ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
+            ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
+            ->where('customers.level_id', $this->level_id)
+            ->where('users.status', 1)
+            ->where('user_info.wholesaler_connection', 1)
+            ->orderBy('customers.id', 'desc');
+    
+        if (!$isAdmin) {
+            $customersQuery->whereRaw("FIND_IN_SET(?, customers.responsible_employee) <> 0", [$userId]);
+        }
+    
+        $customers = $customersQuery->get()->map(function ($value) {
+            return [
+                'id' => $value->id,
+                'name' => $value->company ?: trim($value->first_name . " " . $value->last_name)
+            ];
+        });
+    
+        $data['customers'] = $customers;
+        // Customer Data : End
+    
+        // Sales Incharge Data : Start
+        $createdBy = $isAdmin ? $user->user_id : $user->userinfo->created_by;
+    
+        $salesIncharge = DB::table('user_info')
+            ->select('id', DB::raw("CONCAT_WS(' ', first_name, last_name) AS fullname"))
+            ->where(function ($query) use ($createdBy) {
+                $query->where('created_by', $createdBy)
+                    ->orWhere('id', $createdBy);
+            })
+            ->where('user_type', 'b')
+            ->orderBy('id', 'DESC')
+            ->get();
+    
+        $data['sales_incharge'] = $salesIncharge;
+        // Sales Incharge Data : End
+    
+        // Payment status : Start
+        $data['payment_status'] = ['Unpaid', 'Paid', 'Credit', 'Partially Paid'];
+        // Payment status : End
+    
+        // Stages : Start
+        $data['stages'] = $this->getAllRetailerOrderStage();
+        // Stages : End
+    
+        return response()->json($data);
+    }
+    
 
 
    

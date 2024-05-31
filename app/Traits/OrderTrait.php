@@ -16,7 +16,6 @@ use ParseError;
 trait OrderTrait
 {
 
-
     // get contribute Price start
     public function contriPrice($priceType, $optionPrice, $mainPrice, $productId = '0')
     {
@@ -368,6 +367,8 @@ trait OrderTrait
 
 
         foreach ($attributes as $attribute_key => $attribute) {
+
+            
             if ($attribute->attribute_type == 3) {
                 $options = DB::table('attr_options')
                     ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id')
@@ -422,16 +423,64 @@ trait OrderTrait
                     ->get();
 
                 // dd($attribute->id);
+
+                $control_length_val = ''; 
+                if($attribute->attribute_name == 'Control Length'){
+
+
+                    $company_profile = DB::table('company_profile')
+                    ->select('*')
+                    ->where('user_id', $this->level_id)
+                    ->first();
+
+                    $company_unit = ($company_profile->unit) ? $company_profile->unit : "";
+                    $control_length_val = 'Cord Length';
+                    
+                    if ($company_unit == 'inches') {
+                        // If company_unit is inches then consider this option.
+                        if ($height >= 55 && $height <= 65) {
+                            $control_length_val = '36"';
+                        } else if ($height > 65 && $height <= 75) {
+                            $control_length_val = '48"';
+                        } else if ($height > 75 && $height <= 85) {
+                            $control_length_val = '54"';
+                        } else if ($height > 85 && $height <= 95) {
+                            $control_length_val = '64"';
+                        }
+                    } else {
+                        // If company_unit is cm then consider this option.
+                        if ($height >= 139.7 && $height <= 165.1) {
+                            $control_length_val = '91';
+                        } else if ($height > 165.1 && $height <= 190.5) {
+                            $control_length_val = '122';
+                        } else if ($height > 190.5 && $height <= 215.9) {
+                            $control_length_val = '137';
+                        } else if ($height > 215.9 && $height <= 241.3) {
+                            $control_length_val = '163';
+                        }
+                    }
+
+                }
+
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'select',
                     "attributes_type" => $attribute->attribute_type,
                     'options' => [],
+                    
                 ];
 
                 foreach ($options as $op) {
                     $sl1 = ($op->default == 1 ? 1 : 0);
+
+                    
+
+                    if($control_length_val == $op->option_name){
+                        $sl1 = 1;
+                    }
+
+
 
                     $optionData = [
                         'value' => $op->id . '_' . $op->att_op_id,
