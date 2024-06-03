@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Storage;
 use DateTime;
 use DateTimeZone;
 use Str;
+use PDF;
+use Mail;
 
 
 class OrderController extends Controller
@@ -1035,6 +1037,56 @@ class OrderController extends Controller
 
         return $data;
     }
+
+
+    public function receiptMail($order_id)
+    {
+
+        try {
+
+            $data = $this->receipt($order_id);
+            $email =  env('MAIL_FOR_TESTING') ?? $data['sold_to']['email'];        
+            $pdf_name = $order_id.'.pdf';
+            $pdf = PDF::loadView('pdf.receipt_mail', compact('data'));
+
+            return $pdf->download($pdf_name);
+
+            Mail::send('email.receipt_mail', compact('data'), function($message)use($data, $pdf , $pdf_name , $email) {
+                $message->to($email, $email)
+                        ->subject($pdf_name)
+                        ->attachData($pdf->output(), $pdf_name);
+            });
+
+            return response()->json(['success' => true, 'message' => 'Email Sent Successfully!'], 200);  
+
+        } catch (\Throwable $th) {
+            
+            return response()->json(['success' => false, 'message' => 'Email is not sent','error_message'=> $th->getMessage()], 400);  
+
+        }
+      
+    }
+
+
+
+    public function receiptPDF($order_id)
+    {
+
+        try {
+
+            $data = $this->receipt($order_id);
+            $pdf_name = $order_id.'.pdf';
+            $pdf = PDF::loadView('pdf.receipt_mail', compact('data'));
+            return $pdf->download($pdf_name);
+            
+        } catch (\Throwable $th) {
+            
+            return response()->json(['success' => false, 'message' => 'PDF generation failed', 'error_message' => $th->getMessage()], 400);
+
+        }
+      
+    }
+    
 
 
     function date_time_format_by_profile($date = '', $time = '')

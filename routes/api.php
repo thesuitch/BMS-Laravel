@@ -44,6 +44,9 @@ Route::middleware('jwt.verify')->group(function () {
         Route::get('index', 'index');
         Route::get('quotes', 'quotes');
         Route::get('receipt/{order_id}', 'receipt');
+        Route::get('receipt_mail/{order_id}','receiptMail');
+        Route::get('receipt_pdf/{order_id}','receiptPDF');
+
         Route::put('stage/update/{stage}/{orderId}', 'setOrderStage');
         Route::get('/retailer-order-stages','getAllRetailerOrderStage');
 
