@@ -1048,9 +1048,6 @@ class OrderController extends Controller
             $email =  env('MAIL_FOR_TESTING') ?? $data['sold_to']['email'];        
             $pdf_name = $order_id.'.pdf';
             $pdf = PDF::loadView('pdf.receipt_mail', compact('data'));
-
-            return $pdf->download($pdf_name);
-
             Mail::send('email.receipt_mail', compact('data'), function($message)use($data, $pdf , $pdf_name , $email) {
                 $message->to($email, $email)
                         ->subject($pdf_name)
