@@ -149,7 +149,7 @@ class OrderController extends Controller
                 $columnName = $column_order[$orderColumnIndex];
                 $results = $results->orderBy($columnName, $orderDirection)->paginate($per_page);
             } else{
-                $results = $results->orderBy('b_q.order_id', 'ASC')->paginate($per_page);
+                $results = $results->orderBy('b_q.order_date', 'ASC')->paginate($per_page);
             }
             
            return $results;
