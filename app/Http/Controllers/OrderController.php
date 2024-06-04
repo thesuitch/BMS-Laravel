@@ -868,6 +868,24 @@ class OrderController extends Controller
         $order_controller_cart_item = DB::table('order_controller_cart_item')->where('order_id', $order_id)->get();
         $order_hardware_cart_item = DB::table('order_hardware_cart_item')->where('order_id', $order_id)->get();
         $order_component_cart_item = DB::table('order_component_cart_item')->where('order_id', $order_id)->get();
+        $misc_breakdown_details = DB::table('misc_breakdown_details')
+        ->where('order_id', $order_id)
+        ->orderBy('id', 'asc')
+        ->get();
+
+        if(count($misc_breakdown_details) > 0) {
+
+            $data['misc'] = [];
+            foreach($misc_breakdown_details as $c_item_key => $misc) {                   
+                    $data['misc'][] = [
+                        'id' => $misc->id,
+                        'misc_description' => $misc->misc_description,
+                        'misc_unite_cost' => $misc->misc_unite_cost,
+                        'misc_qty' => $misc->misc_qty,
+                        'misc_price' => $misc->misc_price,
+                    ];
+            }
+        }
 
         //For Controller Item Cart Item : START 
         if(count($order_controller_cart_item) > 0) {
@@ -1885,6 +1903,12 @@ class OrderController extends Controller
                     DB::table('b_level_quatation_attributes')
                     ->where('order_id', $order_id)
                     ->delete();
+
+
+                     // Delete from misc_breakdown_details where order_id matches
+                     DB::table('misc_breakdown_details')
+                     ->where('order_id', $order_id)
+                     ->delete();
  
  
                  // product data
@@ -1966,7 +1990,6 @@ class OrderController extends Controller
                  }
  
                  /// misc data isdert
-                 // $miscData =  ;
                  if(isset($request->order_details['misc'])){
                      DB::table('misc_breakdown_details')->insert($request->order_details['misc']);
                  }
@@ -3839,6 +3862,25 @@ class OrderController extends Controller
         $order_controller_cart_item = DB::table('order_controller_cart_item')->where('order_id', $order_id)->get();
         $order_hardware_cart_item = DB::table('order_hardware_cart_item')->where('order_id', $order_id)->get();
         $order_component_cart_item = DB::table('order_component_cart_item')->where('order_id', $order_id)->get();
+        $misc_breakdown_details = DB::table('misc_breakdown_details')
+        ->where('order_id', $order_id)
+        ->orderBy('id', 'asc')
+        ->get();
+
+        if(count($misc_breakdown_details) > 0) {
+
+            $data['misc'] = [];
+            foreach($misc_breakdown_details as $c_item_key => $misc) {                   
+                    $data['misc'][] = [
+                        'id' => $misc->id,
+                        'misc_description' => $misc->misc_description,
+                        'misc_unite_cost' => $misc->misc_unite_cost,
+                        'misc_qty' => $misc->misc_qty,
+                        'misc_price' => $misc->misc_price,
+                    ];
+            }
+        }
+
 
         //For Controller Item Cart Item : START 
         if(count($order_controller_cart_item) > 0) {
@@ -3943,6 +3985,12 @@ class OrderController extends Controller
             }
         }
         // For Hardware Item Cart Item : END
+
+
+
+
+        
+
 
         
 
