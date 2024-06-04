@@ -3872,7 +3872,7 @@ class OrderController extends Controller
             $data['misc'] = [];
             foreach($misc_breakdown_details as $c_item_key => $misc) {                   
                     $data['misc'][] = [
-                        'id' => $misc->id,
+                        'order_id' => $misc->order_id,
                         'misc_description' => $misc->misc_description,
                         'misc_unite_cost' => $misc->misc_unite_cost,
                         'misc_qty' => $misc->misc_qty,
