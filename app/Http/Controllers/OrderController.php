@@ -4096,7 +4096,7 @@ class OrderController extends Controller
         }
     
         $customers = [
-            ['id' => '', 'name' => '--Select Customer--']
+            ['id' => '', 'name' => '--Select Company--']
         ];
         
         $customersFromQuery = $customersQuery->get()->map(function ($value) {
