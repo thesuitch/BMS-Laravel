@@ -4143,7 +4143,7 @@ class OrderController extends Controller
         // Stages : Start
 
         $stageList = array_merge(
-            [['id' => '', 'name' => '--Select Order Stage--']],
+            [['id' => '', 'status_name' => '--Select Order Stage--']],
             $this->getAllRetailerOrderStage()->toArray()
         );
         $data['stages'] = $stageList;
