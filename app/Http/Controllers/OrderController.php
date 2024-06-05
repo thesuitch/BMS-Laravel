@@ -4095,13 +4095,17 @@ class OrderController extends Controller
             $customersQuery->whereRaw("FIND_IN_SET(?, customers.responsible_employee) <> 0", [$userId]);
         }
     
-        $customers = $customersQuery->get()->map(function ($value) {
+        $customers = [
+            ['id' => '', 'name' => '--Select Customer--']
+        ];
+        
+        $customersFromQuery = $customersQuery->get()->map(function ($value) {
             return [
                 'id' => $value->id,
                 'name' => $value->company ?: trim($value->first_name . " " . $value->last_name)
             ];
-        });
-    
+        })->toArray();
+        $customers = array_merge($customers, $customersFromQuery);
         $data['customers'] = $customers;
         // Customer Data : End
     
@@ -4109,24 +4113,40 @@ class OrderController extends Controller
         $createdBy = $isAdmin ? $user->user_id : $user->userinfo->created_by;
     
         $salesIncharge = DB::table('user_info')
-            ->select('id', DB::raw("CONCAT_WS(' ', first_name, last_name) AS fullname"))
+            ->select('id', DB::raw("CONCAT_WS(' ', first_name, last_name) AS name"))
             ->where(function ($query) use ($createdBy) {
                 $query->where('created_by', $createdBy)
                     ->orWhere('id', $createdBy);
             })
             ->where('user_type', 'b')
             ->orderBy('id', 'DESC')
-            ->get();
-    
-        $data['sales_incharge'] = $salesIncharge;
+            ->get()
+            ->toArray();
+
+        $salesInchargeList = array_merge(
+            [['id' => '', 'name' => '--Select Sales Incharge--']],
+            $salesIncharge
+        );
+
+        $data['sales_incharge'] = $salesInchargeList;
         // Sales Incharge Data : End
     
         // Payment status : Start
-        $data['payment_status'] = ['Unpaid', 'Paid', 'Credit', 'Partially Paid'];
+        // $data['payment_status'] = ['Unpaid', 'Paid', 'Credit', 'Partially Paid'];
+        $data['payment_status'][] = ['id'=> '', 'name'=> '--Select Payment--'];
+        $data['payment_status'][] = ['id'=> 'Unpaid', 'name'=> 'Unpaid'];
+        $data['payment_status'][] = ['id'=> 'Paid', 'name'=> 'Paid'];
+        $data['payment_status'][] = ['id'=> 'Credit', 'name'=> 'Credit'];
+        $data['payment_status'][] = ['id'=> 'Partially', 'name'=> 'Partially'];
         // Payment status : End
     
         // Stages : Start
-        $data['stages'] = $this->getAllRetailerOrderStage();
+
+        $stageList = array_merge(
+            [['id' => '', 'name' => '--Select Order Stage--']],
+            $this->getAllRetailerOrderStage()->toArray()
+        );
+        $data['stages'] = $stageList;
         // Stages : End
     
         return response()->json($data);
