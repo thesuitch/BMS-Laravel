@@ -2733,4 +2733,24 @@ trait OrderTrait
     }
 
 
+
+    // date Format : Start
+    function date_time_format_by_profile($date = '', $time = '')
+    {
+        $convert_date = '';
+        if (!empty($date) && !empty($time)) {
+            $convert_date = $date . ' ' . $time;
+        } elseif (!empty($date)) {
+            $convert_date = $date . ' h:i A';
+        } elseif (!empty($time)) {
+            $convert_date = 'm-d-Y ' . $time;
+        } else {
+            $convert_date = 'm-d-Y h:i A';
+        }
+        return $convert_date;
+    }
+    // date Format : End
+
+
+
 }

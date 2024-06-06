@@ -201,7 +201,7 @@
                         <th class="border-hide"></th>
                         <th class="border-hide"></th>
                         <th class="border-hide"></th>
-                        <th> Sales Tax (%)</th>
+                        <th> Sales Tax ({{$data['total']['tax_percentage']}}%)</th>
                         <td data-label="sales_tax">{{$data['total']['sales_tax']}}</td>
                     </tr>
                     <tr>
