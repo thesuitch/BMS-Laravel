@@ -1,75 +1,79 @@
 <style>
-    table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
-    th,
-    td {
-        padding: 8px;
-        text-align: left;
-    }
+th,
+td {
+    padding: 8px;
+    text-align: left;
+}
 
-    .borderd td {
-        border: 1px solid black;
-    }
+.borderd td {
+    border: 1px solid black;
+}
 
-    .borderd th {
-        border: 1px solid black;
-    }
+.borderd th {
+    border: 1px solid black;
+}
 
-    .border-hide {
-        border: none !important;
-    }
+.border-hide {
+    border: none !important;
+}
 </style>
 
 
 <div>
     <div class="card">
         <div style="display: flex; justify-content: center; width:100%; text-align: center;">
-       
-            <img alt="Barcode" loading="lazy" width="120" height="30" decoding="async" data-nimg="1" src="{{$data['barcode']}}" style="color: transparent;">
+
+            @if(isset($data['barcode']) && $data['barcode'] != '')
+            <img alt="Barcode" loading="lazy" width="120" height="30" decoding="async" data-nimg="1"
+                src="{{$data['barcode']}}" style="color: transparent;">
+            @endif
         </div>
-      
+
 
         <table style="width: 100%;" claas>
             <tbody>
 
                 <tr>
                     <td>
-                        <img alt="Logo" loading="lazy" width="150" height="120" decoding="async" data-nimg="1" src="{{$data['logo']}}" style="color: transparent;">
+                        <img alt="Logo" loading="lazy" width="150" height="120" decoding="async" data-nimg="1"
+                            src="{{$data['logo']}}" style="color: transparent;">
                     </td>
 
                     <td>
                         <table class="borderd ">
-                            
+
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Order Id">{{$data['order_stage']}} Date</td>
-                                <td data-label="Order Id Value">{{$data['order_date']}}</td>
+                                <td data-label="Order Id">{{@$data['order_stage']}} Date</td>
+                                <td data-label="Order Id Value">{{@$data['order_date']}}</td>
                             </tr>
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Order Id">{{$data['order_stage']}} Id</td>
-                                <td data-label="Order Id Value">{{$data['order_id']}}</td>
+                                <td data-label="Order Id">{{@$data['order_stage']}} Id</td>
+                                <td data-label="Order Id Value">{{@$data['order_id']}}</td>
                             </tr>
                             <tr>
-                                 <th class="border-hide"></th>
+                                <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <td data-label="Sidemark">Sidemark</td>
-                                <td data-label="Sidemark Value">{{$data['side_mark']}}</td>
+                                <td data-label="Sidemark Value">{{@$data['side_mark']}}</td>
                             </tr>
                             <tr>
-                                 <th class="border-hide"></th>
+                                <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <td data-label="Shipping Method">Shipping Method/Tracking #</td>
-                                <td data-label="Shipping Method Value">{{$data['shipping_method']}}</td>
+                                <td data-label="Shipping Method Value">{{@$data['shipping_method']}}</td>
                             </tr>
                         </table>
                     </td>
@@ -86,38 +90,44 @@
             <tr>
                 <td>
                     <div class="inline-group description">
-                        {{$data['wholesaler_info']['company_name']}} <br>
-                        {{$data['wholesaler_info']['address']}} <br>
-                        {{$data['wholesaler_info']['city']}}, {{$data['wholesaler_info']['zip_code']}}, {{$data['wholesaler_info']['country_code']}} <br>
-                        {{$data['wholesaler_info']['phone']}} <br>
-                        {{$data['wholesaler_info']['email']}} <br>
+                        {{@$data['wholesaler_info']['company_name']}} <br>
+                        {{@$data['wholesaler_info']['address']}} <br>
+                        {{@$data['wholesaler_info']['city']}}, {{@$data['wholesaler_info']['zip_code']}},
+                        {{@$data['wholesaler_info']['country_code']}} <br>
+                        {{@$data['wholesaler_info']['phone']}} <br>
+                        {{@$data['wholesaler_info']['email']}} <br>
                     </div>
                 </td>
                 <td>
                     <div class="inline-group description">
-                        <strong>{{$data['sold_to']['label']}}</strong> {{$data['sold_to']['name']}} <br>
-                        {{$data['sold_to']['name']}} <br>
-                        {{$data['sold_to']['address']}} <br>
-                        {{$data['sold_to']['city']}}, {{$data['sold_to']['state']}}, {{$data['sold_to']['zip_code']}}, {{$data['sold_to']['country_code']}} <br>
-                        {{$data['sold_to']['phone']}} <br>
-                        {{$data['sold_to']['email']}} <br>
+                        <strong>{{@$data['sold_to']['label']}}</strong> {{@$data['sold_to']['name']}} <br>
+                        {{@$data['sold_to']['name']}} <br>
+                        {{@$data['sold_to']['address']}} <br>
+                        {{@$data['sold_to']['city']}}, {{@$data['sold_to']['state']}},
+                        {{@$data['sold_to']['zip_code']}},
+                        {{@$data['sold_to']['country_code']}} <br>
+                        {{@$data['sold_to']['phone']}} <br>
+                        {{@$data['sold_to']['email']}} <br>
                     </div>
                 </td>
                 <td>
                     <div class="inline-group description">
-                        <strong>{{$data['ship_to']['label']}}</strong> {{$data['ship_to']['label']}} <br>
-                        {{$data['ship_to']['label']}} <br>
-                        {{$data['ship_to']['shipping_address']}} <br>
-                        {{$data['ship_to']['city']}}, {{$data['ship_to']['state']}}, {{$data['ship_to']['zip_code']}}, {{$data['ship_to']['country_code']}} <br>
-                        {{$data['ship_to']['phone']}} <br>
-                        {{$data['ship_to']['email']}} <br>
+                        <strong>{{@$data['ship_to']['label']}}</strong> {{@$data['ship_to']['label']}} <br>
+                        {{@$data['ship_to']['label']}} <br>
+                        {{@$data['ship_to']['shipping_address']}} <br>
+                        {{@$data['ship_to']['city']}}, {{@$data['ship_to']['state']}},
+                        {{@$data['ship_to']['zip_code']}},
+                        {{@$data['ship_to']['country_code']}} <br>
+                        {{@$data['ship_to']['phone']}} <br>
+                        {{@$data['ship_to']['email']}} <br>
                     </div>
                 </td>
             </tr>
         </table>
     </div>
     <div class="card">
-        <h1>Order Details</h1>
+        <h3>Order Details</h3>
+        <hr>
         <div class="tableResponsive" style="margin-top: 20px;">
             <table class="table borderd">
                 <thead>
@@ -133,13 +143,15 @@
                         <th>Comments</th>
                     </tr>
                 </thead>
-                @foreach($data['products'] as $key =>  $product)
+                @foreach($data['products'] as $key => $product)
                 <tbody>
                     <tr>
                         <td data-label="SL No.">{{$key+1}}</td>
                         <td data-label="Name of Product">
                             <div class="productDetail">
-                                <p>{{$product['name_of_product']['category']}} , {{$product['name_of_product']['product_name']}}</p>
+                                <p>{{$product['name_of_product']['category']}} ,
+                                    {{$product['name_of_product']['product_name']}}
+                                </p>
                                 <hr>
                                 <div class="attributesDetail">
                                     <span>{{$product['name_of_product']['width']}} </span><br>
@@ -167,9 +179,10 @@
                     </tr>
                 </tbody>
                 @endforeach
-           
+
             </table>
         </div>
+
         <div class="tableResponsive " style="margin-top: 20px;">
             <table class="table borderd ">
                 <tbody>
@@ -191,6 +204,59 @@
                 </tbody>
             </table>
         </div>
+
+
+        @if(isset($data['misc']) && count($data['misc']) > 0)
+
+        <h3>MISC Breakdown Details</h3>
+        <hr>
+        <div class="tableResponsive" style="margin-top: 20px;">
+            <table class="table borderd">
+                <thead>
+                    <tr>
+                        <th>SL No.</th>
+                        <th>Description</th>
+                        <th>Unit Cost </th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                @php $subtotal_misc = 0; @endphp
+                @foreach($data['misc'] as $key => $misc)
+                @php $subtotal_misc += $misc['misc_price'] @endphp
+                <tbody>
+                    <tr>
+                        <td data-label="SL No.">{{$key+1}}</td>
+                        <td data-label="misc_description">{{$misc['misc_description']}}</td>
+                        <td data-label="misc_unite_cost">{{$misc['misc_unite_cost']}}</td>
+                        <td data-label="misc_qty">{{$misc['misc_qty']}}</td>
+                        <td data-label="misc_price">${{$misc['misc_price']}}</td>
+
+                    </tr>
+                </tbody>
+                @endforeach
+
+                <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <th>Subtotal</th>
+                        <td>${{$subtotal_misc}}</td>
+
+                    </tr>
+                </tbody>
+
+            </table>
+        </div>
+
+
+
+        @endif
+
+
+
+
         <div class="tableResponsive" style="margin-top: 20px;">
             <table class="table borderd ">
                 <thead>
@@ -245,9 +311,9 @@
                         <td data-label="due">{{$data['total']['due']}}</td>
                     </tr>
                 </thead>
-               
+
             </table>
         </div>
-      
+
     </div>
 </div>

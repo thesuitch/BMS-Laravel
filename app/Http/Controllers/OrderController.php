@@ -644,14 +644,98 @@ class OrderController extends Controller
             }
 
 
-            if ($item->room_index != '') {
-                $indexarr = json_decode($item->room_index, true);
-                if ($indexarr != '') {
-                    $room_data = implode(",", $indexarr);
-                }
-            } else {
-                $room_data = $item->room;
+            // if ($item->room_index != '') {
+            //     $room_data = json_decode($item->room_index, true);
+            //     // $indexarr = json_decode($item->room_index, true);
+            //     // if ($indexarr != '') {
+            //     //     $room_data = implode(",", $indexarr);
+            //     // }
+            // } else {
+            //     $room_data = $item->room;
+            // }
+
+
+            /// Room data : Start
+            $room_datacounter = [];
+            $room = $item->room;
+            $old_rooms = json_decode(@$item->room_index, true);
+
+            // Check if json_decode returned null and assign an empty array if it did
+            if (is_null($old_rooms)) {
+                $old_rooms = [];
             }
+
+            //    foreach ($old_rooms as $key_val => $val) {
+            //        $room_datacounter[$room][$key_val] = @$item->row_id;
+            //    }
+
+            $roomcoun_arr = array();
+            if (!empty($room_datacounter)) {
+                foreach ($room_datacounter as $key => $val) {
+                    foreach ($val as $k => $v) {
+                        $counter = $k + 1;
+                        $roomcoun_arr[$v][] = $key . " " . $counter . "<=>" . $k;
+                    }
+                    if (count($val) < 1) {
+                        // unset($data['room_datacounter'][$key]);
+                    }
+                }
+            }
+
+
+            $missingarraykey = array();
+            $hiddencounterarr = array();
+            if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
+
+                $cat_data = DB::table('products')
+                    ->select(
+                        'categories.hide_room',
+                        'categories.hide_color',
+                        'products.hide_room as product_hide_room',
+                        'products.hide_color as product_hide_color',
+                        'products.enable_combo_product',
+                        'products.is_taxable',
+                        'products.product_base_shipping_status'
+                    )
+                    ->join('categories', 'categories.id', '=', 'products.category_id')
+                    ->where('products.id', $item->product_id)
+                    ->first();
+
+
+                $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
+                foreach ($roomcoun_arr[$item->row_id] as $key => $val) {
+                    $val = explode("<=>", $val);
+                    $hiddencounterarr[$val[1]] = $val[0];
+                    $sorthiddencounterarr[$val[1]] = $val[0];
+                }
+                ksort($sorthiddencounterarr);
+                //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
+                //  {
+                //  $data['room_data'][] = $sorthiddencounterarr; 
+                $room_data = $sorthiddencounterarr;
+
+                // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
+                //  }
+                // else
+                //echo "N/A";
+                $sessionarray = @$room_datacounter[$item->room];
+                $firstkey = 0; // get first index of array
+                @end($sessionarray);
+                $lastkey = @max(array_keys($sessionarray));  // get last index of array
+                for ($sessionidex = $firstkey; $sessionidex <= $lastkey; $sessionidex++) {
+                    if (!@array_key_exists($sessionidex, $sessionarray)) // check key exist or not
+                        array_push($missingarraykey, $sessionidex);
+                }
+                //print_r($hiddencounterarr);
+                @end($hiddencounterarr);
+                $lastkeyofitemarray = @max(array_keys($hiddencounterarr));
+                unset($sorthiddencounterarr);
+            }
+
+            $roomindex_data = json_encode($hiddencounterarr);
+
+            /// Room data : End
+
 
 
             $is_cat_hide_room = DB::table('products')
@@ -674,7 +758,7 @@ class OrderController extends Controller
                     'width' => $item->width . ' ' . @$width_fraction->fraction_value . ' ' . strtoupper($company_unit), // Initialize width attribute
                     'height' => $item->height . ' ' . @$height_fraction->fraction_value . ' ' . strtoupper($company_unit), // Initialize height attribute
                     'color_number' => ($item->color_number != '' || $item->color_name != '') ? $item->color_number . ' ' . $item->color_name : '',
-                    'room' =>  $room_data ?? ''
+                    'room' =>  @$room_data ?? ''
                 ],
                 'product_price' => $company_profile->currency . $table_price,
                 'discount' => ($user_detail->display_discount == 0 && $item->discount > 0) ? $item->discount . " %" : "0 %",
@@ -1060,6 +1144,9 @@ class OrderController extends Controller
             $data = $this->receipt($order_id);
             $email =  env('MAIL_FOR_TESTING') ?? $data['sold_to']['email'];
             $pdf_name = $order_id . '.pdf';
+
+            // return view('pdf.receipt_mail', compact('data'));
+
             $pdf = PDF::loadView('pdf.receipt_mail', compact('data'));
             Mail::send('email.receipt_mail', compact('data'), function ($message) use ($data, $pdf, $pdf_name, $email) {
                 $message->to($email, $email)
@@ -1617,7 +1704,7 @@ class OrderController extends Controller
                         'width_fraction_id' => $product['width_fraction_id'],
                         'notes' => $product['notes'],
                         'special_installer_notes' => $product['special_installer_notes'],
-                        'room_index' => $product['room_index'],
+                        'room_index' => json_encode($product['room_index']),
                         // 'drapery_of_cuts' => $drapery_of_cuts[$key],
                         // 'drapery_of_cuts_only_panel' => $drapery_of_cuts_only_panel[$key],
                         // 'drapery_cut_length' => $drapery_cut_length[$key],
@@ -3049,7 +3136,7 @@ class OrderController extends Controller
                             ];
                         } else {
 
-                            if ($op_op_parent->type == 6) {
+                            if (@$op_op_parent->type == 6) {
 
 
                                 $opOpData = [];
@@ -3071,7 +3158,7 @@ class OrderController extends Controller
                                     }
                                 }
                                 $attributes[$opId][$opOpId] = $opOpData;
-                            } else if ($op_op_parent->type == 1) {
+                            } else if (@$op_op_parent->type == 1) {
 
                                 $attributes[$opId][$opOpId] = [
                                     // "label" => $opOp->op_op_value,
@@ -3084,10 +3171,10 @@ class OrderController extends Controller
                             } else {
 
                                 $attributes[$opId][$opOpId] = [
-                                    "label" => $opOp->op_op_value,
+                                    "label" => @$opOp->op_op_value,
                                     "value" => @$op_op_value->att_op_op_op_id . '_' . @$op_op_value->attribute_id . '_' . @$op_op_value->att_op_op_id,
-                                    "op_op_key_value" => $opOp->option_key_value,
-                                    "parentLabel" => $op_op_parent->op_op_name,  // Fill this if available
+                                    "op_op_key_value" => @$opOp->option_key_value,
+                                    "parentLabel" => @$op_op_parent->op_op_name,  // Fill this if available
                                     "type" => "select",
                                     "attributes_type" => "" // Fill this if available
                                 ];
@@ -3309,10 +3396,10 @@ class OrderController extends Controller
                     $service_data = DB::table('wholesaler_configured_easypost_carrieracc')
                         ->where('level_id', $this->level_id)
                         ->first();
-                    $account = explode(",", $service_data['account']);
+                    $account = @explode(",", $service_data['account']);
                     foreach ($account as $value) {
-                        if (strpos($value, $shipping_detail['carrier']) !== false) {
-                            $shipping_method = rtrim(explode("|", $value)[1], '"');
+                        if (@strpos(@$value, @$shipping_detail['carrier']) !== false) {
+                            $shipping_method = @rtrim(explode("|", $value)[1], '"');
                             break;
                         }
                     }
@@ -3591,10 +3678,11 @@ class OrderController extends Controller
 
 
             if ($item->room_index != '') {
-                $indexarr = json_decode($item->room_index, true);
-                if ($indexarr != '') {
-                    $room_data = implode(",", $indexarr);
-                }
+                $room_data = json_decode($item->room_index, true);
+                // $indexarr = json_decode($item->room_index, true);
+                // if ($indexarr != '') {
+                //     $room_data = implode(",", $indexarr);
+                // }
             } else {
                 $room_data = $item->room;
             }
