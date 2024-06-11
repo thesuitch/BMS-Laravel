@@ -3846,7 +3846,7 @@ class OrderController extends Controller
                 "quantity" => $item->product_qty,
                 "mainPrice" => $table_price,
                 // "roomIndex" => $roomindex_data,
-                "roomIndex" => @$room_data,
+                "room_index" => @$room_data,
                 "room" => $item->room,
                 "widthFraction" => [
                     "value" => $widthFraction->decimal_value ?? '',
