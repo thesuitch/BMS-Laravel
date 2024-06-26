@@ -108,6 +108,182 @@ trait OrderTrait
 
 
     // get patterns and colors start
+    // public function getColorPartanModel($product_id = '')
+    // {
+    //     try {
+    //         $result = [];
+
+    //         $product = Product::select('colors', 'pattern_models_ids', 'hide_pattern', 'category_id', 'price_style_type')
+    //             ->findOrFail($product_id);
+
+    //         if (!$product) {
+    //             throw new \Exception();
+    //         }
+
+    //         if ($product->hide_pattern == 1) {
+    //             return $result;
+    //         }
+
+    //         $pattern_models = PatternModel::whereIn('pattern_model_id', explode(',', $product->pattern_models_ids))
+    //             ->orderBy("position", "asc")
+    //             ->orderBy('pattern_name', 'asc')
+    //             ->get();
+
+
+    //         if (auth('api')->user()->user_type == 'c') {
+    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+    //             $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
+    //         } else {
+    //             $createdBy = auth('api')->user()->level_id;
+    //         }
+
+    //         $user_detail = getCompanyProfileOrderConditionSettings();
+
+    //         $category_idd = $product->category_id;
+    //         $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
+    //         $pattern_label =  $custom_label->order_pattern_label;
+    //         // $pattern_label = 'pattern';
+
+    //         $result[] = [
+    //             'label' => $pattern_label,
+    //             "type" => "select",
+    //             "name" => "pattern",
+    //             'options' => [
+    //                 ['value' => '', 'label' => '-- Select one --'],
+    //                 // ['value' => '0', 'label' => 'Manual Entry', 'selected' => $user_detail->enable_fabric_manual_entry == 1],
+    //             ],
+    //         ];
+
+    //         $pattern_models->each(function ($pattern) use (&$result, $product_id) {
+    //             $result[0]['options'][] = [
+    //                 'value' => $pattern->pattern_model_id,
+    //                 'label' => $pattern->pattern_name,
+    //                 'selected' => $pattern->default == '1',
+    //                 'subAttributes' => $this->getColorModel($product_id, $pattern->pattern_model_id)
+    //             ];
+    //         });
+
+    //         $price_style_type = $product->price_style_type;
+    //         $display_fabric_price = $user_detail->display_fabric_price;
+
+    //         if (in_array($price_style_type, [5, 6, 10]) && $display_fabric_price) {
+    //             $result[] = [
+    //                 'input_type' => 'text',
+    //                 'input_id' => 'fabric_price',
+    //                 'input_name' => 'fabric_price',
+    //                 'input_value' => '0',
+    //             ];
+    //         }
+
+    //         return $result;
+    //     } catch (\Exception $e) {
+    //         return [
+    //             'status' => 'error',
+    //             'code' => 404,
+    //             'message' => 'Data not found ',
+    //             'data' => []
+    //         ];
+    //     }
+    // }
+
+    // public function getColorModel($product_id, $pattern_id)
+    // {
+
+    //     try {
+    //         $result = [];
+
+    //         $colorIds = DB::table('colors')
+    //             ->select('id')
+    //             ->where('pattern_id', $pattern_id)
+    //             ->where('created_by', $this->level_id)
+    //             ->where('status', 1)
+    //             ->orderBy('position', 'asc')
+    //             ->orderBy('color_name', 'asc')
+    //             ->get()
+    //             ->pluck('id')
+    //             ->toArray();
+
+
+
+    //         $where = "FIND_IN_SET('" . $pattern_id . "', pattern_models_ids)";
+    //         $product_color_data = DB::table('products')
+    //             ->where('id', $product_id)
+    //             ->whereRaw($where)
+    //             ->first();
+
+    //         if (!isset($product_color_data->hide_color) || $product_color_data->hide_color == 1) {
+    //             // Hide color option
+    //             return $result;
+    //         }
+    //         // Display color option
+    //         $product_color_ids = $product_color_data->colors != '' ? array_intersect($colorIds, explode(',', $product_color_data->colors)) : [];
+
+    //         $colors = [];
+    //         if (count($product_color_ids) > 0) {
+    //             $colors = DB::table('colors')
+    //                 ->whereIn('id', $product_color_ids)
+    //                 ->where('status', 1)
+    //                 ->where('created_by', $this->level_id)
+    //                 ->orderBy('position', 'asc')
+    //                 ->orderBy('color_name', 'asc')
+    //                 ->get();
+    //         }
+
+
+
+    //         if (auth('api')->user()->user_type == 'c') {
+    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+    //             $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
+    //         } else {
+    //             $createdBy = auth('api')->user()->level_id;
+    //         }
+
+
+    //         $user_detail = getCompanyProfileOrderConditionSettings();
+    //         $category_idd = $product_color_data->category_id;
+    //         $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
+    //         $color_label =  $custom_label->order_color_label;
+    //         $result[0] = [
+    //             'label' => $color_label,
+    //             'type'  => 'select_with_input',
+    //             'name' => "color"
+    //         ];
+    //         $result[0]['select'] = [
+    //             'onChange' => 'getColorCode',
+    //             'options' => [
+    //                 ['value' => '', 'label' => '-- Select one --'],
+    //                 ['value' => '0', 'label' => 'Manual Entry', 'selected' => @$user_detail->enable_color_manual_entry == 1],
+    //             ],
+    //         ];
+
+    //         foreach ($colors as $color) {
+    //             $result[0]['select']['options'][] = [
+    //                 'value' => $color->id,
+    //                 'label' => $color->color_name,
+    //                 'selected' => $color->default == '1',
+    //                 'color_code' => $color->color_number
+    //             ];
+    //         }
+
+    //         $result[0]['input'] = [
+    //             'onKeyup' => 'getColorCode_select',
+    //             'placeholder' => $color_label . ' Code',
+    //         ];
+
+    //         return $result;
+    //     } catch (\Exception $e) {
+
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'code' => 404,
+    //             'message' => 'Data not found ' . $e->getMessage(),
+    //             'data' => []
+    //         ], 404);
+    //     }
+    // }
+
+    // ------------------------------------------------------------------------
+
     public function getColorPartanModel($product_id = '')
     {
         try {
@@ -116,33 +292,23 @@ trait OrderTrait
             $product = Product::select('colors', 'pattern_models_ids', 'hide_pattern', 'category_id', 'price_style_type')
                 ->findOrFail($product_id);
 
-            if (!$product) {
-                throw new \Exception();
-            }
-
             if ($product->hide_pattern == 1) {
                 return $result;
             }
 
-            $pattern_models = PatternModel::whereIn('pattern_model_id', explode(',', $product->pattern_models_ids))
+            $patternModelIds = explode(',', $product->pattern_models_ids);
+            $pattern_models = PatternModel::whereIn('pattern_model_id', $patternModelIds)
                 ->orderBy("position", "asc")
                 ->orderBy('pattern_name', 'asc')
                 ->get();
 
-
-            if (auth('api')->user()->user_type == 'c') {
-                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
-                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
-            } else {
-                $createdBy = auth('api')->user()->level_id;
-            }
+            $user = auth('api')->user();
+            $userInfo = ($user->user_type == 'c') ? checkRetailerConnectToWholesaler($user->id) : null;
+            $createdBy = $userInfo && isset($userInfo['id']) && $userInfo['id'] != '' ? $user->main_b_id : $user->level_id;
 
             $user_detail = getCompanyProfileOrderConditionSettings();
-
-            $category_idd = $product->category_id;
-            $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
-            $pattern_label =  $custom_label->order_pattern_label;
-            // $pattern_label = 'pattern';
+            $custom_label = $this->getCustomLabelUserwise($createdBy, $product->category_id);
+            $pattern_label = $custom_label->order_pattern_label;
 
             $result[] = [
                 'label' => $pattern_label,
@@ -150,23 +316,21 @@ trait OrderTrait
                 "name" => "pattern",
                 'options' => [
                     ['value' => '', 'label' => '-- Select one --'],
-                    // ['value' => '0', 'label' => 'Manual Entry', 'selected' => $user_detail->enable_fabric_manual_entry == 1],
                 ],
             ];
 
-            $pattern_models->each(function ($pattern) use (&$result, $product_id) {
+            $colorModelData = $this->getColorModelData($product_id, $patternModelIds);
+
+            $pattern_models->each(function ($pattern) use (&$result, $colorModelData) {
                 $result[0]['options'][] = [
                     'value' => $pattern->pattern_model_id,
                     'label' => $pattern->pattern_name,
                     'selected' => $pattern->default == '1',
-                    'subAttributes' => $this->getColorModel($product_id, $pattern->pattern_model_id)
+                    'subAttributes' => $colorModelData[$pattern->pattern_model_id] ?? []
                 ];
             });
 
-            $price_style_type = $product->price_style_type;
-            $display_fabric_price = $user_detail->display_fabric_price;
-
-            if (in_array($price_style_type, [5, 6, 10]) && $display_fabric_price) {
+            if (in_array($product->price_style_type, [5, 6, 10]) && $user_detail->display_fabric_price) {
                 $result[] = [
                     'input_type' => 'text',
                     'input_id' => 'fabric_price',
@@ -186,101 +350,81 @@ trait OrderTrait
         }
     }
 
-    public function getColorModel($product_id, $pattern_id)
+    public function getColorModelData($product_id, $patternModelIds)
     {
-
         try {
             $result = [];
 
+            $product = Product::select('colors', 'category_id', 'hide_color')
+                ->findOrFail($product_id);
+
+            if (!isset($product->hide_color) || $product->hide_color == 1) {
+                return $result;
+            }
+
             $colorIds = DB::table('colors')
-                ->select('id')
-                ->where('pattern_id', $pattern_id)
-                ->where('created_by', $this->level_id)
+                ->select('id', 'pattern_id', 'color_name', 'color_number', 'default', 'created_by')
+                ->whereIn('pattern_id', $patternModelIds)
                 ->where('status', 1)
+                ->where('created_by', $this->level_id)
                 ->orderBy('position', 'asc')
                 ->orderBy('color_name', 'asc')
                 ->get()
-                ->pluck('id')
-                ->toArray();
+                ->groupBy('pattern_id');
 
+            $product_color_ids = $product->colors != '' ? explode(',', $product->colors) : [];
 
-
-            $where = "FIND_IN_SET('" . $pattern_id . "', pattern_models_ids)";
-            $product_color_data = DB::table('products')
-                ->where('id', $product_id)
-                ->whereRaw($where)
-                ->first();
-
-            if (!isset($product_color_data->hide_color) || $product_color_data->hide_color == 1) {
-                // Hide color option
-                return $result;
-            }
-            // Display color option
-            $product_color_ids = $product_color_data->colors != '' ? array_intersect($colorIds, explode(',', $product_color_data->colors)) : [];
-
-            $colors = [];
-            if (count($product_color_ids) > 0) {
-                $colors = DB::table('colors')
-                    ->whereIn('id', $product_color_ids)
-                    ->where('status', 1)
-                    ->where('created_by', $this->level_id)
-                    ->orderBy('position', 'asc')
-                    ->orderBy('color_name', 'asc')
-                    ->get();
-            }
-
-
-
-            if (auth('api')->user()->user_type == 'c') {
-                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
-                $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
-            } else {
-                $createdBy = auth('api')->user()->level_id;
-            }
-
+            $user = auth('api')->user();
+            $userInfo = ($user->user_type == 'c') ? checkRetailerConnectToWholesaler($user->id) : null;
+            $createdBy = $userInfo && isset($userInfo['id']) && $userInfo['id'] != '' ? $user->main_b_id : $user->level_id;
 
             $user_detail = getCompanyProfileOrderConditionSettings();
-            $category_idd = $product_color_data->category_id;
-            $custom_label = $this->getCustomLabelUserwise($createdBy, $category_idd);
-            $color_label =  $custom_label->order_color_label;
-            $result[0] = [
-                'label' => $color_label,
-                'type'  => 'select_with_input',
-                'name' => "color"
-            ];
-            $result[0]['select'] = [
-                'onChange' => 'getColorCode',
-                'options' => [
-                    ['value' => '', 'label' => '-- Select one --'],
-                    ['value' => '0', 'label' => 'Manual Entry', 'selected' => @$user_detail->enable_color_manual_entry == 1],
-                ],
-            ];
+            $custom_label = $this->getCustomLabelUserwise($createdBy, $product->category_id);
+            $color_label = $custom_label->order_color_label;
 
-            foreach ($colors as $color) {
-                $result[0]['select']['options'][] = [
-                    'value' => $color->id,
-                    'label' => $color->color_name,
-                    'selected' => $color->default == '1',
-                    'color_code' => $color->color_number
+            foreach ($patternModelIds as $pattern_id) {
+                $colors = $colorIds[$pattern_id] ?? collect();
+                $filteredColors = $colors->whereIn('id', $product_color_ids);
+
+                $result[$pattern_id][] = [
+                    'label' => $color_label,
+                    'type' => 'select_with_input',
+                    'name' => "color",
+                    'select' => [
+                        'onChange' => 'getColorCode',
+                        'options' => [
+                            ['value' => '', 'label' => '-- Select one --'],
+                            ['value' => '0', 'label' => 'Manual Entry', 'selected' => @$user_detail->enable_color_manual_entry == 1],
+                        ],
+                    ],
+                    'input' => [
+                        'onKeyup' => 'getColorCode_select',
+                        'placeholder' => $color_label . ' Code',
+                    ],
                 ];
-            }
 
-            $result[0]['input'] = [
-                'onKeyup' => 'getColorCode_select',
-                'placeholder' => $color_label . ' Code',
-            ];
+                foreach ($filteredColors as $color) {
+                    $result[$pattern_id][0]['select']['options'][] = [
+                        'value' => $color->id,
+                        'label' => $color->color_name,
+                        'selected' => $color->default == '1',
+                        'color_code' => $color->color_number
+                    ];
+                }
+            }
 
             return $result;
         } catch (\Exception $e) {
-
-            return response()->json([
+            return [
                 'status' => 'error',
                 'code' => 404,
                 'message' => 'Data not found ' . $e->getMessage(),
                 'data' => []
-            ], 404);
+            ];
         }
     }
+
+
     // get patterns and colors end
 
 
@@ -365,10 +509,9 @@ trait OrderTrait
             $main_price = $p->sqft_price;
         }
 
-
         foreach ($attributes as $attribute_key => $attribute) {
 
-            
+
             if ($attribute->attribute_type == 3) {
                 $options = DB::table('attr_options')
                     ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id')
@@ -424,18 +567,18 @@ trait OrderTrait
 
                 // dd($attribute->id);
 
-                $control_length_val = ''; 
-                if($attribute->attribute_name == 'Control Length'){
+                $control_length_val = '';
+                if ($attribute->attribute_name == 'Control Length') {
 
 
                     $company_profile = DB::table('company_profile')
-                    ->select('*')
-                    ->where('user_id', $this->level_id)
-                    ->first();
+                        ->select('*')
+                        ->where('user_id', $this->level_id)
+                        ->first();
 
                     $company_unit = ($company_profile->unit) ? $company_profile->unit : "";
                     $control_length_val = 'Cord Length';
-                    
+
                     if ($company_unit == 'inches') {
                         // If company_unit is inches then consider this option.
                         if ($height >= 55 && $height <= 65) {
@@ -459,7 +602,6 @@ trait OrderTrait
                             $control_length_val = '163';
                         }
                     }
-
                 }
 
                 $attributeData = [
@@ -468,15 +610,15 @@ trait OrderTrait
                     'type' => 'select',
                     "attributes_type" => $attribute->attribute_type,
                     'options' => [],
-                    
+
                 ];
 
                 foreach ($options as $op) {
                     $sl1 = ($op->default == 1 ? 1 : 0);
 
-                    
 
-                    if($control_length_val == $op->option_name){
+
+                    if ($control_length_val == $op->option_name) {
                         $sl1 = 1;
                     }
 
@@ -1399,12 +1541,499 @@ trait OrderTrait
 
 
 
+    // public function getProductRowColPrice($height = null, $width = null, $product_id = null, $pattern_id = null, $width_fraction = null, $height_fraction = 0, $product_type = 0)
+    // {
+
+    //     // dd($width_fraction);
+
+    //     // return 1;
+    //     if ($height == 0) {
+    //         $height = "-1";
+    //     }
+    //     if ($width == 0) {
+    //         $width = "-1";
+    //     }
+
+    //     $fr_width = 0;
+    //     $fr_height = 0;
+
+    //     if ($width_fraction != 0) {
+    //         $fr_data_width = DB::table('width_height_fractions')->where('id', $width_fraction)->first();
+    //         $fr_width = $fr_data_width->decimal_value;
+    //     }
+
+    //     if ($height_fraction != 0) {
+    //         $fr_data_height = DB::table('width_height_fractions')->where('id', $height_fraction)->first();
+    //         $fr_height = $fr_data_height->decimal_value;
+    //     }
+
+
+    //     $height = $height + $fr_height;
+    //     $width = $width + $fr_width;
+
+    //     // dd($height);
+
+    //     $q = "";
+    //     $st = "";
+    //     $row = "";
+    //     $col = "";
+    //     $price = "";
+    //     $s_area = 0;
+
+    //     if ($height >= 0 && $width >= 0) {
+    //         if (!empty(request()->post('comboProductIds'))) {
+    //             $comboPrice = [];
+
+    //             foreach (request()->post('comboProductIds') as $combo_key => $combo_product_id) {
+    //                 $p = DB::table('products')->where('id', $combo_product_id)->first();
+
+    //                 if (!empty($p->price_style_type) && $p->price_style_type == 1) {
+    //                     $price = DB::table('price_style')
+    //                         ->where('style_id', $p->price_rowcol_style_id)
+    //                         ->where('row', $width)
+    //                         ->where('col', $height)
+    //                         ->first();
+
+    //                     $pc = ($price != NULL ? $price->price : 0);
+
+    //                     if (!empty($price)) {
+    //                         array_push($comboPrice, str_replace(",", "", $pc));
+    //                         $st = 1;
+
+    //                         $row = isset($price->row) ? $price->row : 0;
+    //                         $col = isset($price->col) ? $price->col : 0;
+    //                         $price = $pc;
+    //                     } else {
+    //                         $price = DB::table('price_style')
+    //                             ->where('style_id', $p->price_rowcol_style_id)
+    //                             ->where('row', '>=', $width)
+    //                             ->where('col', '>=', $height)
+    //                             ->orderBy('row_id', 'asc')
+    //                             ->limit(1)
+    //                             ->first();
+
+    //                         $pc = ($price != NULL ? $price->price : 0);
+    //                         array_push($comboPrice, str_replace(",", "", $pc));
+
+    //                         $row = isset($price->row) ? $price->row : 0;
+    //                         $col = isset($price->col) ? $price->col : 0;
+    //                         $price = $pc;
+    //                         $st = 2;
+    //                     }
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 2) {
+    //                     $price = $p->sqft_price;
+    //                     array_push($comboPrice, str_replace(",", "", $price));
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 3) {
+    //                     $price = $p->fixed_price;
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 4) {
+    //                     $pg = DB::table('price_model_mapping_tbl')
+    //                         ->select('*')
+    //                         ->where('product_id', $combo_product_id)
+    //                         ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
+    //                         ->first();
+
+    //                     $group_id = optional($pg)->group_id ?? '0';
+
+    //                     $price = DB::table('price_style')
+    //                         ->where('style_id', $group_id)
+    //                         ->where('row', '>=', $width)
+    //                         ->where('col', '>=', $height)
+    //                         ->orderBy('row_id', 'asc')
+    //                         ->limit(1)
+    //                         ->first();
+
+    //                     $pc = optional($price)->price ?? 0;
+
+    //                     array_push($comboPrice, str_replace(",", "", $pc));
+
+    //                     $row = optional($price)->row ?? '';
+    //                     $col = optional($price)->col ?? '';
+
+    //                     $price = $pc;
+    //                     $st = 2;
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 5) {
+    //                     $pg = DB::table('sqm_price_model_mapping_tbl')
+    //                         ->select('*')
+    //                         ->where('product_id', $combo_product_id)
+    //                         ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
+    //                         ->first();
+
+    //                     $pc = optional($pg)->price ?? 0;
+
+    //                     $total_area = $height * $width;
+    //                     $sqm_area = $total_area / 10000;
+
+    //                     if ($sqm_area < 2) {
+    //                         $sqm_area = 2;
+    //                     }
+
+    //                     $sqm = $sqm_area * $pc;
+    //                     $price = $sqm;
+
+    //                     array_push($comboPrice, str_replace(",", "", $price));
+
+    //                     $st = 2;
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 7) {
+    //                     $widthHeightPrice = $width + $height;
+    //                     array_push($comboPrice, str_replace(",", "", $widthHeightPrice));
+
+    //                     $st = 2;
+    //                 } elseif (!empty($p->price_style_type) && $p->price_style_type == 6) {
+    //                     $pg = DB::table('sqft_price_model_mapping_tbl')
+    //                         ->select('*')
+    //                         ->where('product_id', $combo_product_id)
+    //                         ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
+    //                         ->first();
+
+    //                     $pc = isset($pg->price) ? ($pg->price != NULL ? $pg->price : 0) : 0;
+
+    //                     $total_area = $height * $width;
+    //                     $sqft_area = $total_area / 144;
+    //                     $sqft = ($sqft_area) * ($pc);
+    //                     $price = $sqft;
+    //                     array_push($comboPrice, str_replace(",", "", $price));
+
+    //                     $st = 2;
+    //                 } else if (!empty($p->price_style_type) && $p->price_style_type == 9) {
+    //                     // For Sqft + Table Price
+    //                     $price = DB::table('price_style')
+    //                         ->where('style_id', $p->price_rowcol_style_id)
+    //                         ->where('row', $width)
+    //                         ->where('col', $height)
+    //                         ->first();
+
+    //                     $pc = ($price != NULL ? $price->price : 0);
+
+    //                     if (!empty($price)) {
+    //                         // It means exact height and width match
+    //                         $st = 1;
+    //                     } else {
+    //                         // It means need to consider the next greater value from price style
+    //                         $price = DB::table('price_style')
+    //                             ->where('style_id', $p->price_rowcol_style_id)
+    //                             ->where('row', '>=', $width)
+    //                             ->where('col', '>=', $height)
+    //                             ->orderBy('row_id', 'asc')
+    //                             ->limit(1)
+    //                             ->first();
+    //                         $pc = ($price != NULL ? $price->price : 0);
+    //                         $st = 2;
+    //                     }
+
+    //                     // Calculate with sqft + table price : START
+    //                     $sqft_price = 1;
+    //                     if ($p->product_id != '' && $pattern_id != '') {
+    //                         $sqft_data = DB::table('sqft_price_model_mapping_tbl')
+    //                             ->where('product_id', $p->product_id)
+    //                             ->where('pattern_id', $pattern_id)
+    //                             ->first();
+    //                         $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
+    //                     }
+    //                     $pc = round(($pc * $sqft_price), 2);
+    //                     // Calculate with sqft + table price : END
+
+
+
+    //                     $row = isset($price->row) ? $price->row : 0;
+    //                     $col = isset($price->col) ? $price->col : 0;
+    //                     $price = $pc;
+    //                 }
+
+    //                 // ... (continue with the remaining cases)
+    //             }
+
+    //             $price = array_sum($comboPrice);
+
+
+
+    //             return $price;
+    //             // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
+    //             // return response()->json($arr);
+    //         } else {
+
+
+    //             $p = DB::table('products')->where('id', $product_id)->first();
+    //             // dd($p->price_style_type);
+    //             // exit;
+
+
+    //             if (!empty($p->price_style_type) && $p->price_style_type == 1) {
+
+    //                 $price = DB::table('price_style')
+    //                     ->where('style_id', $p->price_rowcol_style_id)
+    //                     ->where('row', $width)
+    //                     ->where('col', $height)
+    //                     ->first();
+
+    //                 $pc = ($price != NULL ? $price->price : 0);
+
+    //                 if (!empty($price)) {
+
+
+    //                     $st = 1;
+
+    //                     $row = isset($price->row) ? $price->row : 0;
+    //                     $col = isset($price->col) ? $price->col : 0;
+    //                     $price = $pc;
+    //                 } else {
+    //                     $price = DB::table('price_style')
+    //                         ->where('style_id', $p->price_rowcol_style_id)
+    //                         ->where('row', '>=', $width)
+    //                         ->where('col', '>=', $height)
+    //                         ->orderBy('row_id', 'asc')
+    //                         ->limit(1)
+    //                         ->first();
+    //                     // dd($price);
+    //                     $pc = ($price != NULL ? $price->price : 0);
+
+    //                     $row = isset($price->row) ? $price->row : 0;
+    //                     $col = isset($price->col) ? $price->col : 0;
+    //                     $price = $pc;
+    //                     $st = 2;
+    //                 }
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 2) {
+    //                 $price = $p->sqft_price;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 3) {
+    //                 $price = $p->fixed_price;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 4) {
+    //                 // group price
+    //                 $pg = DB::table('price_model_mapping_tbl')
+    //                     ->where('product_id', $product_id)
+    //                     ->where('pattern_id', $pattern_id)
+    //                     ->first();
+
+    //                 $group_id = isset($pg->group_id) ? $pg->group_id : '0';
+    //                 $price = DB::table('price_style')
+    //                     ->where('style_id', $group_id)
+    //                     ->where('row', '>=', $width)
+    //                     ->where('col', '>=', $height)
+    //                     ->orderBy('row_id', 'asc')
+    //                     ->limit(1)
+    //                     ->first();
+
+    //                 $pc = ($price != NULL ? $price->price : 0);
+
+    //                 $row = !empty($price->row) ? $price->row : '';
+    //                 $col = !empty($price->col) ? $price->col : '';
+
+    //                 $price = $pc;
+    //                 $st = 2;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 5) {
+    //                 $pg = DB::table('sqm_price_model_mapping_tbl')
+    //                     ->where('product_id', $product_id)
+    //                     ->where('pattern_id', $pattern_id)
+    //                     ->first();
+    //                 $pc = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
+
+    //                 $total_area = $height * $width;
+    //                 $sqm_area = $total_area / 10000;
+    //                 if ($sqm_area < 2) {
+    //                     $sqm_area = 2;
+    //                 }
+    //                 $sqm = ($sqm_area) * ($pc);
+    //                 $price = $sqm;
+
+    //                 $st = 2;
+    //                 $s_area = $sqm_area;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 7) {
+    //                 $widthHeightPrice = $width + $height;
+    //                 $st = 2;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 6) {
+    //                 $pg = DB::table('sqft_price_model_mapping_tbl')
+    //                     ->where('product_id', $product_id)
+    //                     ->where('pattern_id', $pattern_id)
+    //                     ->first();
+    //                 $pc = isset($pg->price) ? ($pg->price != NULL ? $pg->price : 0) : 0;
+
+    //                 $total_area = $height * $width;
+    //                 $sqft_area = $total_area / 144;
+    //                 // if($sqft_area < 2):
+    //                 //     $sqft_area = 2;
+    //                 // endif;
+    //                 $sqft = ($sqft_area) * ($pc);
+    //                 $price = $sqft;
+
+    //                 $st = 2;
+    //                 $s_area = $sqft_area;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 9) {
+    //                 // For Sqft + Table Price
+    //                 $price = DB::table('price_style')
+    //                     ->where('style_id', $p->price_rowcol_style_id)
+    //                     ->where('row', $width)
+    //                     ->where('col', $height)
+    //                     ->first();
+
+    //                 $pc = ($price != NULL ? $price->price : 0);
+
+    //                 if (!empty($price)) {
+    //                     // It means exact height and width match
+    //                     $st = 1;
+    //                 } else {
+    //                     // It means need to consider next greater value from the price style
+    //                     $price = DB::table('price_style')
+    //                         ->where('style_id', $p->price_rowcol_style_id)
+    //                         ->where('row', '>=', $width)
+    //                         ->where('col', '>=', $height)
+    //                         ->orderBy('row_id', 'asc')
+    //                         ->limit(1)
+    //                         ->first();
+    //                     $pc = ($price != NULL ? $price->price : 0);
+    //                     $st = 2;
+    //                 }
+
+    //                 // Calculate with sqft + table price : START
+    //                 $sqft_price = 1;
+    //                 if ($p->product_id != '' && $pattern_id != '') {
+    //                     $sqft_data = DB::table('sqft_price_model_mapping_tbl')
+    //                         ->where('product_id', $p->product_id)
+    //                         ->where('pattern_id', $pattern_id)
+    //                         ->first();
+    //                     $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
+    //                 }
+    //                 $pc = round(($pc * $sqft_price), 2);
+    //                 // Calculate with sqft + table price : END
+
+
+
+
+    //                 $row = isset($price->row) ? $price->row : 0;
+    //                 $col = isset($price->col) ? $price->col : 0;
+    //                 $price = $pc;
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 10) {
+    //                 // For Get Formula price based on product id : START
+    //                 $where = "FIND_IN_SET('" . $product_id . "', product_ids)";
+    //                 $product_formula_data = DB::table('fabric_price_formula')->whereRaw($where)->first();
+
+    //                 if (isset($product_formula_data['fabric_price_formula_id'])) {
+    //                     // For Call Format attribute post array : START
+    //                     $order_attr_arr = $this->format_attribute_array();
+    //                     // For Call Format attribute post array : END
+
+    //                     // Get Formula which is set while creating the formula : START
+    //                     $actual_product_formula = unserialize($product_formula_data['formula']);
+    //                     // Get Formula which is set while creating the formula : END
+
+    //                     $width_formula_arr = [];
+    //                     $height_formula_arr = [];
+
+    //                     //  Formula : START
+    //                     if (isset($actual_product_formula)) {
+    //                         $width_formula_arr = @$actual_product_formula['width'];
+    //                         $height_formula_arr = @$actual_product_formula['height'];
+    //                     }
+    //                     //  Formula : END
+
+    //                     // ================= For Calculate the Formula price : START =================
+    //                     // For Calculate Width Price : START
+    //                     $width_price = 0;
+    //                     if (count($width_formula_arr) > 0) {
+    //                         $width_extra_arr = array(
+    //                             'attribute'         => 'attribute',
+    //                             'attr_id'           => 'attr_id',
+    //                             'attribute_level'   => 'attribute_level',
+    //                             'custom_text'       => 'custom_text'
+    //                         );
+
+    //                         $width_condition_formula = [];
+    //                         $width_condition_formula['is_min_value_formula']   = @$product_formula_data['is_min_width_formula'] ?? 0;
+    //                         $width_condition_formula['min_value']              = @$product_formula_data['width_min_value'] ?? 0;
+    //                         $width_condition_formula['custom_price']           = @$product_formula_data['width_custom_price'] ?? 0;
+
+    //                         $width_final_formula = $this->make_attribute_formula($width_formula_arr, $order_attr_arr, $width, $height, $width_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $width_condition_formula);
+    //                         $final_width_val = convert_formula_to_value($width_final_formula);
+    //                         $width_price = $final_width_val;
+
+    //                         // For Cuts if even width then we need to consider the roundup always : START
+    //                         if (strpos($width_final_formula, 'custom_round_even') !== false) {
+    //                             $new_width_final_formula = str_replace('custom_round_even', 'ceil', $width_final_formula);
+    //                             $width_price = convert_formula_to_value($new_width_final_formula);
+    //                         }
+    //                         // For Cuts if even width then we need to consider the roundup always : END
+    //                     }
+    //                     // For Calculate Width Price : END
+
+    //                     // For Calculate Height Price : START
+    //                     $height_price = 0;
+    //                     if (count($height_formula_arr) > 0) {
+    //                         $height_extra_arr = array(
+    //                             'attribute'         => 'attribute',
+    //                             'attr_id'           => 'attr_id',
+    //                             'attribute_level'   => 'attribute_level',
+    //                             'custom_text'       => 'custom_text'
+    //                         );
+
+    //                         $height_condition_formula = [];
+    //                         $height_condition_formula['is_min_value_formula']   = @$product_formula_data['is_min_height_formula'] ?? 0;
+    //                         $height_condition_formula['min_value']              = @$product_formula_data['height_min_value'] ?? 0;
+    //                         $height_condition_formula['custom_price']           = @$product_formula_data['height_custom_price'] ?? 0;
+
+    //                         $height_final_formula = $this->make_attribute_formula($height_formula_arr, $order_attr_arr, $width, $height, $height_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $height_condition_formula);
+    //                         $final_height_val = convert_formula_to_value($height_final_formula);
+    //                         $height_price = $final_height_val;
+
+    //                         // For Cuts if even width then we need to consider the roundup always : START
+    //                         if (strpos($height_final_formula, 'custom_round_even') !== false) {
+    //                             $new_height_final_formula = str_replace('custom_round_even', 'ceil', $height_final_formula);
+    //                             $height_price = convert_formula_to_value($new_height_final_formula);
+    //                         }
+    //                         // For Cuts if even width then we need to consider the roundup always : END
+    //                     }
+    //                     // For Calculate Height Price : END
+
+    //                     // ================= For Calculate the Formula price : START =================
+    //                     $s_area = 1;
+    //                     $price = $width_price + $height_price;
+    //                 } else {
+    //                     // No Formula set for this product.
+    //                     $price = 0;
+    //                 }
+    //             } elseif (!empty($p->price_style_type) && $p->price_style_type == 11) {
+    //                 $pg = DB::table('group_fixed_price_model_mapping_tbl')
+    //                     ->where('product_id', $product_id)
+    //                     ->where('pattern_id', $pattern_id)
+    //                     ->first();
+    //                 $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
+    //             }
+
+    //             $price = round(intval($price), 2);
+    //             $formula = array(
+    //                 "width" => @$width_final_formula,
+    //                 "height" => @$height_final_formula
+    //             );
+    //             $arr = array('st' => $st, 'row' => $row, 'col' => $col, 'price' => $price, "area" => $s_area, "formula" => $formula);
+    //             return $price;
+
+    //             // ... (continue with the remaining cases)
+    //         }
+    //     } else {
+    //         $p = DB::table('products')
+    //             ->where('id', $product_id)
+    //             ->first();
+
+    //         if (!empty($p->price_style_type) && $p->price_style_type == 11 && empty(request('comboProductIds'))) {
+    //             $pg = DB::table('group_fixed_price_model_mapping_tbl')
+    //                 ->where('product_id', $product_id)
+    //                 ->where('pattern_id', $pattern_id)
+    //                 ->first();
+    //             $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
+
+    //             $price = round(intval($price), 2);
+    //         } else {
+
+    //             $st = 1;
+    //             $price = 0;
+    //         }
+
+    //         return $price;
+    //         // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
+    //         // return $arr;
+
+    //         // ... (same as the provided PHP code for height and width not greater than or equal to 0)
+    //     }
+    // }
+
     public function getProductRowColPrice($height = null, $width = null, $product_id = null, $pattern_id = null, $width_fraction = null, $height_fraction = 0, $product_type = 0)
     {
-
-        // dd($width_fraction);
-
-        // return 1;
         if ($height == 0) {
             $height = "-1";
         }
@@ -1416,479 +2045,249 @@ trait OrderTrait
         $fr_height = 0;
 
         if ($width_fraction != 0) {
-            $fr_data_width = DB::table('width_height_fractions')->where('id', $width_fraction)->first();
-            $fr_width = $fr_data_width->decimal_value;
+            $fr_data_width = DB::table('width_height_fractions')->where('id', $width_fraction)->value('decimal_value');
+            $fr_width = $fr_data_width ?? 0;
         }
 
         if ($height_fraction != 0) {
-            $fr_data_height = DB::table('width_height_fractions')->where('id', $height_fraction)->first();
-            $fr_height = $fr_data_height->decimal_value;
+            $fr_data_height = DB::table('width_height_fractions')->where('id', $height_fraction)->value('decimal_value');
+            $fr_height = $fr_data_height ?? 0;
         }
 
-
-        $height = $height + $fr_height;
-        $width = $width + $fr_width;
-
-        // dd($height);
-
-        $q = "";
-        $st = "";
-        $row = "";
-        $col = "";
-        $price = "";
-        $s_area = 0;
-
-        if ($height >= 0 && $width >= 0) {
-            if (!empty(request()->post('comboProductIds'))) {
-                $comboPrice = [];
-
-                foreach (request()->post('comboProductIds') as $combo_key => $combo_product_id) {
-                    $p = DB::table('products')->where('id', $combo_product_id)->first();
-
-                    if (!empty($p->price_style_type) && $p->price_style_type == 1) {
-                        $price = DB::table('price_style')
-                            ->where('style_id', $p->price_rowcol_style_id)
-                            ->where('row', $width)
-                            ->where('col', $height)
-                            ->first();
-
-                        $pc = ($price != NULL ? $price->price : 0);
-
-                        if (!empty($price)) {
-                            array_push($comboPrice, str_replace(",", "", $pc));
-                            $st = 1;
-
-                            $row = isset($price->row) ? $price->row : 0;
-                            $col = isset($price->col) ? $price->col : 0;
-                            $price = $pc;
-                        } else {
-                            $price = DB::table('price_style')
-                                ->where('style_id', $p->price_rowcol_style_id)
-                                ->where('row', '>=', $width)
-                                ->where('col', '>=', $height)
-                                ->orderBy('row_id', 'asc')
-                                ->limit(1)
-                                ->first();
-
-                            $pc = ($price != NULL ? $price->price : 0);
-                            array_push($comboPrice, str_replace(",", "", $pc));
-
-                            $row = isset($price->row) ? $price->row : 0;
-                            $col = isset($price->col) ? $price->col : 0;
-                            $price = $pc;
-                            $st = 2;
-                        }
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 2) {
-                        $price = $p->sqft_price;
-                        array_push($comboPrice, str_replace(",", "", $price));
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 3) {
-                        $price = $p->fixed_price;
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 4) {
-                        $pg = DB::table('price_model_mapping_tbl')
-                            ->select('*')
-                            ->where('product_id', $combo_product_id)
-                            ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
-                            ->first();
-
-                        $group_id = optional($pg)->group_id ?? '0';
-
-                        $price = DB::table('price_style')
-                            ->where('style_id', $group_id)
-                            ->where('row', '>=', $width)
-                            ->where('col', '>=', $height)
-                            ->orderBy('row_id', 'asc')
-                            ->limit(1)
-                            ->first();
-
-                        $pc = optional($price)->price ?? 0;
-
-                        array_push($comboPrice, str_replace(",", "", $pc));
-
-                        $row = optional($price)->row ?? '';
-                        $col = optional($price)->col ?? '';
-
-                        $price = $pc;
-                        $st = 2;
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 5) {
-                        $pg = DB::table('sqm_price_model_mapping_tbl')
-                            ->select('*')
-                            ->where('product_id', $combo_product_id)
-                            ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
-                            ->first();
-
-                        $pc = optional($pg)->price ?? 0;
-
-                        $total_area = $height * $width;
-                        $sqm_area = $total_area / 10000;
-
-                        if ($sqm_area < 2) {
-                            $sqm_area = 2;
-                        }
-
-                        $sqm = $sqm_area * $pc;
-                        $price = $sqm;
-
-                        array_push($comboPrice, str_replace(",", "", $price));
-
-                        $st = 2;
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 7) {
-                        $widthHeightPrice = $width + $height;
-                        array_push($comboPrice, str_replace(",", "", $widthHeightPrice));
-
-                        $st = 2;
-                    } elseif (!empty($p->price_style_type) && $p->price_style_type == 6) {
-                        $pg = DB::table('sqft_price_model_mapping_tbl')
-                            ->select('*')
-                            ->where('product_id', $combo_product_id)
-                            ->where('pattern_id', $this->input->post('comboPatternIds')[$combo_key])
-                            ->first();
-
-                        $pc = isset($pg->price) ? ($pg->price != NULL ? $pg->price : 0) : 0;
-
-                        $total_area = $height * $width;
-                        $sqft_area = $total_area / 144;
-                        $sqft = ($sqft_area) * ($pc);
-                        $price = $sqft;
-                        array_push($comboPrice, str_replace(",", "", $price));
-
-                        $st = 2;
-                    } else if (!empty($p->price_style_type) && $p->price_style_type == 9) {
-                        // For Sqft + Table Price
-                        $price = DB::table('price_style')
-                            ->where('style_id', $p->price_rowcol_style_id)
-                            ->where('row', $width)
-                            ->where('col', $height)
-                            ->first();
-
-                        $pc = ($price != NULL ? $price->price : 0);
-
-                        if (!empty($price)) {
-                            // It means exact height and width match
-                            $st = 1;
-                        } else {
-                            // It means need to consider the next greater value from price style
-                            $price = DB::table('price_style')
-                                ->where('style_id', $p->price_rowcol_style_id)
-                                ->where('row', '>=', $width)
-                                ->where('col', '>=', $height)
-                                ->orderBy('row_id', 'asc')
-                                ->limit(1)
-                                ->first();
-                            $pc = ($price != NULL ? $price->price : 0);
-                            $st = 2;
-                        }
-
-                        // Calculate with sqft + table price : START
-                        $sqft_price = 1;
-                        if ($p->product_id != '' && $pattern_id != '') {
-                            $sqft_data = DB::table('sqft_price_model_mapping_tbl')
-                                ->where('product_id', $p->product_id)
-                                ->where('pattern_id', $pattern_id)
-                                ->first();
-                            $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
-                        }
-                        $pc = round(($pc * $sqft_price), 2);
-                        // Calculate with sqft + table price : END
-
-
-
-                        $row = isset($price->row) ? $price->row : 0;
-                        $col = isset($price->col) ? $price->col : 0;
-                        $price = $pc;
-                    }
-
-                    // ... (continue with the remaining cases)
-                }
-
-                $price = array_sum($comboPrice);
-
-
-
-                return $price;
-                // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
-                // return response()->json($arr);
-            } else {
-
-
-                $p = DB::table('products')->where('id', $product_id)->first();
-                // dd($p->price_style_type);
-                // exit;
-
-
-                if (!empty($p->price_style_type) && $p->price_style_type == 1) {
-
-                    $price = DB::table('price_style')
-                        ->where('style_id', $p->price_rowcol_style_id)
-                        ->where('row', $width)
-                        ->where('col', $height)
-                        ->first();
-
-                    $pc = ($price != NULL ? $price->price : 0);
-
-                    if (!empty($price)) {
-
-
-                        $st = 1;
-
-                        $row = isset($price->row) ? $price->row : 0;
-                        $col = isset($price->col) ? $price->col : 0;
-                        $price = $pc;
-                    } else {
-                        $price = DB::table('price_style')
-                            ->where('style_id', $p->price_rowcol_style_id)
-                            ->where('row', '>=', $width)
-                            ->where('col', '>=', $height)
-                            ->orderBy('row_id', 'asc')
-                            ->limit(1)
-                            ->first();
-                        // dd($price);
-                        $pc = ($price != NULL ? $price->price : 0);
-
-                        $row = isset($price->row) ? $price->row : 0;
-                        $col = isset($price->col) ? $price->col : 0;
-                        $price = $pc;
-                        $st = 2;
-                    }
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 2) {
-                    $price = $p->sqft_price;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 3) {
-                    $price = $p->fixed_price;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 4) {
-                    // group price
-                    $pg = DB::table('price_model_mapping_tbl')
-                        ->where('product_id', $product_id)
-                        ->where('pattern_id', $pattern_id)
-                        ->first();
-
-                    $group_id = isset($pg->group_id) ? $pg->group_id : '0';
-                    $price = DB::table('price_style')
-                        ->where('style_id', $group_id)
-                        ->where('row', '>=', $width)
-                        ->where('col', '>=', $height)
-                        ->orderBy('row_id', 'asc')
-                        ->limit(1)
-                        ->first();
-
-                    $pc = ($price != NULL ? $price->price : 0);
-
-                    $row = !empty($price->row) ? $price->row : '';
-                    $col = !empty($price->col) ? $price->col : '';
-
-                    $price = $pc;
-                    $st = 2;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 5) {
-                    $pg = DB::table('sqm_price_model_mapping_tbl')
-                        ->where('product_id', $product_id)
-                        ->where('pattern_id', $pattern_id)
-                        ->first();
-                    $pc = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
-
-                    $total_area = $height * $width;
-                    $sqm_area = $total_area / 10000;
-                    if ($sqm_area < 2) {
-                        $sqm_area = 2;
-                    }
-                    $sqm = ($sqm_area) * ($pc);
-                    $price = $sqm;
-
-                    $st = 2;
-                    $s_area = $sqm_area;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 7) {
-                    $widthHeightPrice = $width + $height;
-                    $st = 2;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 6) {
-                    $pg = DB::table('sqft_price_model_mapping_tbl')
-                        ->where('product_id', $product_id)
-                        ->where('pattern_id', $pattern_id)
-                        ->first();
-                    $pc = isset($pg->price) ? ($pg->price != NULL ? $pg->price : 0) : 0;
-
-                    $total_area = $height * $width;
-                    $sqft_area = $total_area / 144;
-                    // if($sqft_area < 2):
-                    //     $sqft_area = 2;
-                    // endif;
-                    $sqft = ($sqft_area) * ($pc);
-                    $price = $sqft;
-
-                    $st = 2;
-                    $s_area = $sqft_area;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 9) {
-                    // For Sqft + Table Price
-                    $price = DB::table('price_style')
-                        ->where('style_id', $p->price_rowcol_style_id)
-                        ->where('row', $width)
-                        ->where('col', $height)
-                        ->first();
-
-                    $pc = ($price != NULL ? $price->price : 0);
-
-                    if (!empty($price)) {
-                        // It means exact height and width match
-                        $st = 1;
-                    } else {
-                        // It means need to consider next greater value from the price style
-                        $price = DB::table('price_style')
-                            ->where('style_id', $p->price_rowcol_style_id)
-                            ->where('row', '>=', $width)
-                            ->where('col', '>=', $height)
-                            ->orderBy('row_id', 'asc')
-                            ->limit(1)
-                            ->first();
-                        $pc = ($price != NULL ? $price->price : 0);
-                        $st = 2;
-                    }
-
-                    // Calculate with sqft + table price : START
-                    $sqft_price = 1;
-                    if ($p->product_id != '' && $pattern_id != '') {
-                        $sqft_data = DB::table('sqft_price_model_mapping_tbl')
-                            ->where('product_id', $p->product_id)
-                            ->where('pattern_id', $pattern_id)
-                            ->first();
-                        $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
-                    }
-                    $pc = round(($pc * $sqft_price), 2);
-                    // Calculate with sqft + table price : END
-
-
-
-
-                    $row = isset($price->row) ? $price->row : 0;
-                    $col = isset($price->col) ? $price->col : 0;
-                    $price = $pc;
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 10) {
-                    // For Get Formula price based on product id : START
-                    $where = "FIND_IN_SET('" . $product_id . "', product_ids)";
-                    $product_formula_data = DB::table('fabric_price_formula')->whereRaw($where)->first();
-
-                    if (isset($product_formula_data['fabric_price_formula_id'])) {
-                        // For Call Format attribute post array : START
-                        $order_attr_arr = $this->format_attribute_array();
-                        // For Call Format attribute post array : END
-
-                        // Get Formula which is set while creating the formula : START
-                        $actual_product_formula = unserialize($product_formula_data['formula']);
-                        // Get Formula which is set while creating the formula : END
-
-                        $width_formula_arr = [];
-                        $height_formula_arr = [];
-
-                        //  Formula : START
-                        if (isset($actual_product_formula)) {
-                            $width_formula_arr = @$actual_product_formula['width'];
-                            $height_formula_arr = @$actual_product_formula['height'];
-                        }
-                        //  Formula : END
-
-                        // ================= For Calculate the Formula price : START =================
-                        // For Calculate Width Price : START
-                        $width_price = 0;
-                        if (count($width_formula_arr) > 0) {
-                            $width_extra_arr = array(
-                                'attribute'         => 'attribute',
-                                'attr_id'           => 'attr_id',
-                                'attribute_level'   => 'attribute_level',
-                                'custom_text'       => 'custom_text'
-                            );
-
-                            $width_condition_formula = [];
-                            $width_condition_formula['is_min_value_formula']   = @$product_formula_data['is_min_width_formula'] ?? 0;
-                            $width_condition_formula['min_value']              = @$product_formula_data['width_min_value'] ?? 0;
-                            $width_condition_formula['custom_price']           = @$product_formula_data['width_custom_price'] ?? 0;
-
-                            $width_final_formula = $this->make_attribute_formula($width_formula_arr, $order_attr_arr, $width, $height, $width_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $width_condition_formula);
-                            $final_width_val = convert_formula_to_value($width_final_formula);
-                            $width_price = $final_width_val;
-
-                            // For Cuts if even width then we need to consider the roundup always : START
-                            if (strpos($width_final_formula, 'custom_round_even') !== false) {
-                                $new_width_final_formula = str_replace('custom_round_even', 'ceil', $width_final_formula);
-                                $width_price = convert_formula_to_value($new_width_final_formula);
-                            }
-                            // For Cuts if even width then we need to consider the roundup always : END
-                        }
-                        // For Calculate Width Price : END
-
-                        // For Calculate Height Price : START
-                        $height_price = 0;
-                        if (count($height_formula_arr) > 0) {
-                            $height_extra_arr = array(
-                                'attribute'         => 'attribute',
-                                'attr_id'           => 'attr_id',
-                                'attribute_level'   => 'attribute_level',
-                                'custom_text'       => 'custom_text'
-                            );
-
-                            $height_condition_formula = [];
-                            $height_condition_formula['is_min_value_formula']   = @$product_formula_data['is_min_height_formula'] ?? 0;
-                            $height_condition_formula['min_value']              = @$product_formula_data['height_min_value'] ?? 0;
-                            $height_condition_formula['custom_price']           = @$product_formula_data['height_custom_price'] ?? 0;
-
-                            $height_final_formula = $this->make_attribute_formula($height_formula_arr, $order_attr_arr, $width, $height, $height_extra_arr, $product_id, $pattern_id, @$_POST['fabric_price'], $height_condition_formula);
-                            $final_height_val = convert_formula_to_value($height_final_formula);
-                            $height_price = $final_height_val;
-
-                            // For Cuts if even width then we need to consider the roundup always : START
-                            if (strpos($height_final_formula, 'custom_round_even') !== false) {
-                                $new_height_final_formula = str_replace('custom_round_even', 'ceil', $height_final_formula);
-                                $height_price = convert_formula_to_value($new_height_final_formula);
-                            }
-                            // For Cuts if even width then we need to consider the roundup always : END
-                        }
-                        // For Calculate Height Price : END
-
-                        // ================= For Calculate the Formula price : START =================
-                        $s_area = 1;
-                        $price = $width_price + $height_price;
-                    } else {
-                        // No Formula set for this product.
-                        $price = 0;
-                    }
-                } elseif (!empty($p->price_style_type) && $p->price_style_type == 11) {
-                    $pg = DB::table('group_fixed_price_model_mapping_tbl')
-                        ->where('product_id', $product_id)
-                        ->where('pattern_id', $pattern_id)
-                        ->first();
-                    $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
-                }
-
-                $price = round(intval($price), 2);
-                $formula = array(
-                    "width" => @$width_final_formula,
-                    "height" => @$height_final_formula
-                );
-                $arr = array('st' => $st, 'row' => $row, 'col' => $col, 'price' => $price, "area" => $s_area, "formula" => $formula);
-                return $price;
-
-                // ... (continue with the remaining cases)
-            }
-        } else {
-            $p = DB::table('products')
-                ->where('id', $product_id)
-                ->first();
-
+        $height += $fr_height;
+        $width += $fr_width;
+
+        if ($height < 0 || $width < 0) {
+            $p = DB::table('products')->where('id', $product_id)->first();
             if (!empty($p->price_style_type) && $p->price_style_type == 11 && empty(request('comboProductIds'))) {
                 $pg = DB::table('group_fixed_price_model_mapping_tbl')
                     ->where('product_id', $product_id)
                     ->where('pattern_id', $pattern_id)
                     ->first();
-                $price = ((isset($pg->price) && $pg->price != NULL) ? $pg->price : 0);
-
-                $price = round(intval($price), 2);
-            } else {
-
-                $st = 1;
-                $price = 0;
+                $price = $pg->price ?? 0;
+                return round(intval($price), 2);
             }
+            return 0;
+        }
 
-            return $price;
-            // $arr = ['st' => $st, 'row' => $row, 'col' => $col, 'price' => $price];
-            // return $arr;
+        $price = 0;
+        $comboPrice = [];
+        $postComboProductIds = request()->post('comboProductIds');
+        if (!empty($postComboProductIds)) {
+            foreach ($postComboProductIds as $combo_key => $combo_product_id) {
+                $p = DB::table('products')->where('id', $combo_product_id)->first();
+                if (!$p) continue;
 
-            // ... (same as the provided PHP code for height and width not greater than or equal to 0)
+                switch ($p->price_style_type) {
+                    case 1:
+                        $priceData = DB::table('price_style')
+                            ->where('style_id', $p->price_rowcol_style_id)
+                            ->where(function ($query) use ($width, $height) {
+                                $query->where('row', $width)
+                                    ->where('col', $height);
+                            })
+                            ->orWhere(function ($query) use ($width, $height) {
+                                $query->where('row', '>=', $width)
+                                    ->where('col', '>=', $height);
+                            })
+                            ->orderBy('row_id', 'asc')
+                            ->first();
+                        $pc = $priceData->price ?? 0;
+                        array_push($comboPrice, str_replace(",", "", $pc));
+                        break;
+                    case 2:
+                        array_push($comboPrice, str_replace(",", "", $p->sqft_price));
+                        break;
+                    case 3:
+                        array_push($comboPrice, str_replace(",", "", $p->fixed_price));
+                        break;
+                    case 4:
+                        $pg = DB::table('price_model_mapping_tbl')
+                            ->where('product_id', $combo_product_id)
+                            ->where('pattern_id', request()->post('comboPatternIds')[$combo_key] ?? 0)
+                            ->first();
+                        $group_id = $pg->group_id ?? 0;
+                        $priceData = DB::table('price_style')
+                            ->where('style_id', $group_id)
+                            ->where('row', '>=', $width)
+                            ->where('col', '>=', $height)
+                            ->orderBy('row_id', 'asc')
+                            ->first();
+                        $pc = $priceData->price ?? 0;
+                        array_push($comboPrice, str_replace(",", "", $pc));
+                        break;
+                    case 5:
+                        $pg = DB::table('sqm_price_model_mapping_tbl')
+                            ->where('product_id', $combo_product_id)
+                            ->where('pattern_id', request()->post('comboPatternIds')[$combo_key] ?? 0)
+                            ->first();
+                        $pc = $pg->price ?? 0;
+                        $sqm_area = ($height * $width) / 10000;
+                        $sqm_area = max($sqm_area, 2);
+                        $sqm = $sqm_area * $pc;
+                        array_push($comboPrice, str_replace(",", "", $sqm));
+                        break;
+                    case 6:
+                        $pg = DB::table('sqft_price_model_mapping_tbl')
+                            ->where('product_id', $combo_product_id)
+                            ->where('pattern_id', request()->post('comboPatternIds')[$combo_key] ?? 0)
+                            ->first();
+                        $pc = $pg->price ?? 0;
+                        $sqft_area = ($height * $width) / 144;
+                        $sqft = $sqft_area * $pc;
+                        array_push($comboPrice, str_replace(",", "", $sqft));
+                        break;
+                    case 7:
+                        $widthHeightPrice = $width + $height;
+                        array_push($comboPrice, str_replace(",", "", $widthHeightPrice));
+                        break;
+                    case 9:
+                        $priceData = DB::table('price_style')
+                            ->where('style_id', $p->price_rowcol_style_id)
+                            ->where(function ($query) use ($width, $height) {
+                                $query->where('row', $width)
+                                    ->where('col', $height);
+                            })
+                            ->orWhere(function ($query) use ($width, $height) {
+                                $query->where('row', '>=', $width)
+                                    ->where('col', '>=', $height);
+                            })
+                            ->orderBy('row_id', 'asc')
+                            ->first();
+                        $pc = $priceData->price ?? 0;
+                        $sqft_price = 1;
+                        if ($p->product_id && $pattern_id) {
+                            $sqft_data = DB::table('sqft_price_model_mapping_tbl')
+                                ->where('product_id', $p->product_id)
+                                ->where('pattern_id', $pattern_id)
+                                ->first();
+                            $sqft_price = $sqft_data->price ?? 1;
+                        }
+                        $pc = round($pc * $sqft_price, 2);
+                        array_push($comboPrice, str_replace(",", "", $pc));
+                        break;
+                    case 10:
+                        // Handle price style type 10 (formula based) here
+                        // ...
+                        break;
+                    case 11:
+                        $pg = DB::table('group_fixed_price_model_mapping_tbl')
+                            ->where('product_id', $combo_product_id)
+                            ->where('pattern_id', request()->post('comboPatternIds')[$combo_key] ?? 0)
+                            ->first();
+                        $price = $pg->price ?? 0;
+                        array_push($comboPrice, str_replace(",", "", $price));
+                        break;
+                    default:
+                        break;
+                }
+            }
+            return array_sum($comboPrice);
+        } else {
+            $p = DB::table('products')->where('id', $product_id)->first();
+            if (!$p) return 0;
+
+            switch ($p->price_style_type) {
+                case 1:
+                    $priceData = DB::table('price_style')
+                        ->where('style_id', $p->price_rowcol_style_id)
+                        ->where(function ($query) use ($width, $height) {
+                            $query->where('row', $width)
+                                ->where('col', $height);
+                        })
+                        ->orWhere(function ($query) use ($width, $height) {
+                            $query->where('row', '>=', $width)
+                                ->where('col', '>=', $height);
+                        })
+                        ->orderBy('row_id', 'asc')
+                        ->first();
+                    $pc = $priceData->price ?? 0;
+                    break;
+                case 2:
+                    $pc = $p->sqft_price;
+                    break;
+                case 3:
+                    $pc = $p->fixed_price;
+                    break;
+                case 4:
+                    $pg = DB::table('price_model_mapping_tbl')
+                        ->where('product_id', $product_id)
+                        ->where('pattern_id', $pattern_id)
+                        ->first();
+                    $group_id = $pg->group_id ?? 0;
+                    $priceData = DB::table('price_style')
+                        ->where('style_id', $group_id)
+                        ->where('row', '>=', $width)
+                        ->where('col', '>=', $height)
+                        ->orderBy('row_id', 'asc')
+                        ->first();
+                    $pc = $priceData->price ?? 0;
+                    break;
+                case 5:
+                    $pg = DB::table('sqm_price_model_mapping_tbl')
+                        ->where('product_id', $product_id)
+                        ->where('pattern_id', $pattern_id)
+                        ->first();
+                    $pc = $pg->price ?? 0;
+                    $sqm_area = ($height * $width) / 10000;
+                    $sqm_area = max($sqm_area, 2);
+                    $pc = $sqm_area * $pc;
+                    break;
+                case 6:
+                    $pg = DB::table('sqft_price_model_mapping_tbl')
+                        ->where('product_id', $product_id)
+                        ->where('pattern_id', $pattern_id)
+                        ->first();
+                    $pc = $pg->price ?? 0;
+                    $sqft_area = ($height * $width) / 144;
+                    $pc = $sqft_area * $pc;
+                    break;
+                case 7:
+                    $pc = $width + $height;
+                    break;
+                case 9:
+                    $priceData = DB::table('price_style')
+                        ->where('style_id', $p->price_rowcol_style_id)
+                        ->where(function ($query) use ($width, $height) {
+                            $query->where('row', $width)
+                                ->where('col', $height);
+                        })
+                        ->orWhere(function ($query) use ($width, $height) {
+                            $query->where('row', '>=', $width)
+                                ->where('col', '>=', $height);
+                        })
+                        ->orderBy('row_id', 'asc')
+                        ->first();
+                    $pc = $priceData->price ?? 0;
+                    $sqft_price = 1;
+                    if ($p->product_id && $pattern_id) {
+                        $sqft_data = DB::table('sqft_price_model_mapping_tbl')
+                            ->where('product_id', $p->product_id)
+                            ->where('pattern_id', $pattern_id)
+                            ->first();
+                        $sqft_price = $sqft_data->price ?? 1;
+                    }
+                    $pc = round($pc * $sqft_price, 2);
+                    break;
+                case 10:
+                    // Handle price style type 10 (formula based) here
+                    // ...
+                    break;
+                case 11:
+                    $pg = DB::table('group_fixed_price_model_mapping_tbl')
+                        ->where('product_id', $product_id)
+                        ->where('pattern_id', $pattern_id)
+                        ->first();
+                    $pc = $pg->price ?? 0;
+                    break;
+                default:
+                    $pc = 0;
+                    break;
+            }
+            return round(intval($pc), 2);
         }
     }
+
 
 
     public function calculateUpCondition(
@@ -2319,12 +2718,63 @@ trait OrderTrait
     }
 
 
+    // public function getMinMaxHeightWidth($product_id = null, $pattern_id = null)
+    // {
+    //     if (!$product_id) {
+    //         return [];
+    //     }
+
+    //     $product = DB::table('products')->find($product_id);
+    //     if (!$product) {
+    //         return [];
+    //     }
+
+    //     $response = [];
+
+    //     switch ($product->price_style_type) {
+    //         case 5:
+    //         case 6:
+    //             $response = [
+    //                 'minw' => $product->min_width ? intval($product->min_width) : null,
+    //                 'minh' => $product->min_height ? intval($product->min_height) : null,
+    //                 'maxh' => $product->max_height ? intval($product->max_height) : null,
+    //                 'maxw' => $product->max_width ? intval($product->max_width) : null
+    //             ];
+    //             break;
+
+    //         case 4:
+    //             $group_id = DB::table('price_model_mapping_tbl')
+    //                 ->where('product_id', $product_id)
+    //                 ->where('pattern_id', $pattern_id)
+    //                 ->value('group_id') ?? '0';
+
+    //             $response = DB::table('price_style')
+    //                 ->select('row as maxw', 'col as maxh')
+    //                 ->where('style_id', $group_id)
+    //                 ->latest('row_id')
+    //                 ->first();
+    //             break;
+
+    //         case 1:
+    //         case 9:
+    //             $response = DB::table('price_style')
+    //                 ->select('row as maxw', 'col as maxh')
+    //                 ->where('style_id', $product->price_rowcol_style_id)
+    //                 ->latest('row_id')
+    //                 ->first();
+    //             break;
+    //     }
+
+    //     return $response;
+    // }
+
     public function getMinMaxHeightWidth($product_id = null, $pattern_id = null)
     {
         if (!$product_id) {
             return [];
         }
 
+        // Fetch product data once
         $product = DB::table('products')->find($product_id);
         if (!$product) {
             return [];
@@ -2344,30 +2794,30 @@ trait OrderTrait
                 break;
 
             case 4:
-                $group_id = DB::table('price_model_mapping_tbl')
-                    ->where('product_id', $product_id)
-                    ->where('pattern_id', $pattern_id)
-                    ->value('group_id') ?? '0';
-
-                $response = DB::table('price_style')
-                    ->select('row as maxw', 'col as maxh')
-                    ->where('style_id', $group_id)
-                    ->latest('row_id')
+                // Use a join to combine queries and fetch the required data
+                $response = DB::table('price_model_mapping_tbl as pmm')
+                    ->join('price_style as ps', 'pmm.group_id', '=', 'ps.style_id')
+                    ->select('ps.row as maxw', 'ps.col as maxh')
+                    ->where('pmm.product_id', $product_id)
+                    ->where('pmm.pattern_id', $pattern_id)
+                    ->orderBy('ps.row_id', 'desc')
                     ->first();
                 break;
 
             case 1:
             case 9:
+                // Fetch maxw and maxh directly from price_style based on product's price_rowcol_style_id
                 $response = DB::table('price_style')
                     ->select('row as maxw', 'col as maxh')
                     ->where('style_id', $product->price_rowcol_style_id)
-                    ->latest('row_id')
+                    ->orderBy('row_id', 'desc')
                     ->first();
                 break;
         }
 
         return $response;
     }
+
 
 
 
@@ -2420,7 +2870,6 @@ trait OrderTrait
     function removeMfgLebelEntry($order_id)
     {
         DB::table('b_level_quotation_details_mfg_label')->whereIn('order_id', $order_id)->delete();
-
     }
     // stage update : End 
 
@@ -2429,7 +2878,7 @@ trait OrderTrait
     // Modify Amount for order receipt : Start
 
     // Update Shipping Installation Chatges : Start
-    function updateShippingInstallationCharge($amount,$order_id)
+    function updateShippingInstallationCharge($amount, $order_id)
     {
 
         $quotationData = DB::table('b_level_quatation_tbl')
@@ -2456,27 +2905,27 @@ trait OrderTrait
                     'due' => $newDue,
                 ]);
 
-                $message = 'Shipping/Installation Charge applied Successfully.';
-                return response()->json(['success' => true, 'message' => $message], 200);
-
+            $message = 'Shipping/Installation Charge applied Successfully.';
+            return response()->json(['success' => true, 'message' => $message], 200);
         } else {
 
-                $message = 'Something went wrong. Please try again';
-                return response()->json(['success' => false, 'message' => $message], 400);
+            $message = 'Something went wrong. Please try again';
+            return response()->json(['success' => false, 'message' => $message], 400);
         }
     }
     // Update Shipping Installation Chatges : End
 
 
     // Update Credit Amount : Start
-    function updateCredit($credit,$order_id) {
-    
+    function updateCredit($credit, $order_id)
+    {
+
         $quotationData = DB::table('b_level_quatation_tbl')
             ->where('order_id', $order_id)
             ->where('level_id', $this->level_id) // Assuming $this->level_id exists in your controller
             ->first();
 
-        if($quotationData){
+        if ($quotationData) {
             $oldCredit = $quotationData->credit;
             $grandTotal = $quotationData->grand_total;
             $due = $quotationData->due;
@@ -2492,48 +2941,48 @@ trait OrderTrait
                     'due' => $newDue,
                 ]);
 
-                $message = 'Credit Applied Successfully.';
-                return response()->json(['success' => true, 'message' => $message], 200);
-
+            $message = 'Credit Applied Successfully.';
+            return response()->json(['success' => true, 'message' => $message], 200);
         } else {
 
-                $message = 'Something went wrong. Please try again';
-                return response()->json(['success' => false, 'message' => $message], 400);
+            $message = 'Something went wrong. Please try again';
+            return response()->json(['success' => false, 'message' => $message], 400);
         }
     }
     // Update Credit Amount : End
 
 
     // Update Discount Amount : Start
-    function updateDiscount($amount , $order_id) {
-    
+    function updateDiscount($amount, $order_id)
+    {
+
         $quotation_data = DB::table('b_level_quatation_tbl')
-                            ->where('order_id', $order_id)
-                            ->where('level_id', $this->level_id)
-                            ->first();
-                            // return $quotation_data;
-    
-        if($quotation_data){
-    
+            ->where('order_id', $order_id)
+            ->where('level_id', $this->level_id)
+            ->first();
+        // return $quotation_data;
+
+        if ($quotation_data) {
+
             $old_invoice_discount = $quotation_data->invoice_discount;
             $grand_total = $quotation_data->grand_total;
             $due = $quotation_data->due;
-    
+
             $new_grand_total = $grand_total + $old_invoice_discount - $amount;
             $new_due = $due + $old_invoice_discount - $amount;
-    
+
             $new_data = [
-                'invoice_discount' => $amount, 
-                'grand_total' => $new_grand_total, 
-                'due' => $new_due, 
+                'invoice_discount' => $amount,
+                'grand_total' => $new_grand_total,
+                'due' => $new_due,
             ];
-    
+
             DB::table('b_level_quatation_tbl')
                 ->where('order_id', $order_id)
                 ->update($new_data);
-    
-                $message = 'Extra Discount Applied Successfully.';
-                return response()->json(['success' => true, 'message' => $message], 200);
+
+            $message = 'Extra Discount Applied Successfully.';
+            return response()->json(['success' => true, 'message' => $message], 200);
         } else {
             $message = 'Something went wrong. Please try again.';
             return response()->json(['success' => false, 'message' => $message], 400);
@@ -2545,8 +2994,9 @@ trait OrderTrait
 
 
     // Calculate the wholesaler to retailer / retailer to wholesaler total : Start
-    public function retailerToWholesalerCalculation($order_id) {
-        
+    public function retailerToWholesalerCalculation($order_id)
+    {
+
         // Calculate sub total
         $quote_total_price = DB::table('b_level_qutation_details')
             ->where('order_id', $order_id)
@@ -2602,7 +3052,7 @@ trait OrderTrait
             $component_tax_total_price = DB::table('order_component_cart_item')
                 ->where('order_id', $order_id)
                 ->sum('product_base_tax');
-            
+
             $sales_tax_amt = round(($quote_tax_total_price + $controller_tax_total_price + $hardware_tax_total_price + $component_tax_total_price), 2);
         }
 
@@ -2613,7 +3063,7 @@ trait OrderTrait
             $shipping_zone_amt = (($sub_total_price * $shipping_zone_per) / 100);
         }
 
-        $grand_total = round(($sub_total_price + $sales_tax_amt + $shipping_zone_amt + $shipping_charges + $installation_charge + $misc - $credit - $invoice_discount), 2); 
+        $grand_total = round(($sub_total_price + $sales_tax_amt + $shipping_zone_amt + $shipping_charges + $installation_charge + $misc - $credit - $invoice_discount), 2);
 
         // Calculate due amount
         $due_amount = round(($grand_total - $paid_amount), 2);
@@ -2640,25 +3090,25 @@ trait OrderTrait
     {
         // Get customer Zone
         $customer_data = DB::table('customers')
-                            ->where('id', $customer_id)
-                            ->first();
+            ->where('id', $customer_id)
+            ->first();
 
         // Calculate sub total
         $quote_total_price = DB::table('b_level_qutation_details')
-                                ->where('order_id', $order_id)
-                                ->sum('unit_total_price');
+            ->where('order_id', $order_id)
+            ->sum('unit_total_price');
 
         $controller_total_price = DB::table('order_controller_cart_item')
-                                    ->where('order_id', $order_id)
-                                    ->sum('item_total_price');
+            ->where('order_id', $order_id)
+            ->sum('item_total_price');
 
         $hardware_total_price = DB::table('order_hardware_cart_item')
-                                    ->where('order_id', $order_id)
-                                    ->sum('item_total_price');
+            ->where('order_id', $order_id)
+            ->sum('item_total_price');
 
         $component_total_price = DB::table('order_component_cart_item')
-                                    ->where('order_id', $order_id)
-                                    ->sum('component_total_price');
+            ->where('order_id', $order_id)
+            ->sum('component_total_price');
 
         $sub_total_price = round(($quote_total_price + $controller_total_price + $hardware_total_price + $component_total_price), 2);
 
@@ -2669,11 +3119,11 @@ trait OrderTrait
         if ($customer_data->enable_shipping_zone == 1) {
             // If shipping zone is enable then get shipping percentage
             $zone_details = DB::table('shipping_zones')
-                                ->where('zone_id', $customer_data->zone)
-                                ->where('min_price', '<=', $sub_total_price)
-                                ->where('max_price', '>=', $sub_total_price)
-                                ->where('level_id', $level_id)
-                                ->first();
+                ->where('zone_id', $customer_data->zone)
+                ->where('min_price', '<=', $sub_total_price)
+                ->where('max_price', '>=', $sub_total_price)
+                ->where('level_id', $level_id)
+                ->first();
         }
 
         $shipping_percentage = $zone_details->percentage ?? 0;
@@ -2698,38 +3148,38 @@ trait OrderTrait
         if (isset($g_val) && !empty($g_val)) {
             if ($category_id > 0) {
                 $hw = DB::table('width_height_fractions')->select('*')
-                    ->where('decimal_value' ,'>=', "0." . $g_val)
+                    ->where('decimal_value', '>=', "0." . $g_val)
                     ->orderBy('decimal_value', 'asc')
                     ->get();
                 $hw1 = DB::table('categories')->select('*')
-                        ->where('id', $category_id)
-                        ->limit(1)
-                        ->first();
-                if(isset($hw1->fractions) && $hw1->fractions != '') {
+                    ->where('id', $category_id)
+                    ->limit(1)
+                    ->first();
+                if (isset($hw1->fractions) && $hw1->fractions != '') {
                     $category_fractions = explode(',', $hw1->fractions);
                     $hwf = 0;
                     foreach ($hw as $key => $value) {
-                        if (in_array($value->fraction_value,$category_fractions)){
+                        if (in_array($value->fraction_value, $category_fractions)) {
                             $hwf = $value->id;
                             break;
                         }
                     }
                     return  $hwf;
-                }else{
+                } else {
                     return  0;
-                }        
-            }else{
+                }
+            } else {
                 $hw = DB::table('width_height_fractions')->select('*')
-                    ->where('decimal_value','>=', "0." . $g_val)
+                    ->where('decimal_value', '>=', "0." . $g_val)
                     ->orderBy('decimal_value', 'asc')
                     ->limit(1)
                     ->first();
-                $hwf = isset($hw->id)?$hw->id:0;  
+                $hwf = isset($hw->id) ? $hw->id : 0;
                 return  $hwf;
-            }  
-        }else{
+            }
+        } else {
             return 0;
-        }    
+        }
     }
 
 

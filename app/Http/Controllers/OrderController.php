@@ -152,6 +152,16 @@ class OrderController extends Controller
                 $results = $results->orderBy('b_q.order_date', 'desc')->paginate($per_page);
             }
 
+
+            $orders = $results->items();
+
+            // Append order stages to each order
+            foreach ($orders as $order) {
+                $order->order_stages = $this->RetailerOrderStage($order->order_stage);
+            }
+
+
+
             return $results;
         } catch (\Throwable $th) {
             return response()->json(['success' => false, 'message' => $th->getMessage()], 400);
@@ -245,6 +255,13 @@ class OrderController extends Controller
                 $results = $results->orderBy($columnName, $orderDirection)->paginate($per_page);
             } else {
                 $results = $results->orderBy('b_q.order_date', 'DESC')->paginate($per_page);
+            }
+
+            $orders = $results->items();
+
+            // Append order stages to each order
+            foreach ($orders as $order) {
+                $order->order_stages = $this->RetailerOrderStage($order->order_stage);
             }
 
             return $results;
@@ -600,7 +617,7 @@ class OrderController extends Controller
                 preg_match('/upcharge_label:(.*?),upcharge_val:(.*)/', $pair, $matches);
                 $upcharge_details_result[] = [
                     'upcharge_label' => isset($matches[1]) ? trim($matches[1]) : '',
-                    'upcharge_val' => isset($matches[2]) ? trim($matches[2]) : ''
+                    'upcharge_val' => isset($matches[2]) ? rtrim(trim($matches[2]), '}') : ''
                 ];
             }
 
@@ -656,86 +673,88 @@ class OrderController extends Controller
 
 
             /// Room data : Start
-            $room_datacounter = [];
-            $room = $item->room;
-            $old_rooms = json_decode(@$item->room_index, true);
+            // $room_datacounter = [];
+            // $room = $item->room;
+            // $old_rooms = json_decode(@$item->room_index, true);
 
-            // Check if json_decode returned null and assign an empty array if it did
-            if (is_null($old_rooms)) {
-                $old_rooms = [];
-            }
+            // // Check if json_decode returned null and assign an empty array if it did
+            // if (is_null($old_rooms)) {
+            //     $old_rooms = [];
+            // }
 
-            //    foreach ($old_rooms as $key_val => $val) {
-            //        $room_datacounter[$room][$key_val] = @$item->row_id;
-            //    }
+            // //    foreach ($old_rooms as $key_val => $val) {
+            // //        $room_datacounter[$room][$key_val] = @$item->row_id;
+            // //    }
 
-            $roomcoun_arr = array();
-            if (!empty($room_datacounter)) {
-                foreach ($room_datacounter as $key => $val) {
-                    foreach ($val as $k => $v) {
-                        $counter = $k + 1;
-                        $roomcoun_arr[$v][] = $key . " " . $counter . "<=>" . $k;
-                    }
-                    if (count($val) < 1) {
-                        // unset($data['room_datacounter'][$key]);
-                    }
-                }
-            }
-
-
-            $missingarraykey = array();
-            $hiddencounterarr = array();
-            if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
-
-                $cat_data = DB::table('products')
-                    ->select(
-                        'categories.hide_room',
-                        'categories.hide_color',
-                        'products.hide_room as product_hide_room',
-                        'products.hide_color as product_hide_color',
-                        'products.enable_combo_product',
-                        'products.is_taxable',
-                        'products.product_base_shipping_status'
-                    )
-                    ->join('categories', 'categories.id', '=', 'products.category_id')
-                    ->where('products.id', $item->product_id)
-                    ->first();
+            // $roomcoun_arr = array();
+            // if (!empty($room_datacounter)) {
+            //     foreach ($room_datacounter as $key => $val) {
+            //         foreach ($val as $k => $v) {
+            //             $counter = $k + 1;
+            //             $roomcoun_arr[$v][] = $key . " " . $counter . "<=>" . $k;
+            //         }
+            //         if (count($val) < 1) {
+            //             // unset($data['room_datacounter'][$key]);
+            //         }
+            //     }
+            // }
 
 
-                $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
-                foreach ($roomcoun_arr[$item->row_id] as $key => $val) {
-                    $val = explode("<=>", $val);
-                    $hiddencounterarr[$val[1]] = $val[0];
-                    $sorthiddencounterarr[$val[1]] = $val[0];
-                }
-                ksort($sorthiddencounterarr);
-                //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
-                //  {
-                //  $data['room_data'][] = $sorthiddencounterarr; 
-                $room_data = $sorthiddencounterarr;
+            // $missingarraykey = array();
+            // $hiddencounterarr = array();
+            // if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
 
-                // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
-                //  }
-                // else
-                //echo "N/A";
-                $sessionarray = @$room_datacounter[$item->room];
-                $firstkey = 0; // get first index of array
-                @end($sessionarray);
-                $lastkey = @max(array_keys($sessionarray));  // get last index of array
-                for ($sessionidex = $firstkey; $sessionidex <= $lastkey; $sessionidex++) {
-                    if (!@array_key_exists($sessionidex, $sessionarray)) // check key exist or not
-                        array_push($missingarraykey, $sessionidex);
-                }
-                //print_r($hiddencounterarr);
-                @end($hiddencounterarr);
-                $lastkeyofitemarray = @max(array_keys($hiddencounterarr));
-                unset($sorthiddencounterarr);
-            }
+            //     $cat_data = DB::table('products')
+            //         ->select(
+            //             'categories.hide_room',
+            //             'categories.hide_color',
+            //             'products.hide_room as product_hide_room',
+            //             'products.hide_color as product_hide_color',
+            //             'products.enable_combo_product',
+            //             'products.is_taxable',
+            //             'products.product_base_shipping_status'
+            //         )
+            //         ->join('categories', 'categories.id', '=', 'products.category_id')
+            //         ->where('products.id', $item->product_id)
+            //         ->first();
 
-            $roomindex_data = json_encode($hiddencounterarr);
+
+            //     $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
+            //     foreach ($roomcoun_arr[$item->row_id] as $key => $val) {
+            //         $val = explode("<=>", $val);
+            //         $hiddencounterarr[$val[1]] = $val[0];
+            //         $sorthiddencounterarr[$val[1]] = $val[0];
+            //     }
+            //     ksort($sorthiddencounterarr);
+            //     //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
+            //     //  {
+            //     //  $data['room_data'][] = $sorthiddencounterarr; 
+            //     $room_data = $sorthiddencounterarr;
+
+            //     // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
+            //     //  }
+            //     // else
+            //     //echo "N/A";
+            //     $sessionarray = @$room_datacounter[$item->room];
+            //     $firstkey = 0; // get first index of array
+            //     @end($sessionarray);
+            //     $lastkey = @max(array_keys($sessionarray));  // get last index of array
+            //     for ($sessionidex = $firstkey; $sessionidex <= $lastkey; $sessionidex++) {
+            //         if (!@array_key_exists($sessionidex, $sessionarray)) // check key exist or not
+            //             array_push($missingarraykey, $sessionidex);
+            //     }
+            //     //print_r($hiddencounterarr);
+            //     @end($hiddencounterarr);
+            //     $lastkeyofitemarray = @max(array_keys($hiddencounterarr));
+            //     unset($sorthiddencounterarr);
+            // }
+
+            // $roomindex_data = json_encode($hiddencounterarr);
 
             /// Room data : End
-
+            if (json_decode($item->room_index, true)) {
+                $room_data = array_values(json_decode($item->room_index, true));
+            }
 
 
             $is_cat_hide_room = DB::table('products')
@@ -1112,10 +1131,10 @@ class OrderController extends Controller
             'qty' => $total_qty,
         ];
         if ($user_detail->display_total_values == 1) {
-            $data['total']['width'] = array_sum($Totalwidth) . ' ' . $company_unit;
-            $data['total']['height'] = array_sum($Totalheight) . ' ' . $company_unit;
-            $data['total']['sqft_or_sqm'] = ($company_unit == 'inches' && array_sum($Total_sqft) != 0) ?
-                number_format(array_sum($Total_sqft), 2) : (($company_unit == 'cm' && array_sum($Total_sqm) != 0) ? number_format(array_sum($Total_sqm), 2) : 0);
+            $data['total']['width'] = array_sum($Totalwidth) . ' ' . $company_profile->unit;
+            $data['total']['height'] = array_sum($Totalheight) . ' ' . $company_profile->unit;
+            $data['total']['sqft_or_sqm'] = ($company_profile->unit == 'inches' && array_sum($Total_sqft) != 0) ?
+                number_format(array_sum($Total_sqft), 2) : (($company_profile->unit == 'cm' && array_sum($Total_sqm) != 0) ? number_format(array_sum($Total_sqm), 2) : 0);
         }
         $data['total']['price'] = $company_profile->currency . number_format($total_final_price, 2);
         $data['total']['tax_percentage'] =  $orderd->tax_percentage;
@@ -2013,7 +2032,7 @@ class OrderController extends Controller
                         'width_fraction_id' => $product['width_fraction_id'],
                         'notes' => $product['notes'],
                         'special_installer_notes' => $product['special_installer_notes'],
-                        'room_index' => $product['room_index'],
+                        'room_index' => json_encode($product['room_index']),
                         // 'drapery_of_cuts' => $drapery_of_cuts[$key],
                         // 'drapery_of_cuts_only_panel' => $drapery_of_cuts_only_panel[$key],
                         // 'drapery_cut_length' => $drapery_cut_length[$key],
@@ -2770,6 +2789,9 @@ class OrderController extends Controller
         //Upcharege Data convert string to array : end
 
 
+        if (json_decode($order_item->room_index, true)) {
+            $room_data = array_values(json_decode($order_item->room_index, true));
+        }
 
         $data = [
             "row_id" => $order_item->row_id,
@@ -2804,6 +2826,7 @@ class OrderController extends Controller
                     ]
                 ]
             ],
+            "room_index" => @$room_data,
             "discountprice" => $order_item->discount,
             "upcharge" => $order_item->upcharge_price,
             "upcharge_details" => json_decode($order_item->upcharge_details) ?? $upcharge_details_result,
@@ -2852,6 +2875,12 @@ class OrderController extends Controller
             // "manual_color_entry" => $order_item->manual_color_entry,
         ];
 
+        $data['selectedCategory']['fractions'][] = [
+            "id" => '',
+            "fraction_value" => '--Select--',
+            "decimal_value" => ''
+        ];
+
         foreach ($hw2 as $row) {
             if (in_array($row->fraction_value, $fracs)) {
                 $data['selectedCategory']['fractions'][] = [
@@ -2898,7 +2927,7 @@ class OrderController extends Controller
         $height_fraction_id = $request->height_fraction_id ?? 0;
         $discount = $request->discount;
         $room = $request->room;
-        // $room_index = $request->room_index;
+        $room_index = $request->room_index;
         $special_notes_for_installer = $request->special_installer_notes;
 
         $getOldQuotationDetailData = DB::table('b_level_qutation_details')->where('row_id', $row_id)->first();
@@ -2956,6 +2985,7 @@ class OrderController extends Controller
 
         $newProOrdInfo = array(
             'room' => $room,
+            'room_index' => json_encode($room_index, true),
             'product_id' => $product_id,
             // 'combo_product_details' => $jsonEncodeValue,
             'category_id' => $category_id,
@@ -3127,7 +3157,7 @@ class OrderController extends Controller
                                     "op_op_key_value" => $opOp->option_key_value
                                 ],
                                 "select" => [
-                                    "label" => $fraction->fraction_value,
+                                    "label" => @$fraction->fraction_value,
                                     "value" => (int)$op_op_value_f[1],
                                     "parentLabel" => $op_op_parent->op_op_name,
                                     "op_op_key_value" => $opOp->option_key_value
@@ -3677,15 +3707,20 @@ class OrderController extends Controller
                 ->first();
 
 
-            if ($item->room_index != '') {
-                $room_data = json_decode($item->room_index, true);
-                // $indexarr = json_decode($item->room_index, true);
-                // if ($indexarr != '') {
-                //     $room_data = implode(",", $indexarr);
-                // }
-            } else {
-                $room_data = $item->room;
+            // if ($item->room_index != '') {
+
+            if (json_decode($item->room_index, true)) {
+                $room_data = array_values(json_decode($item->room_index, true));
             }
+
+
+            // $indexarr = json_decode($item->room_index, true);
+            // if ($indexarr != '') {
+            //     $room_data = implode(",", $indexarr);
+            // }
+            // } else {
+            //     $room_data = $item->room;
+            // }
 
 
             $pattern = DB::table('pattern_model_tbl')->where('pattern_model_id', $item->pattern_model_id)->first();
@@ -3723,83 +3758,83 @@ class OrderController extends Controller
 
 
             /// Room data : Start
-            $room_datacounter = [];
-            $room = $item->room;
-            $old_rooms = json_decode(@$item->room_index, true);
+            // $room_datacounter = [];
+            // $room = $item->room;
+            // $old_rooms = json_decode(@$item->room_index, true);
 
-            // Check if json_decode returned null and assign an empty array if it did
-            if (is_null($old_rooms)) {
-                $old_rooms = [];
-            }
+            // // Check if json_decode returned null and assign an empty array if it did
+            // if (is_null($old_rooms)) {
+            //     $old_rooms = [];
+            // }
 
-            foreach ($old_rooms as $key_val => $val) {
-                $room_datacounter[$room][$key_val] = @$item->row_id;
-            }
+            // foreach ($old_rooms as $key_val => $val) {
+            //     $room_datacounter[$room][$key_val] = @$item->row_id;
+            // }
 
-            $roomcoun_arr = array();
-            if (!empty($room_datacounter)) {
-                foreach ($room_datacounter as $key => $val) {
-                    foreach ($val as $k => $v) {
-                        $counter = $k + 1;
-                        $roomcoun_arr[$v][] = $key . " " . $counter . "<=>" . $k;
-                    }
-                    if (count($val) < 1) {
-                        // unset($data['room_datacounter'][$key]);
-                    }
-                }
-            }
-
-
-            $missingarraykey = array();
-            $hiddencounterarr = array();
-            if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
-
-                $cat_data = DB::table('products')
-                    ->select(
-                        'categories.hide_room',
-                        'categories.hide_color',
-                        'products.hide_room as product_hide_room',
-                        'products.hide_color as product_hide_color',
-                        'products.enable_combo_product',
-                        'products.is_taxable',
-                        'products.product_base_shipping_status'
-                    )
-                    ->join('categories', 'categories.id', '=', 'products.category_id')
-                    ->where('products.id', $item->product_id)
-                    ->first();
+            // $roomcoun_arr = array();
+            // if (!empty($room_datacounter)) {
+            //     foreach ($room_datacounter as $key => $val) {
+            //         foreach ($val as $k => $v) {
+            //             $counter = $k + 1;
+            //             $roomcoun_arr[$v][] = $key . " " . $counter . "<=>" . $k;
+            //         }
+            //         if (count($val) < 1) {
+            //             // unset($data['room_datacounter'][$key]);
+            //         }
+            //     }
+            // }
 
 
-                $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
-                foreach ($roomcoun_arr[$item->row_id] as $key => $val) {
-                    $val = explode("<=>", $val);
-                    $hiddencounterarr[$val[1]] = $val[0];
-                    $sorthiddencounterarr[$val[1]] = $val[0];
-                }
-                ksort($sorthiddencounterarr);
-                //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
-                //  {
-                //  $data['room_data'][] = $sorthiddencounterarr; 
-                $room_data = $sorthiddencounterarr;
+            // $missingarraykey = array();
+            // $hiddencounterarr = array();
+            // if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
 
-                // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
-                //  }
-                // else
-                //echo "N/A";
-                $sessionarray = @$room_datacounter[$item->room];
-                $firstkey = 0; // get first index of array
-                @end($sessionarray);
-                $lastkey = @max(array_keys($sessionarray));  // get last index of array
-                for ($sessionidex = $firstkey; $sessionidex <= $lastkey; $sessionidex++) {
-                    if (!@array_key_exists($sessionidex, $sessionarray)) // check key exist or not
-                        array_push($missingarraykey, $sessionidex);
-                }
-                //print_r($hiddencounterarr);
-                @end($hiddencounterarr);
-                $lastkeyofitemarray = @max(array_keys($hiddencounterarr));
-                unset($sorthiddencounterarr);
-            }
+            //     $cat_data = DB::table('products')
+            //         ->select(
+            //             'categories.hide_room',
+            //             'categories.hide_color',
+            //             'products.hide_room as product_hide_room',
+            //             'products.hide_color as product_hide_color',
+            //             'products.enable_combo_product',
+            //             'products.is_taxable',
+            //             'products.product_base_shipping_status'
+            //         )
+            //         ->join('categories', 'categories.id', '=', 'products.category_id')
+            //         ->where('products.id', $item->product_id)
+            //         ->first();
 
-            $roomindex_data = json_encode($hiddencounterarr);
+
+            //     $hiddencounterval = json_encode($roomcoun_arr[$item->row_id]);
+            //     foreach ($roomcoun_arr[$item->row_id] as $key => $val) {
+            //         $val = explode("<=>", $val);
+            //         $hiddencounterarr[$val[1]] = $val[0];
+            //         $sorthiddencounterarr[$val[1]] = $val[0];
+            //     }
+            //     ksort($sorthiddencounterarr);
+            //     //  if($cat_data->product_hide_room == 0 && $cat_data->hide_room == 0)
+            //     //  {
+            //     //  $data['room_data'][] = $sorthiddencounterarr; 
+            //     $room_data = $sorthiddencounterarr;
+
+            //     // echo "<p class='cart-room'><span>".implode(",</span><span>",$sorthiddencounterarr)."</p>";
+            //     //  }
+            //     // else
+            //     //echo "N/A";
+            //     $sessionarray = @$room_datacounter[$item->room];
+            //     $firstkey = 0; // get first index of array
+            //     @end($sessionarray);
+            //     $lastkey = @max(array_keys($sessionarray));  // get last index of array
+            //     for ($sessionidex = $firstkey; $sessionidex <= $lastkey; $sessionidex++) {
+            //         if (!@array_key_exists($sessionidex, $sessionarray)) // check key exist or not
+            //             array_push($missingarraykey, $sessionidex);
+            //     }
+            //     //print_r($hiddencounterarr);
+            //     @end($hiddencounterarr);
+            //     $lastkeyofitemarray = @max(array_keys($hiddencounterarr));
+            //     unset($sorthiddencounterarr);
+            // }
+
+            // $roomindex_data = json_encode($hiddencounterarr);
 
             /// Room data : End
 
@@ -4069,20 +4104,92 @@ class OrderController extends Controller
 
     public function getAllRetailerOrderStage()
     {
+        // return $order_stage;
         $statusData = DB::table('order_stage_status')
-            ->select('*')
+            ->select('id', "order_stage_no", "status_name", "position", "status", "status_color")
             ->where('status', 1)
             ->where('parent_id', 0)
             ->orderBy('position', 'asc')
             ->get();
 
+
         foreach ($statusData as $key => $status) {
+
             $childStatusData = DB::table('order_stage_status')
                 ->select('*')
                 ->where('status', 1)
                 ->where('parent_id', $status->order_stage_no)
                 ->orderBy('position', 'asc')
                 ->get();
+
+
+            $status->child_statuses = $childStatusData;
+        }
+
+        return $statusData;
+    }
+
+
+    public function RetailerOrderStage($order_stage)
+    {
+        // return $order_stage;
+        $statusData = DB::table('order_stage_status')
+            ->select('id', "order_stage_no", "status_name", "position", "status", "status_color")
+            ->where('status', 1)
+            ->where('parent_id', 0)
+            ->orderBy('position', 'asc')
+            ->get();
+
+        $selectedStatus = DB::table('order_stage_status')
+            ->select('*')
+            ->where('status', 1)
+            ->where('order_stage_no', $order_stage)
+            ->first();
+
+        foreach ($statusData as $key => $status) {
+
+
+            if ($status->position < $selectedStatus->position) {
+                $status->disabled = true;
+            } else {
+                $status->disabled = false;
+            }
+
+            // IF Mfg canceled(16) then make shipping disable : START
+            if ($selectedStatus->order_stage_no == 16) {
+                $shipping_stage = 5; // Shipping stage disable based on order_stage_no
+                if ($status->order_stage_no == $shipping_stage) {
+                    $status->disabled = true;
+                }
+            }
+            // IF Mfg canceled(16) then make shipping disable : END
+
+
+            // IF Mfg/Split(11) then make Mfg disable : START
+            if ($selectedStatus->order_stage_no == 11) {
+                $mfg_stage = 4; // Mfg stage disable based on order_stage_no
+                if ($status->order_stage_no == $mfg_stage) {
+                    $status->disabled = true;
+                }
+            }
+            // IF Mfg/Split(11) then make Mfg disable : END
+
+
+
+            $childStatusData = DB::table('order_stage_status')
+                ->select('*')
+                ->where('status', 1)
+                ->where('parent_id', $status->order_stage_no)
+                ->orderBy('position', 'asc')
+                ->get();
+
+            foreach ($childStatusData as $key => $childStatus) {
+                if ($childStatus->position < $selectedStatus->position) {
+                    $childStatus->disabled = true;
+                } else {
+                    $childStatus->disabled = false;
+                }
+            }
 
             $status->child_statuses = $childStatusData;
         }
