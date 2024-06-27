@@ -60,6 +60,9 @@ Route::middleware('jwt.verify')->group(function () {
         Route::delete('order_controller_delete/{row_id}', 'OrderControllerDelete');
         Route::delete('order_component_delete/{row_id}', 'OrderComponentDelete');
         Route::delete('order_hardware_delete/{row_id}', 'OrderHardwareDelete');
+
+        Route::get('/attributes-controller', 'getAttributesController');
+
     });
 
 

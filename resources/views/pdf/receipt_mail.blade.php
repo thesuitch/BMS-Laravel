@@ -112,8 +112,8 @@ td {
                 </td>
                 <td>
                     <div class="inline-group description">
-                        <strong>{{@$data['ship_to']['label']}}</strong> {{@$data['ship_to']['label']}} <br>
-                        {{@$data['ship_to']['label']}} <br>
+                        <strong>{{@$data['ship_to']['label']}}</strong> {{@$data['ship_to']['name']}} <br>
+                        <!-- {{@$data['ship_to']['label']}} <br> -->
                         {{@$data['ship_to']['shipping_address']}} <br>
                         {{@$data['ship_to']['city']}}, {{@$data['ship_to']['state']}},
                         {{@$data['ship_to']['zip_code']}},
@@ -195,7 +195,7 @@ td {
                         <th>PRICE</th>
                     </tr>
                     <tr>
-                        <td data-label="Qty">{{$data['total']['qty']}}</td>
+                        <td  data-label="Qty">{{$data['total']['qty']}}</td>
                         <td data-label="width" style="min-width: 100px;">{{$data['total']['width']}}</td>
                         <td data-label="height">{{$data['total']['height']}}</td>
                         <td data-label="sqft_or_sqm">{{$data['total']['sqft_or_sqm']}}</td>

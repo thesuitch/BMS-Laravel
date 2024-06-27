@@ -52,9 +52,9 @@ class OrderController extends Controller
             //code...
             $customer_id = $request->customer_id ?? '';
             $from_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->from_date));
-            $to_date =  (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
+            $to_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
             $order_stage = $request->order_stage ?? '';
-            $side_mark =  $request->side_mark ?? ''; //'Jessica-1516';
+            $side_mark = $request->side_mark ?? ''; //'Jessica-1516';
             $payment_status = $request->payment_status ?? ''; // Unpaid ,  Partially Paid , Paid , Credit
             $search_responsible_employee = $request->employee_id ?? '';
             $searchValue = $request->search ?? '';
@@ -176,9 +176,9 @@ class OrderController extends Controller
             //code...
             $customer_id = $request->customer_id ?? '';
             $from_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->from_date));
-            $to_date =  (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
+            $to_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
             $order_stage = $request->order_stage ?? '';
-            $side_mark =  $request->side_mark ?? ''; //'Jessica-1516';
+            $side_mark = $request->side_mark ?? ''; //'Jessica-1516';
             $payment_status = $request->payment_status ?? ''; // Unpaid ,  Partially Paid , Paid , Credit
             $search_responsible_employee = $request->employee_id ?? '';
             $searchValue = $request->search ?? '';
@@ -357,7 +357,7 @@ class OrderController extends Controller
         }
         $date_time_format = $this->date_time_format_by_profile($company_profile->date_format, $company_profile->time_format);
 
-        $order_date =  date_format(date_create($order_date_time_zone), $date_time_format);
+        $order_date = date_format(date_create($order_date_time_zone), $date_time_format);
 
         $barcodeUrl = asset($orderd->barcode);
 
@@ -468,12 +468,12 @@ class OrderController extends Controller
             $data['ship_to']['name'] = $orderd->receiver_name;
             $data['ship_to']['shipping_address_label'] = $shipping_address;
             $data['ship_to']['shipping_address'] = $shipping_address;
-            $data['ship_to']['receiver_city'] = $orderd->receiver_city ?? '';
-            $data['ship_to']['receiver_state'] = $orderd->receiver_state ?? '';
-            $data['ship_to']['receiver_zip_code'] = $orderd->receiver_zip_code ?? '';
-            $data['ship_to']['receiver_country_code'] = $orderd->receiver_country_code ?? '';
-            $data['ship_to']['receiver_phone_no'] = $orderd->receiver_phone_no ?? '';
-            $data['ship_to']['receiver_email'] = ($b_c_info->customer_type == 'business') ? $orderd->receiver_email : '';
+            $data['ship_to']['city'] = $orderd->receiver_city ?? '';
+            $data['ship_to']['state'] = $orderd->receiver_state ?? '';
+            $data['ship_to']['zip_code'] = $orderd->receiver_zip_code ?? '';
+            $data['ship_to']['country_code'] = $orderd->receiver_country_code ?? '';
+            $data['ship_to']['phone'] = $orderd->receiver_phone_no ?? '';
+            $data['ship_to']['email'] = ($b_c_info->customer_type == 'business') ? $orderd->receiver_email : '';
         } else {
             $data['ship_to']['name'] = (($b_c_info->customer_type == 'business') ? $binfo->company_name ?? '' : $b_c_info->first_name . ' ' . $b_c_info->last_name);
             $data['ship_to']['shipping_address_label'] = $shipping_address_label;
@@ -544,7 +544,7 @@ class OrderController extends Controller
             } else {
                 $up_price = 0;
             }
-            $unit_total_price    = number_format($list_price + $up_price, 2);
+            $unit_total_price = number_format($list_price + $up_price, 2);
             $finalUnitTotalPrice = str_replace(",", "", $unit_total_price);
             array_push($finalTotal, $finalUnitTotalPrice);
             $total_final_price += $list_price + $up_price;
@@ -593,7 +593,7 @@ class OrderController extends Controller
                             $sqft_data = DB::table('sqft_price_model_mapping_tbl')->where('product_id', $getProductData->id)->where('pattern_id', $item->pattern_model_id)->limit(1)->first();
                             $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
                         }
-                        $sqft =  round(($pc * $sqft_price), 2) * $product_qty;
+                        $sqft = round(($pc * $sqft_price), 2) * $product_qty;
                     } else {
                         $sqft = (($product_width * $product_height) / 144) * $product_qty;
                     }
@@ -655,7 +655,7 @@ class OrderController extends Controller
                 }
                 // For mfg status color badge : END
 
-                $mfg_status_data =  $mfg_label_data->room . " is " . $status_name;
+                $mfg_status_data = $mfg_label_data->room . " is " . $status_name;
                 //  }
                 //  $product['status'] = $mfg_status_data;
             }
@@ -777,11 +777,11 @@ class OrderController extends Controller
                     'width' => $item->width . ' ' . @$width_fraction->fraction_value . ' ' . strtoupper($company_unit), // Initialize width attribute
                     'height' => $item->height . ' ' . @$height_fraction->fraction_value . ' ' . strtoupper($company_unit), // Initialize height attribute
                     'color_number' => ($item->color_number != '' || $item->color_name != '') ? $item->color_number . ' ' . $item->color_name : '',
-                    'room' =>  @$room_data ?? ''
+                    'room' => @$room_data ?? ''
                 ],
                 'product_price' => $company_profile->currency . $table_price,
                 'discount' => ($user_detail->display_discount == 0 && $item->discount > 0) ? $item->discount . " %" : "0 %",
-                'list_price' => ($user_detail->display_list_price == 0) ? $company_profile->currency .  number_format($list_price, 2) : 0,
+                'list_price' => ($user_detail->display_list_price == 0) ? $company_profile->currency . number_format($list_price, 2) : 0,
                 'upcharge' => [
                     'upcharge_price' => $company_profile->currency . number_format($item->upcharge_price, 2),
                     // 'upcharge_details' => $upcharge_details_result
@@ -789,7 +789,7 @@ class OrderController extends Controller
                 ],
                 'total_price' => $company_profile->currency . $unit_total_price,
                 'comments' => [
-                    'notes' => ($item->notes != '') ? 'Special Instruction :' .  $item->notes : '',
+                    'notes' => ($item->notes != '') ? 'Special Instruction :' . $item->notes : '',
                     'special_installer_notes' => ($item->special_installer_notes != '') ? "Note For Installer : " . $item->special_installer_notes : '',
                 ],
                 'status' => $mfg_status_data ?? ""
@@ -1074,12 +1074,12 @@ class OrderController extends Controller
                     'row_id' => $h_item->order_hardware_cart_item_id,
                     'qty' => $h_item->item_qty,
                     'name' => [
-                        'vendor_name' =>   @$item_details->vendor_name,
-                        'group_name' =>   @$item_details->group_name,
-                        'product_name' =>   @$item_details->product_name,
-                        'sub_group_name' =>   @$item_details->sub_group_name,
-                        'item_name' =>   @$item_details->item_name,
-                        'finish_name' =>   @$item_details->finish_name
+                        'vendor_name' => @$item_details->vendor_name,
+                        'group_name' => @$item_details->group_name,
+                        'product_name' => @$item_details->product_name,
+                        'sub_group_name' => @$item_details->sub_group_name,
+                        'item_name' => @$item_details->item_name,
+                        'finish_name' => @$item_details->finish_name
                     ],
                     'price' => number_format($h_item->item_price, 2),
                     'item_total_price' => number_format($h_item->item_total_price, 2)
@@ -1137,18 +1137,18 @@ class OrderController extends Controller
                 number_format(array_sum($Total_sqft), 2) : (($company_profile->unit == 'cm' && array_sum($Total_sqm) != 0) ? number_format(array_sum($Total_sqm), 2) : 0);
         }
         $data['total']['price'] = $company_profile->currency . number_format($total_final_price, 2);
-        $data['total']['tax_percentage'] =  $orderd->tax_percentage;
-        $data['total']['sales_tax'] =  $company_profile->currency . number_format(($customer_based_tax), 2);
-        $data['total']['sub_total'] =  $company_profile->currency . number_format(($finalTotalPrice), 2);
-        $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
-        $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
-        $data['total']['credit'] =  number_format($orderd->credit, 2);
-        $data['total']['allow_max_credit'] =  number_format(($allow_max_credit), 2);
-        $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
-        $data['total']['allow_max_discount'] =  number_format(($allow_max_discount), 2);
-        $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
-        $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
-        $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
+        $data['total']['tax_percentage'] = $orderd->tax_percentage;
+        $data['total']['sales_tax'] = $company_profile->currency . number_format(($customer_based_tax), 2);
+        $data['total']['sub_total'] = $company_profile->currency . number_format(($finalTotalPrice), 2);
+        $data['total']['shipping_installation_charge'] = $shipping_installation_charge;
+        $data['total']['misc'] = $company_profile->currency . $order_misccharges;
+        $data['total']['credit'] = number_format($orderd->credit, 2);
+        $data['total']['allow_max_credit'] = number_format(($allow_max_credit), 2);
+        $data['total']['discount'] = number_format($orderd->invoice_discount, 2);
+        $data['total']['allow_max_discount'] = number_format(($allow_max_discount), 2);
+        $data['total']['grand_total'] = $company_profile->currency . number_format($grandtotals, 2);
+        $data['total']['deposit'] = $company_profile->currency . number_format($orderd->paid_amount, 2);
+        $data['total']['due'] = $company_profile->currency . number_format($checkdueamt, 2);
 
 
         return $data;
@@ -1161,7 +1161,7 @@ class OrderController extends Controller
         try {
 
             $data = $this->receipt($order_id);
-            $email =  env('MAIL_FOR_TESTING') ?? $data['sold_to']['email'];
+            $email = env('MAIL_FOR_TESTING') ?? $data['sold_to']['email'];
             $pdf_name = $order_id . '.pdf';
 
             // return view('pdf.receipt_mail', compact('data'));
@@ -1283,11 +1283,11 @@ class OrderController extends Controller
             $pattern_id = request()->get('pattern_id');
             $customer_id = request()->get('customer_id');
 
-            $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
+            $main_price = $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
             $patterns = $this->getColorPartanModel($product_id);
             $discount = $this->getProductCommission($product_id, $customer_id);
             $MinMaxHeightWidth = $this->getMinMaxHeightWidth($product_id, $pattern_id);
-            $attributes =  $this->getProductToAttribute($product_id);
+            $attributes = $this->getProductToAttribute($product_id);
             // dd($main_price);
 
             $p = DB::table('products')->where('id', $product_id)->first();
@@ -1303,7 +1303,7 @@ class OrderController extends Controller
                 'fraction_w' => $fraction_w,
                 'fraction_h' => $fraction_h,
                 'patterns' => $patterns,
-                'main_price' =>  $main_price,
+                'main_price' => $main_price,
                 'discount' => $discount,
                 'MinMaxHeightWidth' => $MinMaxHeightWidth,
                 'attributes' => $attributes
@@ -1353,11 +1353,11 @@ class OrderController extends Controller
 
                         $customerWiseSidemark .= match ($value) {
                             '[ORD]' => match ($wholesalerOrderFormat->order_prefix) {
-                                '[CUST]' => $request->cust_name . "-",
-                                '[COMPANY]' => $compName . "-",
-                                '[SM]' => $request->side_mark . "-",
-                                default => $wholesalerOrderFormat->order_prefix . "-"
-                            },
+                                    '[CUST]' => $request->cust_name . "-",
+                                    '[COMPANY]' => $compName . "-",
+                                    '[SM]' => $request->side_mark . "-",
+                                    default => $wholesalerOrderFormat->order_prefix . "-"
+                                },
                             '[CUST]' => $request->cust_name ? $request->cust_name . "-" : "[CUST]-",
                             '[COMPANY]' => $compName . "-",
                             '[SM]' => $request->side_mark ? $request->side_mark . "-" : "XXXX-",
@@ -1559,45 +1559,45 @@ class OrderController extends Controller
                     $shipping_address = $shipping_address_b_customer;
 
                     $different_shipping_address = $shipping_address->address ?? '';
-                    $receiver_name              = ($shipping_address->first_name ?? '') . ' ' . ($shipping_address->last_name ?? '');
-                    $receiver_phone_no          = $shipping_address->phone ?? '';
-                    $receiver_city              = $shipping_address->city ?? '';
-                    $receiver_state             = $shipping_address->state ?? '';
-                    $receiver_zip_code          = $shipping_address->zip ?? '';
-                    $receiver_country_code      = $shipping_address->country_code ?? '';
-                    $receiver_email             = $shipping_address->email ?? '';
+                    $receiver_name = ($shipping_address->first_name ?? '') . ' ' . ($shipping_address->last_name ?? '');
+                    $receiver_phone_no = $shipping_address->phone ?? '';
+                    $receiver_city = $shipping_address->city ?? '';
+                    $receiver_state = $shipping_address->state ?? '';
+                    $receiver_zip_code = $shipping_address->zip ?? '';
+                    $receiver_country_code = $shipping_address->country_code ?? '';
+                    $receiver_email = $shipping_address->email ?? '';
                 } else {
                     $record = $show_b_customer_record;
 
                     $different_shipping_address = $record['address'] ?? '';
-                    $receiver_name              = ($record['first_name'] ?? '') . ' ' . ($record['last_name'] ?? '');
-                    $receiver_phone_no          = $record['phone'] ?? '';
-                    $receiver_city              = $record['city'] ?? '';
-                    $receiver_state             = $record['state'] ?? '';
-                    $receiver_zip_code          = $record['zip_code'] ?? '';
-                    $receiver_country_code      = $record['country_code'] ?? '';
-                    $receiver_email             = $record['email'] ?? '';
+                    $receiver_name = ($record['first_name'] ?? '') . ' ' . ($record['last_name'] ?? '');
+                    $receiver_phone_no = $record['phone'] ?? '';
+                    $receiver_city = $record['city'] ?? '';
+                    $receiver_state = $record['state'] ?? '';
+                    $receiver_zip_code = $record['zip_code'] ?? '';
+                    $receiver_country_code = $record['country_code'] ?? '';
+                    $receiver_email = $record['email'] ?? '';
                 }
             } else if ($is_different_address_type == 3 && $is_different_shipping == 1) {
                 $profile = $company_profile;
 
                 $different_shipping_address = $profile->address ?? '';
-                $receiver_name              = $profile->company_name ?? '';
-                $receiver_phone_no          = $profile->phone ?? '';
-                $receiver_city              = $profile->city ?? '';
-                $receiver_state             = $profile->state ?? '';
-                $receiver_zip_code          = $profile->zip_code ?? '';
-                $receiver_country_code      = $profile->country_code ?? '';
-                $receiver_email             = $profile->email ?? '';
+                $receiver_name = $profile->company_name ?? '';
+                $receiver_phone_no = $profile->phone ?? '';
+                $receiver_city = $profile->city ?? '';
+                $receiver_state = $profile->state ?? '';
+                $receiver_zip_code = $profile->zip_code ?? '';
+                $receiver_country_code = $profile->country_code ?? '';
+                $receiver_email = $profile->email ?? '';
             } else {
                 $different_shipping_address = ($is_different_shipping == 1 ? $is_receiver_address : '');
-                $receiver_name              = ($is_different_shipping == 1 ? $is_receiver_name : '');
-                $receiver_phone_no          = ($is_different_shipping == 1 ? $is_receiver_phone_no : '');
-                $receiver_city              = $is_receiver_city ?? '';
-                $receiver_state             = $is_receiver_state ?? '';
-                $receiver_zip_code          = $is_receiver_zip_code ?? '';
-                $receiver_country_code      = $is_receiver_country_code ?? '';
-                $receiver_email             = $is_receiver_email ?? '';
+                $receiver_name = ($is_different_shipping == 1 ? $is_receiver_name : '');
+                $receiver_phone_no = ($is_different_shipping == 1 ? $is_receiver_phone_no : '');
+                $receiver_city = $is_receiver_city ?? '';
+                $receiver_state = $is_receiver_state ?? '';
+                $receiver_zip_code = $is_receiver_zip_code ?? '';
+                $receiver_country_code = $is_receiver_country_code ?? '';
+                $receiver_email = $is_receiver_email ?? '';
             }
             if (!empty($different_shipping_address)) {
                 $different_shipping_address = explode(",", $different_shipping_address)[0];
@@ -1628,7 +1628,7 @@ class OrderController extends Controller
                 'receiver_country_code' => $receiver_country_code,
                 'receiver_email' => $receiver_email,
                 'level_id' => $this->level_id,
-                'side_mark' =>  $side_mark,
+                'side_mark' => $side_mark,
                 // 'upload_file' => $upload_file,
                 'barcode' => @$barcode_img_path,
                 // 'state_tax' => $request->tax,
@@ -1735,7 +1735,7 @@ class OrderController extends Controller
                         // 'drapery_finished_width' => $drapery_finished_width[$key],
                         // 'qutation_image' => $image_file,
                         'product_base_tax' => $product_base_tax,
-                        'phase_2_option' =>  0,
+                        'phase_2_option' => 0,
                         // 'phase_2_condition' => @$phase_2_condition[$key] ?? null,
                     );
 
@@ -1754,7 +1754,7 @@ class OrderController extends Controller
                         'product_attribute' => $attributeData
                     );
 
-                    $att =  DB::table('b_level_quatation_attributes')->insert($attrData);
+                    $att = DB::table('b_level_quatation_attributes')->insert($attrData);
                 }
 
                 /// misc data isdert
@@ -1854,45 +1854,45 @@ class OrderController extends Controller
                     $shipping_address = $shipping_address_b_customer;
 
                     $different_shipping_address = $shipping_address->address ?? '';
-                    $receiver_name              = ($shipping_address->first_name ?? '') . ' ' . ($shipping_address->last_name ?? '');
-                    $receiver_phone_no          = $shipping_address->phone ?? '';
-                    $receiver_city              = $shipping_address->city ?? '';
-                    $receiver_state             = $shipping_address->state ?? '';
-                    $receiver_zip_code          = $shipping_address->zip ?? '';
-                    $receiver_country_code      = $shipping_address->country_code ?? '';
-                    $receiver_email             = $shipping_address->email ?? '';
+                    $receiver_name = ($shipping_address->first_name ?? '') . ' ' . ($shipping_address->last_name ?? '');
+                    $receiver_phone_no = $shipping_address->phone ?? '';
+                    $receiver_city = $shipping_address->city ?? '';
+                    $receiver_state = $shipping_address->state ?? '';
+                    $receiver_zip_code = $shipping_address->zip ?? '';
+                    $receiver_country_code = $shipping_address->country_code ?? '';
+                    $receiver_email = $shipping_address->email ?? '';
                 } else {
                     $record = $show_b_customer_record;
 
                     $different_shipping_address = $record['address'] ?? '';
-                    $receiver_name              = ($record['first_name'] ?? '') . ' ' . ($record['last_name'] ?? '');
-                    $receiver_phone_no          = $record['phone'] ?? '';
-                    $receiver_city              = $record['city'] ?? '';
-                    $receiver_state             = $record['state'] ?? '';
-                    $receiver_zip_code          = $record['zip_code'] ?? '';
-                    $receiver_country_code      = $record['country_code'] ?? '';
-                    $receiver_email             = $record['email'] ?? '';
+                    $receiver_name = ($record['first_name'] ?? '') . ' ' . ($record['last_name'] ?? '');
+                    $receiver_phone_no = $record['phone'] ?? '';
+                    $receiver_city = $record['city'] ?? '';
+                    $receiver_state = $record['state'] ?? '';
+                    $receiver_zip_code = $record['zip_code'] ?? '';
+                    $receiver_country_code = $record['country_code'] ?? '';
+                    $receiver_email = $record['email'] ?? '';
                 }
             } else if ($is_different_address_type == 3 && $is_different_shipping == 1) {
                 $profile = $company_profile;
 
                 $different_shipping_address = $profile->address ?? '';
-                $receiver_name              = $profile->company_name ?? '';
-                $receiver_phone_no          = $profile->phone ?? '';
-                $receiver_city              = $profile->city ?? '';
-                $receiver_state             = $profile->state ?? '';
-                $receiver_zip_code          = $profile->zip_code ?? '';
-                $receiver_country_code      = $profile->country_code ?? '';
-                $receiver_email             = $profile->email ?? '';
+                $receiver_name = $profile->company_name ?? '';
+                $receiver_phone_no = $profile->phone ?? '';
+                $receiver_city = $profile->city ?? '';
+                $receiver_state = $profile->state ?? '';
+                $receiver_zip_code = $profile->zip_code ?? '';
+                $receiver_country_code = $profile->country_code ?? '';
+                $receiver_email = $profile->email ?? '';
             } else {
                 $different_shipping_address = ($is_different_shipping == 1 ? $is_receiver_address : '');
-                $receiver_name              = ($is_different_shipping == 1 ? $is_receiver_name : '');
-                $receiver_phone_no          = ($is_different_shipping == 1 ? $is_receiver_phone_no : '');
-                $receiver_city              = $is_receiver_city ?? '';
-                $receiver_state             = $is_receiver_state ?? '';
-                $receiver_zip_code          = $is_receiver_zip_code ?? '';
-                $receiver_country_code      = $is_receiver_country_code ?? '';
-                $receiver_email             = $is_receiver_email ?? '';
+                $receiver_name = ($is_different_shipping == 1 ? $is_receiver_name : '');
+                $receiver_phone_no = ($is_different_shipping == 1 ? $is_receiver_phone_no : '');
+                $receiver_city = $is_receiver_city ?? '';
+                $receiver_state = $is_receiver_state ?? '';
+                $receiver_zip_code = $is_receiver_zip_code ?? '';
+                $receiver_country_code = $is_receiver_country_code ?? '';
+                $receiver_email = $is_receiver_email ?? '';
             }
             if (!empty($different_shipping_address)) {
                 $different_shipping_address = explode(",", $different_shipping_address)[0];
@@ -1922,7 +1922,7 @@ class OrderController extends Controller
                 'receiver_country_code' => $receiver_country_code,
                 'receiver_email' => $receiver_email,
                 'level_id' => $this->level_id,
-                'side_mark' =>  $side_mark,
+                'side_mark' => $side_mark,
                 // 'upload_file' => $upload_file,
                 'barcode' => @$barcode_img_path,
                 // 'state_tax' => $request->tax,
@@ -2044,7 +2044,7 @@ class OrderController extends Controller
                         // 'drapery_finished_width' => $drapery_finished_width[$key],
                         // 'qutation_image' => $image_file,
                         'product_base_tax' => $product_base_tax,
-                        'phase_2_option' =>  0,
+                        'phase_2_option' => 0,
                         // 'phase_2_condition' => @$phase_2_condition[$key] ?? null,
                     );
 
@@ -2062,7 +2062,7 @@ class OrderController extends Controller
                         'product_attribute' => $attributeData
                     );
 
-                    $att =  DB::table('b_level_quatation_attributes')->insert($attrData);
+                    $att = DB::table('b_level_quatation_attributes')->insert($attrData);
                 }
 
                 /// misc data isdert
@@ -2293,7 +2293,7 @@ class OrderController extends Controller
     // Generate barcode and save : Start
     public function generateBarcodeAndSave($fullname, $order_id, $side_mark)
     {
-        global  $barcode_img_path;
+        global $barcode_img_path;
 
         $order_array = [
             "order_id" => $order_id,
@@ -2668,7 +2668,8 @@ class OrderController extends Controller
             $message = 'Order Stage has been updated to ' . $orderStage . ' for ' . $orderId;
             return response()->json(['success' => true, 'message' => $message], 200);
         } else {
-            $message = "Something is Wrong";;
+            $message = "Something is Wrong";
+            ;
             return response()->json(['success' => false, 'message' => $message], 400);
         }
     }
@@ -2797,7 +2798,7 @@ class OrderController extends Controller
             "row_id" => $order_item->row_id,
             "selectedCategory" => [
                 "value" => $category->category_name,
-                "label" =>  $category->category_name,
+                "label" => $category->category_name,
                 "id" => $order_item->category_id,
                 "fractions" => []
             ],
@@ -2805,7 +2806,7 @@ class OrderController extends Controller
             "selectedproduct" => [
                 "value" => $products->product_name,
                 "label" => $products->product_name,
-                "id" =>  $products->id
+                "id" => $products->id
             ],
 
             "selectedPattern" => [
@@ -2815,7 +2816,7 @@ class OrderController extends Controller
                     "parentLabel" => "Pattern",
                     "type" => "select",
                     "attributes_type" => "",
-                    "color" =>  [
+                    "color" => [
                         "select" => [
                             "label" => $color->color_name ?? "Manual Entry",
                             "value" => $color->color_number ?? $order_item->manual_color_entry
@@ -2831,8 +2832,8 @@ class OrderController extends Controller
             "upcharge" => $order_item->upcharge_price,
             "upcharge_details" => json_decode($order_item->upcharge_details) ?? $upcharge_details_result,
             "list_price" => $order_item->list_price,
-            "width" => (string)$order_item->width,
-            "height" => (string)$order_item->height,
+            "width" => (string) $order_item->width,
+            "height" => (string) $order_item->height,
             "quantity" => $order_item->product_qty,
             "mainPrice" => $order_item->unit_total_price,
             "widthFraction" => [
@@ -2886,7 +2887,7 @@ class OrderController extends Controller
                 $data['selectedCategory']['fractions'][] = [
                     'id' => $row->id,
                     'fraction_value' => $row->fraction_value,
-                    "decimal_value" =>  $row->decimal_value
+                    "decimal_value" => $row->decimal_value
                 ];
             }
         }
@@ -2931,7 +2932,7 @@ class OrderController extends Controller
         $special_notes_for_installer = $request->special_installer_notes;
 
         $getOldQuotationDetailData = DB::table('b_level_qutation_details')->where('row_id', $row_id)->first();
-        $getQuotationLabelData  = DB::table('b_level_quatation_tbl')->where('order_id', $getOldQuotationDetailData->order_id)->first();
+        $getQuotationLabelData = DB::table('b_level_quatation_tbl')->where('order_id', $getOldQuotationDetailData->order_id)->first();
         $customer_id = isset($getQuotationLabelData->customer_id) ? $getQuotationLabelData->customer_id : '';
         $product = DB::table('b_cost_factor_tbl')->select('dealer_cost_factor', 'individual_cost_factor')
             ->where('product_id', $product_id)
@@ -3022,8 +3023,8 @@ class OrderController extends Controller
             'special_installer_notes' => @$special_notes_for_installer,
             'discount' => $discount,
             'qutation_image' => null,
-            'phase_2_option' =>  0,
-            'phase_2_condition' =>  null,
+            'phase_2_option' => 0,
+            'phase_2_condition' => null,
         );
 
 
@@ -3084,7 +3085,7 @@ class OrderController extends Controller
         if (empty($attr)) {
             return response()->json(['success' => false, 'message' => 'attribute is not found'], 400);
         }
-        $attr_data =   json_decode($attr->product_attribute);
+        $attr_data = json_decode($attr->product_attribute);
         $attributes = [];
 
         foreach ($attr_data as $attribute) {
@@ -3099,18 +3100,18 @@ class OrderController extends Controller
                     "value" => @$attribute->attribute_value,
                     "parentLabel" => @$op_parent->attribute_name,
                     "type" => "input",
-                    "attributes_type" => @(int)$attribute->attributes_type
+                    "attributes_type" => @(int) $attribute->attributes_type
                 ];
             } else {
 
                 $attributes[$opId] = [
                     "label" => @$option->option_name,
                     "value" => @$attribute->options[0]->option_key_value,
-                    "option_id" => @(int)$attribute->options[0]->option_id,
-                    "option_type" => @(int)$attribute->options[0]->option_type,
+                    "option_id" => @(int) $attribute->options[0]->option_id,
+                    "option_type" => @(int) $attribute->options[0]->option_type,
                     "parentLabel" => @$op_parent->attribute_name,
                     "type" => "select",
-                    "attributes_type" => @(int)$attribute->attributes_type
+                    "attributes_type" => @(int) $attribute->attributes_type
                 ];
             }
 
@@ -3158,7 +3159,7 @@ class OrderController extends Controller
                                 ],
                                 "select" => [
                                     "label" => @$fraction->fraction_value,
-                                    "value" => (int)$op_op_value_f[1],
+                                    "value" => (int) $op_op_value_f[1],
                                     "parentLabel" => $op_op_parent->op_op_name,
                                     "op_op_key_value" => $opOp->option_key_value
                                 ]
@@ -3172,7 +3173,7 @@ class OrderController extends Controller
                                 $opOpData = [];
                                 foreach ($attribute->opopop as $opOpOp) {
 
-                                    $att_id =  explode('_', @$opOpOp->option_key_value);
+                                    $att_id = explode('_', @$opOpOp->option_key_value);
 
                                     $op_op_att = DB::table('attr_options_option_tbl')->where('op_op_id', @$att_id[2])->first();
                                     $op_op_op_att = DB::table('attr_options_option_option_tbl')->where('att_op_op_op_id', @$att_id[0])->first();
@@ -3227,7 +3228,7 @@ class OrderController extends Controller
 
                             $opOpData = [];
                             foreach ($attribute->opopop as $opOpOp) {
-                                $att_op_op_op_id =  explode('_', $opOpOp->option_key_value);
+                                $att_op_op_op_id = explode('_', $opOpOp->option_key_value);
                                 $op_op_att = DB::table('attr_options_option_tbl')->where('op_op_id', @$att_op_op_op_id[2])->first();
                                 $check_op_op_op_att = DB::table('attr_options_option_option_tbl')
                                     ->where('att_op_op_op_id', @$att_op_op_op_id[0])
@@ -3252,7 +3253,7 @@ class OrderController extends Controller
                                                 ],
                                                 "select" => [
                                                     "label" => @$fraction->fraction_value,
-                                                    "value" => (int)$op_op_op_value_f[1],
+                                                    "value" => (int) $op_op_op_value_f[1],
                                                     "parentLabel" => @$check_op_op_op_att->att_op_op_op_name,
                                                     "op_op_op_key_value" => $opOpOp->option_key_value,
                                                     "op_op_id" => @$check_op_op_op_att->att_op_op_op_id . '_' . @$check_op_op_op_att->attribute_id . '_' . @$check_op_op_op_att->att_op_op_id
@@ -3309,7 +3310,7 @@ class OrderController extends Controller
             // Handle opopop
             foreach ($attribute->opopop as $opOpOp) {
 
-                $att_id =  explode('_', @$opOpOp->option_key_value);
+                $att_id = explode('_', @$opOpOp->option_key_value);
 
                 $op_op_att = DB::table('attr_options_option_tbl')->where('op_op_id', @$att_id[2])->first();
                 $check_op_op_op_att = DB::table('attr_options_option_option_tbl')
@@ -3351,7 +3352,7 @@ class OrderController extends Controller
                     // $attributes[$opId][$opOpOpOpId] = [
                     $opOpData[$opOpOpOpId = "op_op_op_op_id_" . $attribute->attribute_id] = [
                         "label" => $op_op_op_op_att->att_op_op_op_op_name,
-                        "value" =>  $opOpOpOp->option_key_value,
+                        "value" => $opOpOpOp->option_key_value,
                         "parentLabel" => "", // Fill this if available
                         "type" => "select",
                         "attributes_type" => "" // Fill this if available
@@ -3455,7 +3456,7 @@ class OrderController extends Controller
         }
 
         $date_time_format = $this->date_time_format_by_profile($company_profile->date_format, $company_profile->time_format);
-        $order_date =  date_format(date_create($order_date_time_zone), $date_time_format);
+        $order_date = date_format(date_create($order_date_time_zone), $date_time_format);
         $barcodeUrl = asset($orderd->barcode);
         $logoUrl = asset('assets/b_level/uploads/appsettings/' . $company_profile->logo);
 
@@ -3624,7 +3625,7 @@ class OrderController extends Controller
             } else {
                 $up_price = 0;
             }
-            $unit_total_price    = number_format($list_price + $up_price, 2);
+            $unit_total_price = number_format($list_price + $up_price, 2);
             $finalUnitTotalPrice = str_replace(",", "", $unit_total_price);
             array_push($finalTotal, $finalUnitTotalPrice);
             $total_final_price += $list_price + $up_price;
@@ -3673,7 +3674,7 @@ class OrderController extends Controller
                             $sqft_data = DB::table('sqft_price_model_mapping_tbl')->where('product_id', $getProductData->id)->where('pattern_id', $item->pattern_model_id)->limit(1)->first();
                             $sqft_price = isset($sqft_data->price) ? $sqft_data->price : 1;
                         }
-                        $sqft =  round(($pc * $sqft_price), 2) * $product_qty;
+                        $sqft = round(($pc * $sqft_price), 2) * $product_qty;
                     } else {
                         $sqft = (($product_width * $product_height) / 144) * $product_qty;
                     }
@@ -3843,7 +3844,7 @@ class OrderController extends Controller
                 "row_id" => $item->row_id,
                 "selectedCategory" => [
                     "value" => $categoryData->category_name,
-                    "label" =>  $categoryData->category_name,
+                    "label" => $categoryData->category_name,
                     "id" => $item->category_id,
                     "fractions" => []
                 ],
@@ -3851,7 +3852,7 @@ class OrderController extends Controller
                 "selectedproduct" => [
                     "value" => $getProductData->product_name,
                     "label" => $getProductData->product_name,
-                    "id" =>  $getProductData->id
+                    "id" => $getProductData->id
                 ],
 
                 "selectedPattern" => [
@@ -3861,7 +3862,7 @@ class OrderController extends Controller
                         "parentLabel" => "Pattern",
                         "type" => "select",
                         "attributes_type" => "",
-                        "color" =>  [
+                        "color" => [
                             "select" => [
                                 "label" => $color->color_name ?? "Manual Entry",
                                 "value" => $color->color_number ?? $item->manual_color_entry
@@ -3875,9 +3876,9 @@ class OrderController extends Controller
                 "discountprice" => $item->discount,
                 "upcharge" => $item->upcharge_price,
                 "upcharge_details" => json_decode($item->upcharge_details) ?? $upcharge_details_result,
-                "listPrice" => (string)$list_price,
-                "width" => (string)$item->width,
-                "height" => (string)$item->height,
+                "listPrice" => (string) $list_price,
+                "width" => (string) $item->width,
+                "height" => (string) $item->height,
                 "quantity" => $item->product_qty,
                 "mainPrice" => $table_price,
                 // "roomIndex" => $roomindex_data,
@@ -4022,12 +4023,12 @@ class OrderController extends Controller
                     'row_id' => $h_item->order_hardware_cart_item_id,
                     'qty' => $h_item->item_qty,
                     'name' => [
-                        'vendor_name' =>   @$item_details->vendor_name,
-                        'group_name' =>   @$item_details->group_name,
-                        'product_name' =>   @$item_details->product_name,
-                        'sub_group_name' =>   @$item_details->sub_group_name,
-                        'item_name' =>   @$item_details->item_name,
-                        'finish_name' =>   @$item_details->finish_name
+                        'vendor_name' => @$item_details->vendor_name,
+                        'group_name' => @$item_details->group_name,
+                        'product_name' => @$item_details->product_name,
+                        'sub_group_name' => @$item_details->sub_group_name,
+                        'item_name' => @$item_details->item_name,
+                        'finish_name' => @$item_details->finish_name
                     ],
                     'price' => number_format($h_item->item_price, 2),
                     'item_total_price' => number_format($h_item->item_total_price, 2)
@@ -4086,15 +4087,15 @@ class OrderController extends Controller
         ];
 
         $data['total']['price'] = $company_profile->currency . number_format($total_final_price, 2);
-        $data['total']['sales_tax'] =  $company_profile->currency . number_format(($customer_based_tax), 2);
-        $data['total']['sub_total'] =  $company_profile->currency . number_format(($finalTotalPrice), 2);
+        $data['total']['sales_tax'] = $company_profile->currency . number_format(($customer_based_tax), 2);
+        $data['total']['sub_total'] = $company_profile->currency . number_format(($finalTotalPrice), 2);
         // $data['total']['shipping_installation_charge'] =  $shipping_installation_charge;
-        $data['total']['misc'] =  $company_profile->currency . $order_misccharges;
+        $data['total']['misc'] = $company_profile->currency . $order_misccharges;
         // $data['total']['credit'] =  number_format($orderd->credit, 2);
         // $data['total']['allow_max_credit'] =  number_format(($allow_max_credit),2);
-        $data['total']['discount'] =  number_format($orderd->invoice_discount, 2);
+        $data['total']['discount'] = number_format($orderd->invoice_discount, 2);
         // $data['total']['allow_max_discount'] =  number_format(($allow_max_discount),2);
-        $data['total']['grand_total'] =  $company_profile->currency . number_format($grandtotals, 2);
+        $data['total']['grand_total'] = $company_profile->currency . number_format($grandtotals, 2);
         // $data['total']['deposit'] =  $company_profile->currency . number_format($orderd->paid_amount, 2);
         // $data['total']['due'] =  $company_profile->currency . number_format($checkdueamt, 2);
 
@@ -4274,4 +4275,182 @@ class OrderController extends Controller
 
         return response()->json($data);
     }
+
+
+
+    // public function getAttributesController(Request $request)
+    // {
+
+    //     if (auth('api')->user()->is_admin == 1) {
+    //         $createdBy = auth('api')->user()->user_id;
+    //     } else {
+    //         $createdBy = auth('api')->user()->userinfo->created_by;
+    //     }
+
+
+    //     // Fetch order_controller data based on created_by
+    //     $orderControllerData = DB::table('order_controller as oc')
+    //         ->leftJoin('order_controller_attr_details as oca', 'oc.order_controller_id', '=', 'oca.order_controller_id')
+    //         ->select('oc.*', 'oca.order_controller_attribute_id', 'oca.order_controller_attr_id', 'oca.order_controller_attribute_level')
+    //         ->where('oc.created_by', $createdBy)
+    //         ->get();
+
+    //     $orderControllerIdsArr = [];
+    //     $cartDataArr = $request->input('cart_data', []); // Adjust according to how you pass cart data
+
+    //     foreach ($orderControllerData as $orderRec) {
+    //         if (!empty($orderRec->order_controller_attribute_id)) {
+    //             $controllerLevel = $orderRec->order_controller_attribute_level;
+    //             $orderControllerAttributeId = $orderRec->order_controller_attribute_id;
+
+    //             foreach ($cartDataArr as $itemKey => $items) {
+    //                 $attrData = json_decode($items['att_options']);
+
+    //                 if ($attrData !== null) {
+    //                     foreach ($attrData as $attr) {
+    //                         switch ($controllerLevel) {
+    //                             case 0:
+    //                                 if ($attr->attribute_id == $orderControllerAttributeId) {
+    //                                     $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //                                     unset($cartDataArr[$itemKey]);
+    //                                     continue 3; // Breaks both foreach loops
+    //                                 }
+    //                                 break;
+    //                             case 1:
+    //                                 foreach ($attr->options as $subAttr) {
+    //                                     if ($subAttr->option_id == $orderControllerAttributeId) {
+    //                                         $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //                                         unset($cartDataArr[$itemKey]);
+    //                                         continue 3;
+    //                                     }
+    //                                 }
+    //                                 break;
+    //                             case 2:
+    //                                 foreach ($attr->opop as $subAttr) {
+    //                                     if ($subAttr->op_op_id == $orderControllerAttributeId) {
+    //                                         $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //                                         unset($cartDataArr[$itemKey]);
+    //                                         continue 3;
+    //                                     }
+    //                                 }
+    //                                 break;
+    //                             case 3:
+    //                                 foreach ($attr->opopop as $subAttr) {
+    //                                     if ($subAttr->op_op_op_id == $orderControllerAttributeId) {
+    //                                         $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //                                         unset($cartDataArr[$itemKey]);
+    //                                         continue 3;
+    //                                     }
+    //                                 }
+    //                                 break;
+    //                             case 4:
+    //                                 foreach ($attr->opopopop as $subAttr) {
+    //                                     if ($subAttr->op_op_op_op_id == $orderControllerAttributeId) {
+    //                                         $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //                                         unset($cartDataArr[$itemKey]);
+    //                                         continue 3;
+    //                                     }
+    //                                 }
+    //                                 break;
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         } else {
+    //             $orderControllerIdsArr[] = $orderRec->order_controller_id;
+    //         }
+    //     }
+
+    //     $finalControllerArr = [];
+
+    //     if (!empty($orderControllerIdsArr)) {
+    //         $finalControllerArr = DB::table('order_controller')
+    //             ->whereIn('order_controller_id', $orderControllerIdsArr)
+    //             ->orderBy('order_controller_tab_position', 'asc')
+    //             ->get();
+
+    //         foreach ($finalControllerArr as &$finalRec) {
+    //             $finalRec->item_data = DB::table('order_controller_item')
+    //                 ->where('order_controller_id', $finalRec->order_controller_id)
+    //                 ->get();
+    //         }
+    //     }
+
+        
+    //     if (!empty($finalControllerArr)) {
+    //         return response()->json([
+    //             'final_controller_arr' => $finalControllerArr,
+    //         ]);
+    //     } else {
+    //         return response()->json(['message' => 'No data found.'], 404);
+    //     }
+    // }
+    public function getAttributesController(Request $request)
+{
+    $user = auth('api')->user();
+    $createdBy = $user->is_admin ? $user->user_id : $user->userinfo->created_by;
+
+    $orderControllerData = DB::table('order_controller as oc')
+        ->leftJoin('order_controller_attr_details as oca', 'oc.order_controller_id', '=', 'oca.order_controller_id')
+        ->select('oc.*', 'oca.order_controller_attribute_id', 'oca.order_controller_attr_id', 'oca.order_controller_attribute_level')
+        ->where('oc.created_by', $createdBy)
+        ->get();
+
+    $orderControllerIdsArr = [];
+    $cartDataArr = $request->input('cart_data', []);
+
+    foreach ($orderControllerData as $orderRec) {
+        if (!empty($orderRec->order_controller_attribute_id)) {
+            $attrDataHandler = [
+                0 => 'attribute_id',
+                1 => 'options',
+                2 => 'opop',
+                3 => 'opopop',
+                4 => 'opopopop'
+            ];
+
+            $controllerLevel = $orderRec->order_controller_attribute_level;
+            $orderControllerAttributeId = $orderRec->order_controller_attribute_id;
+            $attrKey = $attrDataHandler[$controllerLevel];
+
+            foreach ($cartDataArr as $itemKey => $items) {
+                $attrData = json_decode($items['att_options']);
+
+                if ($attrData) {
+                    foreach ($attrData as $attr) {
+                        $options = $controllerLevel == 0 ? [$attr] : $attr->{$attrKey} ?? [];
+                        foreach ($options as $subAttr) {
+                            $subAttrKey = $controllerLevel == 0 ? 'attribute_id' : str_replace('id', 'option_id', $attrKey);
+                            if ($subAttr->{$subAttrKey} == $orderControllerAttributeId) {
+                                $orderControllerIdsArr[] = $orderRec->order_controller_id;
+                                unset($cartDataArr[$itemKey]);
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            $orderControllerIdsArr[] = $orderRec->order_controller_id;
+        }
+    }
+
+    if (!empty($orderControllerIdsArr)) {
+        $finalControllerArr = DB::table('order_controller')
+            ->whereIn('order_controller_id', $orderControllerIdsArr)
+            ->orderBy('order_controller_tab_position', 'asc')
+            ->get();
+
+        foreach ($finalControllerArr as &$finalRec) {
+            $finalRec->item_data = DB::table('order_controller_item')
+                ->where('order_controller_id', $finalRec->order_controller_id)
+                ->get();
+        }
+
+        return response()->json(['controller_data' => $finalControllerArr]);
+    }
+
+    return response()->json(['message' => 'No data found.'], 404);
+}
+
 }
