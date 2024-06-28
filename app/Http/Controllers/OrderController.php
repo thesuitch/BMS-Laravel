@@ -1781,7 +1781,7 @@ class OrderController extends Controller
                         }
 
                         $cartItemArr = [
-                            'order_id' => $orderId, // Assuming $orderId is defined somewhere
+                            'order_id' => $order_id, // Assuming $orderId is defined somewhere
                             'order_contoller_item_id' => $itemData['item_id'],
                             'item_name' => $itemData['item_name'],
                             'part_no' => $itemData['part_no'],
@@ -2025,6 +2025,10 @@ class OrderController extends Controller
                 DB::table('misc_breakdown_details')
                     ->where('order_id', $order_id)
                     ->delete();
+                // Delete from Controller where order_id matches
+                DB::table('order_controller_cart_item')
+                ->where('order_id', $order_id)
+                ->delete();
 
 
                 // product data
@@ -2103,6 +2107,48 @@ class OrderController extends Controller
 
                     $att = DB::table('b_level_quatation_attributes')->insert($attrData);
                 }
+
+
+
+                // Store Controller item data into DB : START
+                 if (isset($orderDetails['controller_order_items']) && count($orderDetails['controller_order_items']) > 0) {
+                    $controllerOrderItems = $orderDetails['controller_order_items'];
+
+                    foreach ($controllerOrderItems as $itemData) {
+                        $productBaseTax = 0;
+                        $itemTotalPrice = round(($itemData['item_qty'] * $itemData['item_price']), 2);
+
+                        if ($is_product_base_tax) { 
+
+                            if ($itemTotalPrice && $tax_percentage) {
+
+                                $isTaxableController = DB::table('order_controller_item as oci')
+                                    ->where('oc.is_taxable', 1)
+                                    ->where('oci.order_contoller_item_id', $itemData['item_id'])
+                                    ->join('order_controller as oc', 'oc.order_controller_id', '=', 'oci.order_controller_id')
+                                    ->count();
+
+                                if ($isTaxableController) {
+                                    $productBaseTax = round(($itemTotalPrice * $taxPercentage / 100), 2);
+                                }
+                            }
+                        }
+
+                        $cartItemArr = [
+                            'order_id' => $order_id, // Assuming $orderId is defined somewhere
+                            'order_contoller_item_id' => $itemData['item_id'],
+                            'item_name' => $itemData['item_name'],
+                            'part_no' => $itemData['part_no'],
+                            'item_price' => $itemData['item_price'],
+                            'item_qty' => $itemData['item_qty'],
+                            'product_base_tax' => $productBaseTax,
+                            'item_total_price' => round(($itemData['item_qty'] * $itemData['item_price']), 2),
+                        ];
+
+                        DB::table('order_controller_cart_item')->insert($cartItemArr);
+                    }
+                }
+                // Store Controller item data into DB : END
 
                 /// misc data isdert
                 if (isset($request->order_details['misc'])) {
