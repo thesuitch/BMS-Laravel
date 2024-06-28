@@ -426,8 +426,6 @@ class OrderController extends Controller
             ->where('b_level_qutation_details.order_id', $order_id)
             ->get();
 
-        // return $order_details;
-
         $user_detail = getCompanyProfileOrderConditionSettings();
 
 
@@ -892,6 +890,7 @@ class OrderController extends Controller
             // [{"attribute_id":"132","attribute_value":"2649_312","attributes_type":2,"options":[{"option_type":5,"option_id":"312","option_value":"2 on One","option_key_value":"2649_312"}],"opop":[{"op_op_id":"172","op_op_value":"32 4","option_key_value":"172_1195_312"},{"op_op_id":"173","op_op_value":"12 2","option_key_value":"173_1196_312"}],"opopop":[],"opopopop":[]},{"attribute_id":"7","attribute_value":"2651_6","attributes_type":2,"options":[{"option_type":0,"option_id":"6","option_value":"IB","option_key_value":"2651_6"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"8","attribute_value":"2654_9","attributes_type":2,"options":[{"option_type":0,"option_id":"9","option_value":"Yes","option_key_value":"2654_9"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"9","attribute_value":"2656_11","attributes_type":2,"options":[{"option_type":0,"option_id":"11","option_value":"Wand Tilter","option_key_value":"2656_11"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"10","attribute_value":"2658_13","attributes_type":2,"options":[{"option_type":0,"option_id":"13","option_value":"Right","option_key_value":"2658_13"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"11","attribute_value":"2660_15","attributes_type":2,"options":[{"option_type":0,"option_id":"15","option_value":"Cordless Lift","option_key_value":"2660_15"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"12","attribute_value":"2662_17","attributes_type":2,"options":[{"option_type":0,"option_id":"17","option_value":"Left","option_key_value":"2662_17"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"13","attribute_value":"2664_19","attributes_type":2,"options":[{"option_type":0,"option_id":"19","option_value":"Yes","option_key_value":"2664_19"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"14","attribute_value":"2666_21","attributes_type":2,"options":[{"option_type":0,"option_id":"21","option_value":"2 1/2" Standard","option_key_value":"2666_21"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"15","attribute_value":"2669_24","attributes_type":2,"options":[{"option_type":5,"option_id":"24","option_value":"Yes","option_key_value":"2669_24"}],"opop":[{"op_op_id":"6","op_op_value":"12 2","option_key_value":"6_1200_24"}],"opopop":[],"opopopop":[]},{"attribute_id":"16","attribute_value":"2671_26","attributes_type":2,"options":[{"option_type":0,"option_id":"26","option_value":"High Position","option_key_value":"2671_26"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"17","attribute_value":"2674_29","attributes_type":2,"options":[{"option_type":0,"option_id":"29","option_value":"1/2" Returns","option_key_value":"2674_29"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"18","attribute_value":"2679_34","attributes_type":2,"options":[{"option_type":5,"option_id":"34","option_value":"Both Bottom Cutout","option_key_value":"2679_34"}],"opop":[{"op_op_id":"12","op_op_value":"21 3","option_key_value":"12_1206_34"},{"op_op_id":"13","op_op_value":"21222 2","option_key_value":"13_1207_34"}],"opopop":[],"opopopop":[]},{"attribute_id":"19","attribute_value":"2681_36","attributes_type":2,"options":[{"option_type":5,"option_id":"36","option_value":"Yes","option_key_value":"2681_36"}],"opop":[{"op_op_id":"14","op_op_value":"12 2","option_key_value":"14_1208_36"}],"opopop":[],"opopopop":[]}]
 
             if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 1) {
+                
                 $selected_attributes = json_decode($item->product_attribute);
 
                 // return $selected_attributes;
@@ -1756,6 +1755,46 @@ class OrderController extends Controller
 
                     $att = DB::table('b_level_quatation_attributes')->insert($attrData);
                 }
+
+                // Store Controller item data into DB : START
+                if (isset($orderDetails['controller_order_items']) && count($orderDetails['controller_order_items']) > 0) {
+                    $controllerOrderItems = $orderDetails['controller_order_items'];
+
+                    foreach ($controllerOrderItems as $itemData) {
+                        $productBaseTax = 0;
+                        $itemTotalPrice = round(($itemData['item_qty'] * $itemData['item_price']), 2);
+
+                        if ($is_product_base_tax) { 
+
+                            if ($itemTotalPrice && $tax_percentage) {
+
+                                $isTaxableController = DB::table('order_controller_item as oci')
+                                    ->where('oc.is_taxable', 1)
+                                    ->where('oci.order_contoller_item_id', $itemData['item_id'])
+                                    ->join('order_controller as oc', 'oc.order_controller_id', '=', 'oci.order_controller_id')
+                                    ->count();
+
+                                if ($isTaxableController) {
+                                    $productBaseTax = round(($itemTotalPrice * $taxPercentage / 100), 2);
+                                }
+                            }
+                        }
+
+                        $cartItemArr = [
+                            'order_id' => $orderId, // Assuming $orderId is defined somewhere
+                            'order_contoller_item_id' => $itemData['item_id'],
+                            'item_name' => $itemData['item_name'],
+                            'part_no' => $itemData['part_no'],
+                            'item_price' => $itemData['item_price'],
+                            'item_qty' => $itemData['item_qty'],
+                            'product_base_tax' => $productBaseTax,
+                            'item_total_price' => round(($itemData['item_qty'] * $itemData['item_price']), 2),
+                        ];
+
+                        DB::table('order_controller_cart_item')->insert($cartItemArr);
+                    }
+                }
+                // Store Controller item data into DB : END
 
                 /// misc data isdert
                 // $miscData =  ;
@@ -3527,6 +3566,26 @@ class OrderController extends Controller
 
         $user_detail = getCompanyProfileOrderConditionSettings();
 
+        // controller item data
+        $order_controller_cart_item = DB::table('order_controller_cart_item')
+        ->select(
+          'order_controller_cart_item.order_contoller_item_id' ,
+          'order_controller_item.order_controller_id',
+          'order_controller_item.order_contoller_item_name',
+          'order_controller_item.order_contoller_part_no',
+          'order_controller_item.order_contoller_item_min_qty',
+          'order_controller_item.order_contoller_item_max_qty',
+          'order_controller_item.order_contoller_item_is_unlimited',
+          'order_controller_item.order_contoller_item_qty_price',
+          'order_controller_item.is_added_in_quickbooks',
+          'order_controller_item.quickbook_id',
+          'order_controller_item.quickbook_id',
+          'order_controller_cart_item.item_qty'
+        )
+        ->join('order_controller_item', 'order_controller_cart_item.order_contoller_item_id' , 'order_controller_item.order_contoller_item_id' )
+        ->where('order_id', $order_id)
+        ->get();
+ 
 
         // dd($orderd);
         $data['customer_info']['order_id'] = $orderd->order_id;
@@ -3553,7 +3612,7 @@ class OrderController extends Controller
             "different_address_type" => $orderd->is_different_shipping_type,
             "address_type" => $orderd->address_type,
         ];
-
+        $data['controller_items'] = $order_controller_cart_item;
 
         // if ($orderd->is_different_shipping == 1 && $orderd->is_different_shipping_type == 2) {
 
