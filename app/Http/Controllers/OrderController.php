@@ -3612,7 +3612,7 @@ class OrderController extends Controller
             "different_address_type" => $orderd->is_different_shipping_type,
             "address_type" => $orderd->address_type,
         ];
-        $data['controller_items'] = $order_controller_cart_item;
+        $data['controllerSelected'] = $order_controller_cart_item;
 
         // if ($orderd->is_different_shipping == 1 && $orderd->is_different_shipping_type == 2) {
 
