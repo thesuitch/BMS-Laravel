@@ -896,56 +896,58 @@ class OrderController extends Controller
                 // return $selected_attributes;
                 $attributes_data = [];
 
-                foreach ($selected_attributes as $atributes) {
-                    $attribute_entry = []; // Create an entry for each attribute
+                if($selected_attributes ){
+                    foreach ($selected_attributes as $atributes) {
+                        $attribute_entry = []; // Create an entry for each attribute
 
-                    $at_id = $atributes->attribute_id;
-                    $att_name = DB::table('attribute_tbl')->where('attribute_id', $at_id)->first();
-                    $attribute_entry['name'] = @$att_name->attribute_name; // Save primary attribute name
+                        $at_id = $atributes->attribute_id;
+                        $att_name = DB::table('attribute_tbl')->where('attribute_id', $at_id)->first();
+                        $attribute_entry['name'] = @$att_name->attribute_name; // Save primary attribute name
 
-                    if (isset($atributes->options[0]->option_id) && $atributes->options[0]->option_id != '' && $atributes->attributes_type != 1) {
-                        $att_op_name = DB::table('attr_options')->where('att_op_id', $atributes->options[0]->option_id)->first();
-                        $attribute_value = @$att_op_name->option_name;
-                    } elseif (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
-                        $attribute_value = $atributes->attribute_value;
-                    }
+                        if (isset($atributes->options[0]->option_id) && $atributes->options[0]->option_id != '' && $atributes->attributes_type != 1) {
+                            $att_op_name = DB::table('attr_options')->where('att_op_id', $atributes->options[0]->option_id)->first();
+                            $attribute_value = @$att_op_name->option_name;
+                        } elseif (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+                            $attribute_value = $atributes->attribute_value;
+                        }
 
 
-                    // Check if primary attribute has a value
-                    // if (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
-                    $attribute_entry['value'] = $attribute_value; // Save primary attribute value
-                    // }
+                        // Check if primary attribute has a value
+                        // if (isset($atributes->attribute_value) && $atributes->attribute_value != '') {
+                        $attribute_entry['value'] = $attribute_value; // Save primary attribute value
+                        // }
 
-                    // Append primary attribute directly to the attributes data array
-                    $attributes_data[] = $attribute_entry;
+                        // Append primary attribute directly to the attributes data array
+                        $attributes_data[] = $attribute_entry;
 
-                    // Check for sub-attributes
-                    if (isset($atributes->options[0]->option_type)) {
-                        if ($atributes->options[0]->option_type == 3 || $atributes->options[0]->option_type == 5 || $atributes->options[0]->option_type == 2 || $atributes->options[0]->option_type == 4 || $atributes->options[0]->option_type == 6) {
-                            if (sizeof($atributes->opop) > 0) {
-                                foreach ($atributes->opop as $secondLevelOpts) {
-                                    $secondLevelOpt = DB::table('attr_options_option_tbl')->where('op_op_id', $secondLevelOpts->op_op_id)->first();
-                                    $secondLevelOptName = @$secondLevelOpt->op_op_name;
+                        // Check for sub-attributes
+                        if (isset($atributes->options[0]->option_type)) {
+                            if ($atributes->options[0]->option_type == 3 || $atributes->options[0]->option_type == 5 || $atributes->options[0]->option_type == 2 || $atributes->options[0]->option_type == 4 || $atributes->options[0]->option_type == 6) {
+                                if (sizeof($atributes->opop) > 0) {
+                                    foreach ($atributes->opop as $secondLevelOpts) {
+                                        $secondLevelOpt = DB::table('attr_options_option_tbl')->where('op_op_id', $secondLevelOpts->op_op_id)->first();
+                                        $secondLevelOptName = @$secondLevelOpt->op_op_name;
 
-                                    $secondLevelOptValue = "";
-                                    if (@$secondLevelOpt->type == 1 || @$secondLevelOpt->type == 0 || @$secondLevelOpt->type == 2) {
-                                        $secondLevelOptValue = $secondLevelOpts->op_op_value;
-                                    }
+                                        $secondLevelOptValue = "";
+                                        if (@$secondLevelOpt->type == 1 || @$secondLevelOpt->type == 0 || @$secondLevelOpt->type == 2) {
+                                            $secondLevelOptValue = $secondLevelOpts->op_op_value;
+                                        }
 
-                                    // Handle sub-attributes of type 4 (multioption with multiselect)
-                                    if (@$atributes->options[0]->option_type == 4 && @$secondLevelOpt->type == 6) {
-                                        // Logic to handle multiselect options
-                                        $attributes_data[] = [
-                                            'name' => $secondLevelOptName,
-                                            'value' => $secondLevelOpts->op_op_value
-                                        ];
-                                    } else {
+                                        // Handle sub-attributes of type 4 (multioption with multiselect)
+                                        if (@$atributes->options[0]->option_type == 4 && @$secondLevelOpt->type == 6) {
+                                            // Logic to handle multiselect options
+                                            $attributes_data[] = [
+                                                'name' => $secondLevelOptName,
+                                                'value' => $secondLevelOpts->op_op_value
+                                            ];
+                                        } else {
 
-                                        // Append sub-attribute directly to the attributes data array
-                                        $attributes_data[] = [
-                                            'name' => $secondLevelOptName,
-                                            'value' => $secondLevelOptValue
-                                        ];
+                                            // Append sub-attribute directly to the attributes data array
+                                            $attributes_data[] = [
+                                                'name' => $secondLevelOptName,
+                                                'value' => $secondLevelOptValue
+                                            ];
+                                        }
                                     }
                                 }
                             }

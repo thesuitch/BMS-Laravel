@@ -130,7 +130,7 @@ td {
         <hr>
         <div class="tableResponsive" style="margin-top: 20px;">
             <table class="table borderd">
-                <thead>
+                <thead style="background-color:#c9c8c8">
                     <tr>
                         <th>SL No.</th>
                         <th>Name of Product</th>
@@ -180,13 +180,55 @@ td {
                 </tbody>
                 @endforeach
 
+                @if(isset($data['controllers']) && count($data['controllers']) > 0)
+                <thead style="background-color:#c9c8c8">
+                    <tr>
+                        <th></th>
+                        <th>Controllers</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                @foreach($data['controllers'] as $key => $controller)
+                <tbody>
+                    <tr>
+                        <td data-label="SL No.">{{$key+1}}</td>
+                        <td data-label="Name of Product">
+                            <div class="productDetail">
+                             {{$controller['name']}}
+                            </div>
+                        </td>
+                        <td data-label="Qty">
+                            <div class="couterWrapper">
+                                <span>{{$controller['qty']}}</span>
+                            </div>
+                        </td>
+                        <td data-label="Product Price">${{$controller['price']}}</td>
+                        <td data-label="Discount %"></td>
+                        <td data-label="List Price ($)"></td>
+                        <td data-label="upcharge"></td>
+                        <td data-label="Price ($)">${{$controller['item_total_price']}}</td>
+                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                           
+                        </td>
+                    </tr>
+                </tbody>
+                @endforeach
+
+                @endif
+
             </table>
         </div>
 
         <div class="tableResponsive " style="margin-top: 20px;">
             <table class="table borderd ">
                 <tbody>
-                    <tr>
+                    <tr style="background-color:#c9c8c8">
                         <th rowspan="2">TOTAL</th>
                         <th>QTY</th>
                         <th>WIDTH</th>
