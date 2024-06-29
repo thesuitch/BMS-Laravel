@@ -36,21 +36,21 @@ class OrderStoreRequest extends FormRequest
             'order_details.grand_total' => 'required',
         ];
 
-        if (request('order_details.shipping_address.different_address') == 1) {
+        // if (request('order_details.shipping_address.different_address') == 1) {
 
-            $rules['order_details.shipping_address.different_address_type'] = 'required';
+        //     $rules['order_details.shipping_address.different_address_type'] = 'required';
 
-            if (request('order_details.shipping_address.different_address_type') == 1) {
-            $rules['order_details.shipping_address.receiver_name'] = 'required';
-            $rules['order_details.shipping_address.receiver_phone_no'] = 'required';
-            $rules['order_details.shipping_address.receiver_email'] = 'required';
-            $rules['order_details.shipping_address.receiver_address'] = 'required';
-            }
-            elseif(request('order_details.shipping_address.different_address_type') == 2){
-                $rules['order_details.shipping_address.address_type'] = 'required';
+        //     if (request('order_details.shipping_address.different_address_type') == 1) {
+        //     $rules['order_details.shipping_address.receiver_name'] = 'required';
+        //     $rules['order_details.shipping_address.receiver_phone_no'] = 'required';
+        //     $rules['order_details.shipping_address.receiver_email'] = 'required';
+        //     $rules['order_details.shipping_address.receiver_address'] = 'required';
+        //     }
+        //     elseif(request('order_details.shipping_address.different_address_type') == 2){
+        //         $rules['order_details.shipping_address.address_type'] = 'required';
 
-            }
-        }
+        //     }
+        // }
       
         return $rules;
     }
