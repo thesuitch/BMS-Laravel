@@ -180,6 +180,7 @@ td {
                 </tbody>
                 @endforeach
 
+                <!-- controller data start -->
                 @if(isset($data['controllers']) && count($data['controllers']) > 0)
                 <thead style="background-color:#c9c8c8">
                     <tr>
@@ -219,8 +220,100 @@ td {
                     </tr>
                 </tbody>
                 @endforeach
-
                 @endif
+                <!-- controller data end -->
+                
+                <!-- component data end -->
+                @if(isset($data['components']) && count($data['components']) > 0)
+                <thead style="background-color:#c9c8c8">
+                    <tr>
+                        <th></th>
+                        <th>Components</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                @foreach($data['components'] as $key => $component)
+                <tbody>
+                    <tr>
+                        <td data-label="SL No.">{{$key+1}}</td>
+                        <td data-label="Name of Product">
+                            <div class="productDetail">
+                             {{$component['name']}}
+                            </div>
+                        </td>
+                        <td data-label="Qty">
+                            <div class="couterWrapper">
+                                <span>{{$component['qty']}}</span>
+                            </div>
+                        </td>
+                        <td data-label="Product Price">${{$component['price']}}</td>
+                        <td data-label="Discount %"></td>
+                        <td data-label="List Price ($)"></td>
+                        <td data-label="upcharge"></td>
+                        <td data-label="Price ($)">${{$component['item_total_price']}}</td>
+                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                           
+                        </td>
+                    </tr>
+                </tbody>
+                @endforeach
+                @endif
+                <!-- component data end -->
+
+
+                <!-- hardware data end -->
+                @if(isset($data['hardware']) && count($data['hardware']) > 0)
+                <thead style="background-color:#c9c8c8">
+                    <tr>
+                        <th></th>
+                        <th>Hardware</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                @foreach($data['hardware'] as $key => $hardware)
+                <tbody>
+                    <tr>
+                        <td data-label="SL No.">{{$key+1}}</td>
+                        <td data-label="Name of Product">
+                            <div class="productDetail">
+                             {{$hardware['name']['vendor_name']}} </br>
+                             {{$hardware['name']['group_name']}} </br>
+                             {{$hardware['name']['product_name']}} </br>
+                             {{$hardware['name']['sub_group_name']}} </br>
+                             {{$hardware['name']['item_name']}} </br>
+                             {{$hardware['name']['finish_name']}} </br>
+                            </div>
+                        </td>
+                        <td data-label="Qty">
+                            <div class="couterWrapper">
+                                <span>{{$hardware['qty']}}</span>
+                            </div>
+                        </td>
+                        <td data-label="Product Price">${{$hardware['price']}}</td>
+                        <td data-label="Discount %"></td>
+                        <td data-label="List Price ($)"></td>
+                        <td data-label="upcharge"></td>
+                        <td data-label="Price ($)">${{$hardware['item_total_price']}}</td>
+                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                           
+                        </td>
+                    </tr>
+                </tbody>
+                @endforeach
+                @endif
+                <!-- hardware data end -->
 
             </table>
         </div>
