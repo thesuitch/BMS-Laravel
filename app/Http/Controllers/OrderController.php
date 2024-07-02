@@ -2590,9 +2590,9 @@ class OrderController extends Controller
             ->where('order_id', $result->order_id)
             ->first();
 
-        $customerInfo = DB::table('customer_info')
-            ->where('customer_id', $result2->customer_id)
-            ->first();
+        // $customerInfo = DB::table('customer_info')
+        //     ->where('customer_id', $result2->customer_id)
+        //     ->first();
 
         $subtotal = $result2->subtotal;
 
@@ -2631,7 +2631,7 @@ class OrderController extends Controller
 
         $result2 = DB::table('b_level_quatation_tbl')->select('subtotal', 'grand_total', 'paid_amount', 'customer_id', 'misc', 'credit', 'invoice_discount', 'installation_charge', 'wholesaler_taxable', 'customer_taxable')->where('order_id', $result->order_id)->first();
 
-        $customerInfo = DB::table('customer_info')->where('customer_id', $result2->customer_id)->first();
+        // $customerInfo = DB::table('customer_info')->where('customer_id', $result2->customer_id)->first();
 
         $subtotal = $result2->subtotal;
 
