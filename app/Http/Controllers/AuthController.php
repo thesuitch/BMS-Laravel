@@ -84,7 +84,7 @@ class AuthController extends Controller
         //     ->first();
 
         $user = User::where('email', $credentials['email'])
-        ->join('user_info', 'user_info.id', '=', 'log_info.user_id')
+        // ->join('user_info', 'user_info.id', '=', 'log_info.user_id')
         ->first();
     
         if (!$user) {
