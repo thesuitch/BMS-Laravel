@@ -83,9 +83,7 @@ class AuthController extends Controller
         //     ->where('email', $credentials['email'])
         //     ->first();
 
-        $user = User::where('email', $credentials['email'])
-        // ->join('user_info', 'user_info.id', '=', 'log_info.user_id')
-        ->first();
+        $user = User::where('email', $credentials['email'])->first();
     
         if (!$user) {
             return response()->json(['error' => 'User not found'], Response::HTTP_UNAUTHORIZED);
@@ -112,7 +110,7 @@ class AuthController extends Controller
     
         return response()->json([
             'message' => 'Login successful',
-            'token' => $token
+            'token' => $jwt_token
         ])->withCookie($cookie);
     }
 
