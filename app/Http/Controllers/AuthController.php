@@ -79,9 +79,13 @@ class AuthController extends Controller
         $credentials = $request->only(['email', 'password']);
     
         // Fetch user from log_info table
-        $user = DB::table('log_info')
-            ->where('email', $credentials['email'])
-            ->first();
+        // $user = DB::table('log_info')
+        //     ->where('email', $credentials['email'])
+        //     ->first();
+
+        $user = User::where('email', $credentials['email'])
+        ->join('user_info', 'user_info.id', '=', 'log_info.user_id')
+        ->first();
     
         if (!$user) {
             return response()->json(['error' => 'User not found'], Response::HTTP_UNAUTHORIZED);
