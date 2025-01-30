@@ -43,9 +43,9 @@ class CustomerController extends Controller
             $this->insertCustomerTaxId($userInsertId, $customerInsertedId, $customerData);
             $this->insertAccesslog($customerData);
 
-            $queryCustomerInfo = DB::table('customers')
+            $queryCustomerInfo = DB::table('customer_info')
                 ->where('level_id', $this->level_id)
-                ->where('id', $customerInsertedId)
+                ->where('customer_id', $customerInsertedId)
                 ->first();
 
             return response()->json([
@@ -74,14 +74,14 @@ class CustomerController extends Controller
     {
         
         try {
-            $customers = DB::table('customers')
-            ->select('customers.*', 'customers.is_taxable as customer_is_taxable', 'customers.enable_shipping_zone as customer_enable_shipping_zone')
-            ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
-            ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
-            ->where('customers.level_id', $this->level_id)
-            ->where('users.status', 1)
+            $customers = DB::table('customer_info')
+            ->select('customer_info.customer_id as id','customer_info.*', 'customer_info.is_taxable as customer_is_taxable', 'customer_info.enable_shipping_zone as customer_enable_shipping_zone')
+            ->join('log_info', 'customer_info.customer_user_id', '=', 'log_info.user_id')
+            ->join('user_info', 'customer_info.customer_user_id', '=', 'user_info.id')
+            ->where('customer_info.level_id', $this->level_id)
+            ->where('log_info.status', 1)
             ->where('user_info.wholesaler_connection', 1)
-            ->orderBy('customers.id', 'desc');
+            ->orderBy('customer_info.customer_id', 'desc');
     
         if(auth()->user()->is_admin != 1) {
             // if(!$is_action_allow_display_all_customer) {

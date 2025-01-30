@@ -21,6 +21,65 @@ td {
 .border-hide {
     border: none !important;
 }
+
+.top-table{
+    
+    width: 57%;
+    float: right;
+    font-size: 11px;
+   
+    margin-bottom: 24px;
+
+}
+
+.top-table table {
+    /* Optional: Styles for the entire table */
+    width: 100%;
+    border-collapse: collapse;
+    /* Add more table styles as needed */
+}
+
+.top-table th,
+.top-table td {
+    padding: 0 !important;
+    /* Other styles for th and td */
+}
+
+
+.customer-details{
+    font-size: 11px;
+}
+
+.dotted-line {
+            border: none;
+            border-top: 2px  dotted #999; /* Adjust color and size as needed */
+            height: 0;
+            margin:0;
+        }
+
+.tableResponsive > table{
+
+    font-size:11px;
+}
+
+.order-detail-heading{
+
+    margin : 0px;
+}
+
+.subtotal{
+    width: 44%;
+    float: right;
+}
+
+body{
+    margin:0px;
+}
+
+
+
+
+        
 </style>
 
 
@@ -45,34 +104,34 @@ td {
                     </td>
 
                     <td>
-                        <table class="borderd ">
+                        <table class=" top-table">
 
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Order Id">{{@$data['order_stage']}} Date</td>
+                                <td data-label="Order Id"><strong>{{@$data['order_stage']}} Date</strong></td>
                                 <td data-label="Order Id Value">{{@$data['order_date']}}</td>
                             </tr>
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Order Id">{{@$data['order_stage']}} Id</td>
+                                <td data-label="Order Id"><strong>{{@$data['order_stage']}} Id</strong></td>
                                 <td data-label="Order Id Value">{{@$data['order_id']}}</td>
                             </tr>
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Sidemark">Sidemark</td>
+                                <td data-label="Sidemark"><strong>Sidemark</strong></td>
                                 <td data-label="Sidemark Value">{{@$data['side_mark']}}</td>
                             </tr>
                             <tr>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
                                 <th class="border-hide"></th>
-                                <td data-label="Shipping Method">Shipping Method/Tracking #</td>
+                                <td data-label="Shipping Method"><strong>Shipping Method/Tracking #</strong></td>
                                 <td data-label="Shipping Method Value">{{@$data['shipping_method']}}</td>
                             </tr>
                         </table>
@@ -86,7 +145,7 @@ td {
         </table>
 
 
-        <table>
+        <table class="customer-details">
             <tr>
                 <td>
                     <div class="inline-group description">
@@ -126,10 +185,10 @@ td {
         </table>
     </div>
     <div class="card">
-        <h3>Order Details</h3>
+        <h4 class="order-detail-heading">Order Details</h4>
         <hr>
         <div class="tableResponsive" style="margin-top: 20px;">
-            <table class="table borderd">
+            <table class="table ">
                 <thead style="background-color:#c9c8c8">
                     <tr>
                         <th>SL No.</th>
@@ -140,7 +199,7 @@ td {
                         <th>List Price ($)</th>
                         <th>Upcharge</th>
                         <th>Price ($)</th>
-                        <th>Comments</th>
+                        <!-- <th>Comments</th> -->
                     </tr>
                 </thead>
                 @foreach($data['products'] as $key => $product)
@@ -149,14 +208,24 @@ td {
                         <td data-label="SL No.">{{$key+1}}</td>
                         <td data-label="Name of Product">
                             <div class="productDetail">
-                                <p>{{$product['name_of_product']['category']}} ,
+                                <strong>{{$product['name_of_product']['category']}} ,
                                     {{$product['name_of_product']['product_name']}}
-                                </p>
-                                <hr>
+                                </strong>
+                                <hr class="dotted-line">
+
                                 <div class="attributesDetail">
-                                    <span>{{$product['name_of_product']['width']}} </span><br>
-                                    <span>{{$product['name_of_product']['height']}}</span><br>
-                                    <span>{{$product['name_of_product']['pattern']}}</span>
+                                    <span>{{$product['name_of_product']['pattern']}}</span><br>
+                                    <span>W : {{$product['name_of_product']['width']}} </span>&nbsp;&nbsp;
+                                    <span>H :{{$product['name_of_product']['height']}}</span><br>
+                                    <span>{{$product['name_of_product']['color_number'] ?? ''}}</span><br>
+                                    <span> 
+
+                                    @foreach($product['name_of_product']['room'] as $room)
+                                         {{$room}}
+                                    @endforeach
+
+
+                                    </span>
                                     <span></span>
                                 </div>
                             </div>
@@ -171,18 +240,18 @@ td {
                         <td data-label="List Price ($)">{{$product['list_price']}}</td>
                         <td data-label="upcharge">{{$product['upcharge']['upcharge_price']}}</td>
                         <td data-label="Price ($)">{{$product['total_price']}}</td>
-                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                        <!-- <td data-label="Comments" style="text-align: left; font-size: 90%;">
                             {{$product['comments']['notes']}}
                             <br>
                             {{$product['comments']['special_installer_notes']}}
-                        </td>
+                        </td> -->
                     </tr>
                 </tbody>
                 @endforeach
 
                 <!-- controller data start -->
                 @if(isset($data['controllers']) && count($data['controllers']) > 0)
-                <thead style="background-color:#c9c8c8">
+                <tbody style="background-color:#c9c8c8">
                     <tr>
                         <th></th>
                         <th>Controllers</th>
@@ -192,9 +261,9 @@ td {
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th></th>
+                        <!-- <th></th> -->
                     </tr>
-                </thead>
+                </tbody>
                 @foreach($data['controllers'] as $key => $controller)
                 <tbody>
                     <tr>
@@ -214,7 +283,7 @@ td {
                         <td data-label="List Price ($)"></td>
                         <td data-label="upcharge"></td>
                         <td data-label="Price ($)">${{$controller['item_total_price']}}</td>
-                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                        <!-- <td data-label="Comments" style="text-align: left; font-size: 90%;"> -->
                            
                         </td>
                     </tr>
@@ -235,7 +304,7 @@ td {
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th></th>
+                        <!-- <th></th> -->
                     </tr>
                 </thead>
                 @foreach($data['components'] as $key => $component)
@@ -257,7 +326,7 @@ td {
                         <td data-label="List Price ($)"></td>
                         <td data-label="upcharge"></td>
                         <td data-label="Price ($)">${{$component['item_total_price']}}</td>
-                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                        <!-- <td data-label="Comments" style="text-align: left; font-size: 90%;"> -->
                            
                         </td>
                     </tr>
@@ -279,7 +348,7 @@ td {
                         <th></th>
                         <th></th>
                         <th></th>
-                        <th></th>
+                        <!-- <th></th> -->
                     </tr>
                 </thead>
                 @foreach($data['hardware'] as $key => $hardware)
@@ -306,7 +375,7 @@ td {
                         <td data-label="List Price ($)"></td>
                         <td data-label="upcharge"></td>
                         <td data-label="Price ($)">${{$hardware['item_total_price']}}</td>
-                        <td data-label="Comments" style="text-align: left; font-size: 90%;">
+                        <!-- <td data-label="Comments" style="text-align: left; font-size: 90%;"> -->
                            
                         </td>
                     </tr>
@@ -324,16 +393,28 @@ td {
                     <tr style="background-color:#c9c8c8">
                         <th rowspan="2">TOTAL</th>
                         <th>QTY</th>
+                        @if(isset($data['total']['width']))
                         <th>WIDTH</th>
+                        @endif
+                        @if(isset($data['total']['height']))
                         <th>HEIGHT</th>
+                        @endif
+                        @if(isset($data['total']['sqft_or_sqm']))
                         <th>SQFT</th>
+                        @endif
                         <th>PRICE</th>
                     </tr>
                     <tr>
                         <td  data-label="Qty">{{$data['total']['qty']}}</td>
+                        @if(isset($data['total']['width']))
                         <td data-label="width" style="min-width: 100px;">{{$data['total']['width']}}</td>
+                        @endif
+                        @if(isset($data['total']['height']))
                         <td data-label="height">{{$data['total']['height']}}</td>
+                        @endif
+                        @if(isset($data['total']['sqft_or_sqm']))
                         <td data-label="sqft_or_sqm">{{$data['total']['sqft_or_sqm']}}</td>
+                        @endif
                         <td data-label="price">{{$data['total']['price']}}</td>
                     </tr>
                 </tbody>
@@ -342,7 +423,6 @@ td {
 
 
         @if(isset($data['misc']) && count($data['misc']) > 0)
-
         <h3>MISC Breakdown Details</h3>
         <hr>
         <div class="tableResponsive" style="margin-top: 20px;">
@@ -384,16 +464,13 @@ td {
 
             </table>
         </div>
-
-
-
         @endif
 
 
 
 
         <div class="tableResponsive" style="margin-top: 20px;">
-            <table class="table borderd ">
+            <table class="table borderd  subtotal">
                 <thead>
                     <tr>
                         <th class="border-hide"></th>
@@ -425,6 +502,26 @@ td {
                         <th>Grand Total</th>
                         <td data-label="grand_total">{{$data['total']['grand_total']}}</td>
                     </tr>
+                    @if(isset($data['misc']) && count($data['misc']) > 0)
+                         @php $subtotal_misc = 0; @endphp
+                        @foreach($data['misc'] as $key => $misc)
+                        @php $subtotal_misc += $misc['misc_price'] @endphp
+
+                        @endforeach
+                    <tr>
+                        <th class="border-hide"></th>
+                        <th class="border-hide"></th>
+                        <th class="border-hide"></th>
+                        <th class="border-hide"></th>
+                        <th class="border-hide"></th>
+                        <th class="border-hide"></th>
+                        <th>MISC.</th>
+                        <td data-label="grand_total">{{$subtotal_misc}}</td>
+                    </tr>
+                    @endif
+                    
+
+
                     <tr>
                         <th class="border-hide"></th>
                         <th class="border-hide"></th>
@@ -449,6 +546,7 @@ td {
 
             </table>
         </div>
+</div>
 
     </div>
 </div>

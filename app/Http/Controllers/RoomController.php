@@ -29,15 +29,15 @@ class RoomController extends Controller
     {
         try {
             $room_name = $request->input('room_name');
-            $user_id = auth()->user()->id;
+            $user_id = auth()->user()->user_id;
 
             $last_room_id = DB::table('rooms')->insertGetId([
                 'room_name' => $room_name,
                 'created_by' => $user_id,
-            ]);
+            ], 'room_id');
 
             if ($last_room_id > 0) {
-                $room = DB::table('rooms')->where('id', $last_room_id)->first();
+                $room = DB::table('rooms')->where('room_id', $last_room_id)->first();
 
                 return response()->json([
                     'status' => 'success',
@@ -67,6 +67,7 @@ class RoomController extends Controller
         try {
 
             $rooms = DB::table('rooms')
+                ->select('room_id as id' , 'room_name')
                 ->where(function ($query) {
                     $query->where('created_by', 0)
                         ->orWhere('created_by', $this->level_id)

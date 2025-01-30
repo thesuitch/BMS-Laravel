@@ -13,6 +13,10 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('register', [AuthController::class, 'register']);
 Route::get('Unauthenticated', [AuthController::class, 'Unauthenticated'])->name('Unauthenticated');
 
+
+Route::get('auto_login/{userId}', [AuthController::class, 'auto_login']);
+
+
 Route::middleware('jwt.verify')->group(function () {
     // Authenticated Routes
     Route::post('logout', [AuthController::class, 'logout']);
@@ -35,13 +39,13 @@ Route::middleware('jwt.verify')->group(function () {
         Route::get('price/{height}/{width}/{product_id}/{pattern_id}/{product_type}',  'getProductRowColPrice');
 
        
-       
         Route::post('store', 'store');
         Route::get('edit/{orde_id}', 'editOrder');
         Route::put('update', 'UpdateOrder');
         Route::get('edit/item/{id}', 'editOrderItem');
         Route::put('update/item', 'UpdateOrderItem');
         Route::get('index', 'index');
+        Route::get('wholesaler_lists', 'wholesaler_lists');
         Route::get('quotes', 'quotes');
         Route::get('receipt/{order_id}', 'receipt');
         Route::get('receipt_mail/{order_id}','receiptMail');
@@ -62,6 +66,12 @@ Route::middleware('jwt.verify')->group(function () {
         Route::delete('order_hardware_delete/{row_id}', 'OrderHardwareDelete');
 
         Route::get('/attributes-controller', 'getAttributesController');
+        Route::post('/receive_payment', 'saveSessionForEditUpdateOrder');
+        Route::get('/checkWholesalerPaymentDue', 'checkWholesalerPaymentDue');
+        // Route::post('/saveSessionForEditUpdateOrder', 'saveSessionForEditUpdateOrder');
+
+
+        
 
     });
 

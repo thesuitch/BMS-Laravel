@@ -96,7 +96,7 @@ trait CustomerTrait
 
         $customerData['headcode'] = $result ? explode('-', $result->HeadCode)[0] . '-' . (explode('-', $result->HeadCode)[1] + 1) : '1020301-1';
 
-        $lastId = DB::table('customers')->select('*')->orderBy('id', 'desc')->first();
+        $lastId = DB::table('customer_info')->select('*')->orderBy('customer_id', 'desc')->first();
 
         $customerData['lastCustomerNo'] = $lastId->customer_no ?? "CUS-0001";
         [$prefix, $number] = explode('-', $customerData['lastCustomerNo']);
@@ -104,7 +104,7 @@ trait CustomerTrait
         $customerData['customerNo'] = "{$prefix}-{$nextNumber}-{$customerData['firstName']} {$customerData['lastName']}";
 
         $cn = strtoupper(substr($customerData['company'], 0, 3)) . "-";
-        $customerData['companyCustId'] = "{$cn}" . ((int)($lastId ? $lastId->id : "{$cn}1") + 1);
+        $customerData['companyCustId'] = "{$cn}" . ((int)($lastId ? $lastId->customer_id : "{$cn}1") + 1);
         $customerData['customerNo'] = preg_replace("/[^a-z0-9]+/i", "-", $customerData['customerNo']);
 
         $customerData['responsibleEmployee'] = (!empty($request->input('responsible_employee'))) ? implode(',', $request->input('responsible_employee')) : auth()->id();
@@ -150,12 +150,13 @@ trait CustomerTrait
         $customerLogInfoData = [
             'user_id' => $userInsertId,
             'email' => $username,
-            'password' => FacadesHash::make($password),
+            // 'password' => FacadesHash::make($password),
+            'password' => md5($password),
             'user_type' => 'c',
             'is_admin' => '1',
         ];
 
-        DB::table('users')->insert($customerLogInfoData);
+        DB::table('log_info')->insert($customerLogInfoData);
     }
 
     private function insertCompanyProfile($userInsertId, $customerData)
@@ -222,7 +223,10 @@ trait CustomerTrait
             $customer['zone'] = $customerData['zone'];
         }
 
-        return DB::table('customers')->insertGetId($customer);
+        DB::table('customer_info')->insert($customer);
+        $customer_id = DB::table('customer_info')->latest('customer_id')->value('customer_id');
+        return $customer_id;
+
     }
 
     private function insertShippingAddress($userInsertId, $customerInsertedId, $customerData)
