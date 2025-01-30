@@ -3,9 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\UserInfo;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Symfony\Component\HttpFoundation\Response;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Cookie;
+
+
+// use Tymon\JWTAuth\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -59,9 +66,9 @@ class AuthController extends Controller
                 'error' => 'Unauthorized'
             ], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         // return auth()->user();
-        
+
         return $this->respondWithToken($token);
     }
 
@@ -93,8 +100,54 @@ class AuthController extends Controller
         ]);
     }
 
-    function Unauthenticated()  {
-        
-       return  response()->json(['error' => 'Unauthenticated'], 401);
+    function Unauthenticated()
+    {
+
+        return  response()->json(['error' => 'Unauthenticated'], 401);
+    }
+
+
+    public function auto_login($userId)
+    {
+        try {
+            // Retrieve auth token from cookie
+            $authToken = Cookie::get('auth_token');
+
+            // dd($authToken);
+
+            // Verify user credentials
+            $check_user = User::where('row_id', $userId)
+                ->join('user_info', 'user_info.id', '=', 'log_info.user_id')
+                ->where('user_info.login_token', $authToken)
+                ->first();
+                
+               
+
+            if (!$check_user) {
+                return response()->json(['error' => 'Invalid credentials'], 401);
+            }
+
+            // Log the user in
+            Auth::login($check_user);
+            // Generate a new JWT token for the user
+            $jwt_token = JWTAuth::fromUser($check_user);
+             
+            // $cookie = cookie('userToken', json_encode($jwt_token), 1440, null, null, false, false);
+            // // Construct the full URL with the port and path
+            // $url = sprintf('http://%s:8023/new-order', request()->getHost());
+        // dd($jwt_token);
+            // Desired domain without the port
+            $domain = '.vindotest.com';
+            // $cookie = cookie('userToken', json_encode($jwt_token), 1440, null, $domain, false, false, false, 'None');
+            $cookie = cookie('userToken', json_encode($jwt_token), 1440, '/', $domain, false, false, false, 'Lax');
+            $url = sprintf('https://%s:8024/new-order', 'decor.vindotest.com');
+            // return $url;
+ 
+            // Redirect with the generated URL and cookie
+            return redirect()->to($url)->withCookie($cookie);
+        } catch (\Exception $e) {
+            // Handle exception and return error response
+            return response()->json(['error' => 'An error occurred: ' . $e->getMessage()], 500);
+        }
     }
 }
