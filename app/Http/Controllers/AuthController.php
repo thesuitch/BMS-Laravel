@@ -58,19 +58,51 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
 
+    // public function login(Request $request)
+    // {
+    //     return 1;
+    //     $credentials = $request->only(['email', 'password']);
+    //     if (!$token = auth('api')->attempt($credentials)) {
+    //         return response()->json([
+    //             'error' => 'Unauthorized'
+    //         ], Response::HTTP_UNAUTHORIZED);
+    //     }
+
+    //     // return auth()->user();
+
+    //     return $this->respondWithToken($token);
+    // }
+
     public function login(Request $request)
     {
-        return 1;
         $credentials = $request->only(['email', 'password']);
-        if (!$token = auth('api')->attempt($credentials)) {
-            return response()->json([
-                'error' => 'Unauthorized'
-            ], Response::HTTP_UNAUTHORIZED);
+    
+        // Fetch user from log_info table
+        $user = DB::table('log_info')
+            ->where('email', $credentials['email'])
+            ->first();
+    
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], Response::HTTP_UNAUTHORIZED);
         }
-
-        // return auth()->user();
-
-        return $this->respondWithToken($token);
+    
+        // CodeIgniter-style password check (MD5)
+        $inputPasswordHash = md5($credentials['password']);
+    
+        if ($user->password !== $inputPasswordHash) {
+            return response()->json(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
+        }
+    
+        // Generate JWT Token
+        $token = JWTAuth::customClaims(['user_id' => $user->row_id])->fromUser($user);
+    
+        // Store auth token in a cookie
+        $cookie = cookie('auth_token', $token, 1440, '/', '.vindotest.com', false, false, false, 'Lax');
+    
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token
+        ])->withCookie($cookie);
     }
 
     public function user()
