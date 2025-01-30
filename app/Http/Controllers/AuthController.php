@@ -60,7 +60,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        dd(3);
+        return 1;
         $credentials = $request->only(['email', 'password']);
         if (!$token = auth('api')->attempt($credentials)) {
             return response()->json([
