@@ -90,9 +90,9 @@ class AuthController extends Controller
         // CodeIgniter-style password check (MD5)
         $inputPasswordHash = md5($credentials['password']);
 
-        return $inputPasswordHash;
+        // return $inputPasswordHash;
     
-        if ($user->password !== $inputPasswordHash) {
+        if ($user->password != $inputPasswordHash) {
             return response()->json(['error' => 'Invalid credentials'], Response::HTTP_UNAUTHORIZED);
         }
     
