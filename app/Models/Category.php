@@ -9,6 +9,10 @@ class Category extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'category_id';  // Ensure this line is present
+
+    protected $table = 'category_tbl';
+
 
     // public function products()
     // {

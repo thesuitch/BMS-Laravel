@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use App\Traits\OrderTrait;
 use BarcodeGeneratorHTML;
@@ -14,6 +15,7 @@ use App\Http\Requests\OrderUpdateItem;
 use Illuminate\Support\Facades\Storage;
 use DateTime;
 use DateTimeZone;
+use Illuminate\Support\Carbon;
 use Str;
 use PDF;
 use Mail;
@@ -32,6 +34,8 @@ class OrderController extends Controller
     public function __construct()
     {
         $this->middleware(function ($request, $next) {
+
+            // dd(auth('api')->user()->is_admin);
             if (auth('api')->user()->is_admin == 1) {
                 $this->level_id = auth('api')->user()->user_id;
             } else {
@@ -90,7 +94,7 @@ class OrderController extends Controller
             $column_order = array_merge($column_order, ['new_status', 'oss.status_name', "submitted_by", null]);
 
             $results = DB::table('b_level_quatation_tbl as b_q')
-                ->leftJoin('customers as ci', 'ci.id', '=', 'b_q.customer_id')
+                ->leftJoin('customer_info as ci', 'ci.customer_id', '=', 'b_q.customer_id')
                 ->leftJoin('user_info as cf', 'cf.id', '=', 'b_q.created_by')
                 ->leftJoin('order_stage_status as oss', 'oss.order_stage_no', '=', 'b_q.order_stage')
                 ->where('b_q.order_stage', '!=', 1)
@@ -98,7 +102,7 @@ class OrderController extends Controller
                     $query->where('b_q.created_by', '=', '2')
                         ->orWhere('b_q.created_by', '!=', '2');
                 })
-                ->where('b_q.level_id', '=', '2')
+                ->where('b_q.level_id', '=', $this->level_id)
                 ->where('b_q.order_stage', '!=', 1)
                 ->select(
                     'b_q.*',
@@ -113,6 +117,7 @@ class OrderController extends Controller
                     'oss.status AS order_stage_status',
                     'oss.parent_id AS order_stage_parent_id'
                 )
+                
                 ->when($customer_id, function ($query) use ($customer_id) {
                     return $query->where('b_q.customer_id', $customer_id);
                 })
@@ -144,6 +149,8 @@ class OrderController extends Controller
                     });
                 });
 
+                // return $results;
+
             if (isset($request->order_column) && in_array($orderColumnIndex, [1, 3, 4, 5, 6, 7, 8, 9, 10])) {
 
                 $columnName = $column_order[$orderColumnIndex];
@@ -154,6 +161,8 @@ class OrderController extends Controller
 
 
             $orders = $results->items();
+
+            // return $orders;
 
             // Append order stages to each order
             foreach ($orders as $order) {
@@ -167,6 +176,263 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => $th->getMessage()], 400);
         }
     }
+
+
+    public function wholesaler_lists(Request $request)
+    {
+        $per_page = $request->per_page ?? 10;
+        $from_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->from_date));
+        $to_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
+        $order_stage = $request->order_stage ?? '';
+        $side_mark = $request->side_mark ?? ''; //'Jessica-1516';
+        $searchValue = $request->search ?? '';
+        $concatenation = "COALESCE(NULLIF(cf.company, ''), CONCAT(cf.first_name, ' ', cf.last_name))";
+        $orderColumnIndex = $request->order_column;
+        $orderDirection = $request->order_dir;
+
+
+        $user_detail = DB::table('user_info')->where('id', $this->level_id)->first();
+        $package = session('packageid');
+
+        $column_order = [
+            null, 'bbq.order_id', null, 'bbq.side_mark', 'bbq.order_date'
+        ];
+        $column_search = [
+            'bbq.order_id', 'bbq.side_mark', 'bbq.order_date', 'oss.status_name', 'cf.company'
+        ];
+
+        if (isset($user_detail->display_total) && $user_detail->display_total == 0) {
+            $column_order[] = 'bbq.grand_total';
+            $column_search[] = 'bbq.grand_total';
+        } else {
+            $column_order[] = null;
+        }
+
+        if (isset($user_detail->display_paid) && $user_detail->display_paid == 0) {
+            $column_order[] = 'bbq.paid_amount';
+            $column_search[] = 'bbq.paid_amount';
+        } else {
+            $column_order[] = null;
+        }
+
+        if (isset($user_detail->display_due) && $user_detail->display_due == 0) {
+            $column_order[] = 'bbq.due';
+            $column_search[] = 'bbq.due';
+        } else {
+            $column_order[] = null;
+        }
+
+        $column_order = array_merge($column_order, ['new_status', 'oss.status_name', 'submitted_by']);
+        
+        if (!empty($package)) {
+            $column_order[] = null;
+        }
+
+        $query = DB::table('b_to_b_level_quatation_tbl as bbq')
+            ->selectRaw("
+                bbq.*, 
+                CONCAT(ui.first_name, ' ', ui.last_name) as b_user_name,
+                ui.id as sender_user_id,
+                IF(bbq.paid_amount = '0', 'Unpaid', 
+                    IF((bbq.grand_total > bbq.paid_amount), 'Partially Paid', 
+                        IF((bbq.grand_total = bbq.paid_amount), 'Paid', 
+                            IF((bbq.paid_amount > bbq.grand_total), 'Credit', 'Partially Paid')
+                        )
+                    )
+                ) as new_status,
+                cp.company_name,
+                oss.status_name,
+                oss.position,
+                oss.status_color,
+                COALESCE(NULLIF(cf.company,''), CONCAT(cf.first_name, ' ', cf.last_name)) as submitted_by,
+                oss.is_wholesaler_plus as order_stage_status,
+                oss.parent_id as order_stage_parent_id
+            ")
+            ->leftJoin('user_info as ui', 'ui.id', '=', 'bbq.created_by')
+            ->leftJoin('user_info as cf', 'cf.id', '=', 'bbq.created_by')
+            ->leftJoin('order_stage_status as oss', 'oss.order_stage_no', '=', 'bbq.order_stage')
+            ->leftJoin('company_profile as cp', 'ui.id', '=', 'cp.user_id')
+            ->where('bbq.status', 1)
+            ->where('bbq.b_user_id', $this->level_id)
+
+            // Applying filters from session
+            ->when($from_date, function ($query) use ($from_date, $to_date) {
+                return $query->whereDate('bbq.order_date', '>=', $from_date)
+                    ->whereDate('bbq.order_date', '<=', $to_date);
+            })
+            ->when($order_stage, function ($query) use ($order_stage) {
+                return $query->where('bbq.order_stage', $order_stage);
+            })
+            ->when($side_mark, function ($query) use ($side_mark) {
+                return $query->where('bbq.side_mark', 'like', '%' . $side_mark . '%');
+            })
+
+            ->when($searchValue, function ($query) use ($searchValue, $column_search, $concatenation) {
+                return $query->where(function ($query) use ($searchValue, $column_search, $concatenation) {
+                    foreach ($column_search as $column) {
+                        if ($column === $concatenation) {
+                            $query->orWhereRaw("$concatenation LIKE ?", ["%$searchValue%"]);
+                        } else {
+                            $query->orWhere($column, 'like', '%' . $searchValue . '%');
+                        }
+                    }
+                });
+            });
+
+       
+
+        
+        if (isset($request->order_column) && in_array($orderColumnIndex, [1, 3, 4, 5, 6, 7, 8, 9, 10])) {
+
+            $columnName = $column_order[$orderColumnIndex];
+            $results = $query->orderBy($columnName, $orderDirection)->paginate($per_page);
+        } else {
+            $results = $query->orderBy('bbq.order_date', 'desc')->paginate($per_page);
+        }
+
+
+        $orders = $results->items();
+
+        // Append order stages to each order
+        foreach ($orders as $order) {
+            $order->order_stages = $this->RetailerOrderStage($order->order_stage);
+        }
+
+
+        // Execute the query and return results as JSON
+        $data = $query->paginate($per_page);
+
+        return response()->json($data);
+    }
+
+
+
+
+    
+    // public function wholesaler_lists(Request $request)
+    // {
+
+    //     try {
+
+    //         // dd($request);
+    //         //code...
+    //         $customer_id = $request->customer_id ?? '';
+    //         $from_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->from_date));
+    //         $to_date = (empty($request->from_date)) ? '' : date('Y-m-d', strtotime($request->to_date));
+    //         $order_stage = $request->order_stage ?? '';
+    //         $side_mark = $request->side_mark ?? ''; //'Jessica-1516';
+    //         $payment_status = $request->payment_status ?? ''; // Unpaid ,  Partially Paid , Paid , Credit
+    //         $search_responsible_employee = $request->employee_id ?? '';
+    //         $searchValue = $request->search ?? '';
+    //         $orderColumnIndex = $request->order_column;
+    //         $orderDirection = $request->order_dir;
+    //         $per_page = $request->per_page ?? 10;
+
+
+    //         $column_order = array(null, 'b_q.order_id', null, 'b_q.side_mark', 'b_q.order_date');
+    //         $column_search = array('b_q.order_id', 'b_q.side_mark', 'ci.company', 'b_q.order_date', 'oss.status_name', 'cf.company', 'cf.first_name', 'cf.last_name');
+    //         $concatenation = "COALESCE(NULLIF(cf.company, ''), CONCAT(cf.first_name, ' ', cf.last_name))";
+    //         $order = array('b_q.order_date' => 'desc');
+    //         $user_detail = getCompanyProfileOrderConditionSettings();
+
+    //         if (isset($user_detail->display_total) && $user_detail->display_total == 0) {
+    //             array_push($column_order, 'b_q.grand_total');
+    //             array_push($column_search, 'b_q.grand_total');
+    //         } else {
+    //             array_push($column_order, null);
+    //         }
+    //         if (isset($user_detail->display_paid) && $user_detail->display_paid == 0) {
+    //             array_push($column_order, 'b_q.paid_amount');
+    //             array_push($column_search, 'b_q.paid_amount');
+    //         } else {
+    //             array_push($column_order, null);
+    //         }
+    //         if (isset($user_detail->display_due) && $user_detail->display_due == 0) {
+    //             array_push($column_order, 'b_q.due');
+    //             array_push($column_search, 'b_q.due');
+    //         } else {
+    //             array_push($column_order, null);
+    //         }
+    //         $column_order = array_merge($column_order, ['new_status', 'oss.status_name', "submitted_by", null]);
+
+    //         $results = DB::table('b_level_quatation_tbl as b_q')
+    //             ->leftJoin('customer_info as ci', 'ci.customer_id', '=', 'b_q.customer_id')
+    //             ->leftJoin('user_info as cf', 'cf.id', '=', 'b_q.created_by')
+    //             ->leftJoin('order_stage_status as oss', 'oss.order_stage_no', '=', 'b_q.order_stage')
+    //             ->where('b_q.order_stage', '!=', 1)
+    //             ->where(function ($query) {
+    //                 $query->where('b_q.created_by', '=', '2')
+    //                     ->orWhere('b_q.created_by', '!=', '2');
+    //             })
+    //             ->where('b_q.level_id', '=', $this->level_id)
+    //             ->where('b_q.order_stage', '!=', 1)
+    //             ->select(
+    //                 'b_q.*',
+    //                 DB::raw("CONCAT(ci.first_name, ' ', ci.last_name) AS customer_name"),
+    //                 'ci.responsible_employee',
+    //                 'ci.company',
+    //                 DB::raw("IF(b_q.paid_amount = '0', 'Unpaid', IF(b_q.grand_total > b_q.paid_amount, 'Partially Paid', IF(b_q.grand_total = b_q.paid_amount, 'Paid', IF(b_q.paid_amount > b_q.grand_total, 'Credit', 'Partially Paid')))) AS new_status"),
+    //                 'oss.status_name',
+    //                 'oss.position',
+    //                 'oss.status_color',
+    //                 DB::raw("COALESCE(NULLIF(cf.company, ''), CONCAT(cf.first_name, ' ', cf.last_name)) AS submitted_by"),
+    //                 'oss.status AS order_stage_status',
+    //                 'oss.parent_id AS order_stage_parent_id'
+    //             )
+    //             ->when($customer_id, function ($query) use ($customer_id) {
+    //                 return $query->where('b_q.customer_id', $customer_id);
+    //             })
+    //             ->when($from_date, function ($query) use ($from_date, $to_date) {
+    //                 return $query->whereDate('b_q.order_date', '>=', $from_date)
+    //                     ->whereDate('b_q.order_date', '<=', $to_date);
+    //             })
+    //             ->when($order_stage, function ($query) use ($order_stage) {
+    //                 return $query->where('b_q.order_stage', $order_stage);
+    //             })
+    //             ->when($side_mark, function ($query) use ($side_mark) {
+    //                 return $query->where('b_q.side_mark', 'like', '%' . $side_mark . '%');
+    //             })
+    //             ->when($payment_status, function ($query) use ($payment_status) {
+    //                 return $query->whereRaw("IF(b_q.paid_amount = '0', 'Unpaid', IF(b_q.grand_total > b_q.paid_amount, 'Partially Paid', IF(b_q.grand_total = b_q.paid_amount, 'Paid', IF(b_q.paid_amount > b_q.grand_total, 'Credit', 'Partially Paid')))) = ?", [$payment_status]);
+    //             })
+    //             ->when($search_responsible_employee, function ($query) use ($search_responsible_employee) {
+    //                 return $query->whereRaw("FIND_IN_SET(?, ci.responsible_employee)", [$search_responsible_employee]);
+    //             })
+    //             ->when($searchValue, function ($query) use ($searchValue, $column_search, $concatenation) {
+    //                 return $query->where(function ($query) use ($searchValue, $column_search, $concatenation) {
+    //                     foreach ($column_search as $column) {
+    //                         if ($column === $concatenation) {
+    //                             $query->orWhereRaw("$concatenation LIKE ?", ["%$searchValue%"]);
+    //                         } else {
+    //                             $query->orWhere($column, 'like', '%' . $searchValue . '%');
+    //                         }
+    //                     }
+    //                 });
+    //             });
+
+    //         if (isset($request->order_column) && in_array($orderColumnIndex, [1, 3, 4, 5, 6, 7, 8, 9, 10])) {
+
+    //             $columnName = $column_order[$orderColumnIndex];
+    //             $results = $results->orderBy($columnName, $orderDirection)->paginate($per_page);
+    //         } else {
+    //             $results = $results->orderBy('b_q.order_date', 'desc')->paginate($per_page);
+    //         }
+
+
+    //         $orders = $results->items();
+
+    //         // Append order stages to each order
+    //         foreach ($orders as $order) {
+    //             $order->order_stages = $this->RetailerOrderStage($order->order_stage);
+    //         }
+
+
+
+    //         return $results;
+    //     } catch (\Throwable $th) {
+    //         return response()->json(['success' => false, 'message' => $th->getMessage()], 400);
+    //     }
+    // }
 
 
     public function quotes(Request $request)
@@ -214,7 +480,7 @@ class OrderController extends Controller
             $column_order = array_merge($column_order, ['new_status', 'oss.status_name', "submitted_by", null]);
 
             $results = DB::table('b_level_quatation_tbl as b_q')
-                ->leftJoin('customers as ci', 'ci.id', '=', 'b_q.customer_id')
+                ->leftJoin('customer_info as ci', 'ci.customer_id', '=', 'b_q.customer_id')
                 ->leftJoin('user_info as cf', 'cf.id', '=', 'b_q.created_by')
                 ->leftJoin('order_stage_status as oss', 'oss.order_stage_no', '=', 'b_q.order_stage')
                 ->where('b_q.order_stage', '=', 1)
@@ -222,7 +488,7 @@ class OrderController extends Controller
                     $query->where('b_q.created_by', '=', '2')
                         ->orWhere('b_q.created_by', '!=', '2');
                 })
-                ->where('b_q.level_id', '=', '2')
+                ->where('b_q.level_id', '=', $this->level_id)
                 ->where('b_q.order_stage', '=', 1)
                 ->select(
                     'b_q.*',
@@ -274,24 +540,43 @@ class OrderController extends Controller
     public function receipt($order_id)
     {
 
+        $is_action_allow_edit_order = isActionAllowWholesaler('edit_order', 'order'); 
+        $is_action_allow_delete_order = isActionAllowWholesaler('delete_order', 'order'); 
+        $is_action_allow_split_order = isActionAllowWholesaler('split_order', 'order'); 
+        $is_action_allow_receive_payment = isActionAllowWholesaler('receive_payment', 'order'); 
+        $is_action_allow_view_order = isActionAllowWholesaler('view_order', 'order'); 
+        $bridge = auth()->user()->userinfo->package_id;
+
+        // return $bridge;
+        
+    
         $orderd = DB::table('b_level_quatation_tbl')
             ->select(
                 'b_level_quatation_tbl.*',
-                DB::raw('CONCAT(customers.first_name, " ", customers.last_name) as customer_name'),
-                'customers.id',
-                'customers.phone',
-                'customers.address',
-                'customers.city',
-                'customers.state',
-                'customers.zip_code',
-                'customers.country_code',
-                'customers.customer_no',
-                'customers.email',
-                'customers.id'
+                DB::raw('CONCAT(customer_info.first_name, " ", customer_info.last_name) as customer_name'),
+                'customer_info.customer_id',
+                'customer_info.phone',
+                'customer_info.address',
+                'customer_info.city',
+                'customer_info.state',
+                'customer_info.zip_code',
+                'customer_info.country_code',
+                'customer_info.customer_no',
+                'customer_info.email',
+                'customer_info.customer_id'
             )
-            ->leftJoin('customers', 'customers.id', '=', 'b_level_quatation_tbl.customer_id')
+            ->leftJoin('customer_info', 'customer_info.customer_id', '=', 'b_level_quatation_tbl.customer_id')
             ->where('b_level_quatation_tbl.order_id', $order_id)
             ->first();
+
+
+        $orderIds = [$orderd->clevel_order_id, $orderd->order_id];
+
+        $check_re_order_status = DB::table('b_to_b_level_quatation_tbl')
+            ->whereIn('clevel_order_id', $orderIds)
+            ->exists() ? 1 : 0;
+
+
 
         if (empty($orderd)) {
             $message = "Order not found";
@@ -302,8 +587,8 @@ class OrderController extends Controller
         $company_profile = DB::table('company_profile')->select('*')
             ->where('user_id', $this->level_id)
             ->first();
-        $customer = DB::table('customers')->select('*')
-            ->where('id', $orderd->customer_id)
+        $customer = DB::table('customer_info')->select('*')
+            ->where('customer_id', $orderd->customer_id)
             ->first();
 
 
@@ -366,7 +651,11 @@ class OrderController extends Controller
 
         $address_label = "";
         $binfo = DB::table('company_profile')->where('user_id', @$customer->customer_user_id)->first();
-        $b_c_info = DB::table('customers')->where('customer_user_id', @$customer->customer_user_id)->first();
+        $b_c_info = DB::table('customer_info')->where('customer_user_id', @$customer->customer_user_id)->first();
+        $bridgeUserId = DB::table('user_info')
+        ->where('bridge_b', $this->user_id)
+        ->value('id') ?? '';
+        $other_company_profile = DB::table('company_profile')->where('user_id', @$bridgeUserId)->get();
 
         if (isset($b_c_info->billing_address_label)) {
             switch ($b_c_info->billing_address_label) {
@@ -411,22 +700,163 @@ class OrderController extends Controller
         $order_details = DB::table('b_level_qutation_details')
             ->select(
                 'b_level_qutation_details.*',
-                'products.product_name',
-                'categories.category_name',
+                'product_tbl.product_name',
+                'category_tbl.category_name',
                 'b_level_quatation_attributes.product_attribute',
                 'pattern_model_tbl.pattern_name',
-                'colors.color_name',
-                'colors.color_number'
+                'color_tbl.color_name',
+                'color_tbl.color_number'
             )
-            ->leftJoin('products', 'products.id', '=', 'b_level_qutation_details.product_id')
-            ->leftJoin('categories', 'categories.id', '=', 'b_level_qutation_details.category_id')
+            ->leftJoin('product_tbl', 'product_tbl.product_id', '=', 'b_level_qutation_details.product_id')
+            ->leftJoin('category_tbl', 'category_tbl.category_id', '=', 'b_level_qutation_details.category_id')
             ->leftJoin('b_level_quatation_attributes', 'b_level_quatation_attributes.fk_od_id', '=', 'b_level_qutation_details.row_id')
             ->leftJoin('pattern_model_tbl', 'pattern_model_tbl.pattern_model_id', '=', 'b_level_qutation_details.pattern_model_id')
-            ->leftJoin('colors', 'colors.id', '=', 'b_level_qutation_details.color_id')
+            ->leftJoin('color_tbl', 'color_tbl.id', '=', 'b_level_qutation_details.color_id')
             ->where('b_level_qutation_details.order_id', $order_id)
             ->get();
 
         $user_detail = getCompanyProfileOrderConditionSettings();
+
+
+        $shipping = DB::table('shipment_data')
+        ->join('shipping_method', 'shipping_method.id', '=', 'shipment_data.method_id')
+        ->where('order_id', $order_id)
+        ->select('shipment_data.*', 'shipping_method.method_name')
+        ->first();
+
+
+         
+        // return $user_detail;
+        $edit_order_stage_arr = [];
+        if($user_detail->enable_edit_order_stage != '') {
+            $edit_order_stage_arr = explode(",",$user_detail->enable_edit_order_stage); // Get from order condition
+        } 
+        if(($orderd->order_stage == 1) || ($orderd->order_stage == 13) || in_array($orderd->order_stage, $edit_order_stage_arr)){ 
+            $data['buttons']['edit_order'] = true;
+         } 
+
+        if ($orderd->order_stage == 4 || $orderd->order_stage == 11 || $orderd->order_stage == 15 || $orderd->order_stage == 16 || $orderd->order_stage == 17 || $orderd->order_stage == 18 || $orderd->order_stage == 20 || $orderd->order_stage == 21 || $orderd->order_stage == 22 || $orderd->order_stage == 23 || $orderd->order_stage == 24) { 
+            $url = env('API_URL').'order/stage/update/14/'.$orderd->order_id;
+            $data['buttons']['reset_order'] = [
+                'link'=> $url,
+                "method" => "Put",
+                'text' => 'Reset'
+            ];
+        } 
+
+        if ($orderd->order_stage != 1 && $orderd->order_stage != 2 && $orderd->order_stage != 3 && $orderd->order_stage != 10 && $orderd->order_stage != 13 && $orderd->order_stage != 14) { 
+            $url = ENV('OLD_URL'). 'wholesaler-manufacture-workorder/' . $orderd->order_id;
+            $data['buttons']['view_manufacturing']=[
+                'link' => $url,
+                "method" => "Get",
+                'text' => 'View Manufacturing'
+            ];
+        } 
+
+        if ($orderd->order_stage == 1 || $orderd->order_stage == 2 || $orderd->order_stage == 3 || $orderd->order_stage == 10 || $orderd->order_stage == 13 || $orderd->order_stage == 14) { 
+            $url = ENV('OLD_URL'). 'wholeseler_go_manufacturing/' . $orderd->order_id;
+            $data['buttons']['go_manufacturing']=[
+                'link' => $url,
+                "method" => "Get",
+                'text' => 'Go Manufacturing'  
+            ];
+        } 
+
+
+        if($is_action_allow_split_order == 1) { 
+            if (isset($check_re_order_status) && $check_re_order_status != 1) { 
+                if($orderd->order_stage==1 or $orderd->order_stage==2 or $orderd->order_stage==3 or $orderd->order_stage==10 or $orderd->order_stage==13 or $orderd->order_stage==14){ 
+                    if ($bridge == '2'){ 
+
+                        // $url = ENV('OLD_URL').'b_level/order_controller/check_wholesaler_payment_due';
+                        $url = ENV('API_URL').'order/checkWholesalerPaymentDue';
+                        $spliturl = ENV('OLD_URL').'wholesaler-re-order-check';
+                        
+                        $data['buttons']['split_order'] = [
+                            'link' => $url,
+                            'method' => 'Get',
+                            'params' => [
+                                'level_id' => $this->level_id
+                            ],
+                            'text' => 'Split order',
+                            'response' => [
+                                'is_0' => [
+                                    'link' => $spliturl,
+                                    'method' => 'post',
+                                    'payload' => [
+                                        'special_instructions'=> 'test',
+                                        'order_id' => $orderd->order_id,
+                                        'b_user_id' => auth()->user()->userinfo->bridge_b,
+                                        'level_id' => $this->level_id,
+                                        'user_id' => $this->user_id,
+                                        're_order_product_data' => [
+                                            '0' => 106283,
+                                            '1' => 106284
+                                        ]
+                                        ]
+                                ] 
+                            ]
+                        ]; 
+                     } 
+                 }
+            } else { 
+
+                $splitDataDetail = DB::table('b_to_b_level_quatation_tbl')
+                ->where('clevel_order_id', $orderd->order_id)
+                ->first();
+
+                $invoice_url = ENV('OLD_URL'). 'wholesaler-catalog-receipt/' . $splitDataDetail->order_id;
+                $shipment_url = ENV('OLD_URL'). 'wholesaler-new-invoice-shipment/' . $splitDataDetail->order_id;
+
+                $data['buttons']['view_invoice'] = [
+                    'link' =>  $invoice_url,
+                    "method" => "Get",
+                    'text' => 'View '.$other_company_profile[0]->company_name.' Invoice'
+                ];
+                $data['buttons']['go_shipment']=[
+                    'link' => $shipment_url,
+                    "method" => "Get",
+                    'text' => 'Go Shipment'
+                ];  
+
+             } 
+        } 
+
+
+        if ($shipping == '' && $orderd->order_stage == 4 && $check_re_order_status != 1) { 
+            $url = ENV('OLD_URL'). 'wholesaler-new-invoice-shipment/' . $orderd->order_id;
+            $data['buttons']['go_shipment']=[
+                'link' => $url,
+                "method" => "Get",
+                'text' => 'Go Shipment'
+            ];
+        } 
+
+
+         if (($orderd->order_stage != 2) AND ($is_action_allow_receive_payment == 1)) { 
+            // $url = ENV('OLD_URL').'b_level/Order_controller/save_session_for_edit_update_order';
+            $url = ENV('API_URL').'order/receive_payment';
+
+            $data['buttons']['receive_payment'] = [
+                'link' => $url,
+                'method' => 'Post',
+                'text' => 'Receive Payment',
+                'payload' => [
+                    'order_id' => $orderd->order_id,
+                    'order_stage' =>  $orderd->order_stage
+                ],
+                'response' =>[
+                    'is_0' => ['redirect' => ENV('OLD_URL').'wholesaler-order-view/'.$orderd->order_id],
+                    'is_1' => ['redirect' => ENV('FRONT_URL').'order/edit/'.$orderd->order_id]
+                ]
+            ];  
+
+            
+         } 
+
+         $data['buttons']['print'] = true;
+         $data['buttons']['download'] = true;
+         $data['buttons']['email'] = true;
 
 
         // dd($orderd);
@@ -547,8 +977,8 @@ class OrderController extends Controller
             array_push($finalTotal, $finalUnitTotalPrice);
             $total_final_price += $list_price + $up_price;
 
-            $categoryData = DB::table('categories')->where('id', $item->category_id)->first();
-            $getProductData = DB::table('products')->where('id', $item->product_id)->first();
+            $categoryData = DB::table('category_tbl')->where('category_id', $item->category_id)->first();
+            $getProductData = DB::table('product_tbl')->where('product_id', $item->product_id)->first();
 
 
             if ($user_detail->display_total_values == 1) {
@@ -623,7 +1053,7 @@ class OrderController extends Controller
             // For Get Sub Category name : START
             $sub_cat_name = '';
             if (isset($item->sub_category_id) && $item->sub_category_id > 0) {
-                $sub_category_data = DB::get('categories')->where('id', $item->sub_category_id)->first();
+                $sub_category_data = DB::get('category_tbl')->where('category_id', $item->sub_category_id)->first();
                 if (isset($sub_category_data->category_id)) {
                     $sub_cat_name = " (" . $sub_category_data->category_name . ") ";
                 }
@@ -702,18 +1132,18 @@ class OrderController extends Controller
             // $hiddencounterarr = array();
             // if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
 
-            //     $cat_data = DB::table('products')
+            //     $cat_data = DB::table('product_tbl')
             //         ->select(
-            //             'categories.hide_room',
-            //             'categories.hide_color',
-            //             'products.hide_room as product_hide_room',
-            //             'products.hide_color as product_hide_color',
-            //             'products.enable_combo_product',
-            //             'products.is_taxable',
-            //             'products.product_base_shipping_status'
+            //             'category_tbl.hide_room',
+            //             'category_tbl.hide_color',
+            //             'product_tbl.hide_room as product_hide_room',
+            //             'product_tbl.hide_color as product_hide_color',
+            //             'product_tbl.enable_combo_product',
+            //             'product_tbl.is_taxable',
+            //             'product_tbl.product_base_shipping_status'
             //         )
-            //         ->join('categories', 'categories.id', '=', 'products.category_id')
-            //         ->where('products.id', $item->product_id)
+            //         ->join('category_tbl', 'category_tbl.category_id', '=', 'product_tbl.category_id')
+            //         ->where('product_tbl.product_id', $item->product_id)
             //         ->first();
 
 
@@ -755,17 +1185,44 @@ class OrderController extends Controller
             }
 
 
-            $is_cat_hide_room = DB::table('products')
-                ->select('categories.hide_room', 'categories.hide_color', 'products.hide_room as product_hide_room', 'products.hide_color as product_hide_color')
-                ->where('products.id', @$item->product_id)
-                ->join('categories', 'categories.id', '=', 'products.category_id')
+            $is_cat_hide_room = DB::table('product_tbl')
+                ->select('category_tbl.hide_room', 'category_tbl.hide_color', 'product_tbl.hide_room as product_hide_room', 'product_tbl.hide_color as product_hide_color')
+                ->where('product_tbl.product_id', @$item->product_id)
+                ->join('category_tbl', 'category_tbl.category_id', '=', 'product_tbl.category_id')
                 ->first();
+
+
+                if ($item->pattern_model_id == 0 && $item->color_id == 0 && $item->manual_color_entry != null && $item->manual_pattern_entry != null) {
+                    $checkBox = DB::table('b_user_catalog_products')
+                        ->join('b_user_catalog_request', 'b_user_catalog_products.request_id', '=', 'b_user_catalog_request.request_id')
+                        ->where('b_user_catalog_products.product_link', @$item->product_id)
+                        ->where('b_user_catalog_products.requested_by', $this->level_id)
+                        ->get();
+                } elseif ($item->pattern_model_id != 0 && $item->color_id == 0 && $item->manual_color_entry != null && $item->manual_pattern_entry == null) {
+                    $checkBox = DB::table('b_user_catalog_products')
+                        ->join('b_user_catalog_request', 'b_user_catalog_products.request_id', '=', 'b_user_catalog_request.request_id')
+                        ->where('b_user_catalog_products.product_link', $item->product_id)
+                        ->where('b_user_catalog_products.pattern_link', $item->pattern_model_id)
+                        ->where('b_user_catalog_products.requested_by', $this->level_id)
+                        ->get();
+                } else {
+
+                    // echo $this->level_id;
+                    $checkBox = DB::table('b_user_catalog_products')
+                        ->join('b_user_catalog_request', 'b_user_catalog_products.request_id', '=', 'b_user_catalog_request.request_id')
+                        ->where('b_user_catalog_products.product_link', $item->product_id)
+                        ->where('b_user_catalog_products.requested_by', $this->level_id)
+                        ->where('b_user_catalog_products.pattern_link', $item->pattern_model_id)
+                        ->where('b_user_catalog_products.color_link', $item->color_id)
+                        ->get();
+                }
 
 
 
 
             $data['products'][] = [
                 'row_id' => $item->row_id,
+                'check_box' => count($checkBox) > 0 ? true : false,
                 'product_qty' => $item->product_qty,
                 'name_of_product' => [
                     'category' => ($user_detail->display_category == 1) ? $categoryData->category_name . $sub_cat_name : '',
@@ -889,7 +1346,7 @@ class OrderController extends Controller
 
             // [{"attribute_id":"132","attribute_value":"2649_312","attributes_type":2,"options":[{"option_type":5,"option_id":"312","option_value":"2 on One","option_key_value":"2649_312"}],"opop":[{"op_op_id":"172","op_op_value":"32 4","option_key_value":"172_1195_312"},{"op_op_id":"173","op_op_value":"12 2","option_key_value":"173_1196_312"}],"opopop":[],"opopopop":[]},{"attribute_id":"7","attribute_value":"2651_6","attributes_type":2,"options":[{"option_type":0,"option_id":"6","option_value":"IB","option_key_value":"2651_6"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"8","attribute_value":"2654_9","attributes_type":2,"options":[{"option_type":0,"option_id":"9","option_value":"Yes","option_key_value":"2654_9"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"9","attribute_value":"2656_11","attributes_type":2,"options":[{"option_type":0,"option_id":"11","option_value":"Wand Tilter","option_key_value":"2656_11"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"10","attribute_value":"2658_13","attributes_type":2,"options":[{"option_type":0,"option_id":"13","option_value":"Right","option_key_value":"2658_13"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"11","attribute_value":"2660_15","attributes_type":2,"options":[{"option_type":0,"option_id":"15","option_value":"Cordless Lift","option_key_value":"2660_15"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"12","attribute_value":"2662_17","attributes_type":2,"options":[{"option_type":0,"option_id":"17","option_value":"Left","option_key_value":"2662_17"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"13","attribute_value":"2664_19","attributes_type":2,"options":[{"option_type":0,"option_id":"19","option_value":"Yes","option_key_value":"2664_19"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"14","attribute_value":"2666_21","attributes_type":2,"options":[{"option_type":0,"option_id":"21","option_value":"2 1/2" Standard","option_key_value":"2666_21"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"15","attribute_value":"2669_24","attributes_type":2,"options":[{"option_type":5,"option_id":"24","option_value":"Yes","option_key_value":"2669_24"}],"opop":[{"op_op_id":"6","op_op_value":"12 2","option_key_value":"6_1200_24"}],"opopop":[],"opopopop":[]},{"attribute_id":"16","attribute_value":"2671_26","attributes_type":2,"options":[{"option_type":0,"option_id":"26","option_value":"High Position","option_key_value":"2671_26"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"17","attribute_value":"2674_29","attributes_type":2,"options":[{"option_type":0,"option_id":"29","option_value":"1/2" Returns","option_key_value":"2674_29"}],"opop":[],"opopop":[],"opopopop":[]},{"attribute_id":"18","attribute_value":"2679_34","attributes_type":2,"options":[{"option_type":5,"option_id":"34","option_value":"Both Bottom Cutout","option_key_value":"2679_34"}],"opop":[{"op_op_id":"12","op_op_value":"21 3","option_key_value":"12_1206_34"},{"op_op_id":"13","op_op_value":"21222 2","option_key_value":"13_1207_34"}],"opopop":[],"opopopop":[]},{"attribute_id":"19","attribute_value":"2681_36","attributes_type":2,"options":[{"option_type":5,"option_id":"36","option_value":"Yes","option_key_value":"2681_36"}],"opop":[{"op_op_id":"14","op_op_value":"12 2","option_key_value":"14_1208_36"}],"opopop":[],"opopopop":[]}]
 
-            if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 1) {
+            if (($item->upcharge_label || $item->product_attribute) && $user_detail->display_attributes == 0) {
                 
                 $selected_attributes = json_decode($item->product_attribute);
 
@@ -1203,22 +1660,24 @@ class OrderController extends Controller
     {
         try {
 
-            $userId = auth('api')->user()->id;
+           
+            $userId = auth('api')->user()->user_id;
 
             $categories = Category::with([
                 'products' => function ($query) {
-                    $query->select('id', 'category_id', 'product_name', 'default', 'hide_height_width', 'hide_pattern', 'hide_room');
+                    $query->select( 'product_id as id', 'category_id',  'product_name', 'default', 'hide_height_width', 'hide_pattern', 'hide_room');
                 }
             ])
-                ->select('id', 'category_name')
+                ->select('category_id as id', 'category_id',  'category_name')
                 ->where('created_by', $userId)
                 ->where('status', 1)
                 ->where('parent_category', 0)
                 ->orderBy('position')
                 ->get();
 
+
             if (auth('api')->user()->user_type == 'c') {
-                $userInfo = $this->checkRetailerConnectToWholesaler(auth('api')->user()->id);
+                $userInfo = $this->checkRetailerConnectToWholesaler(auth('api')->user()->user_id);
                 $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
             } else {
                 $createdBy = auth('api')->user()->level_id;
@@ -1227,7 +1686,7 @@ class OrderController extends Controller
             $categories->each(function ($category, $createdBy) {
 
                 // fractions
-                $category_get = Category::findOrFail($category->id);
+                $category_get = Category::where('category_id',$category->category_id)->first();
                 $selectedFractions = $category_get->getSelectedFractions();
 
                 $default_f[] = [
@@ -1240,7 +1699,7 @@ class OrderController extends Controller
 
 
                 // custom labels
-                $custom_label = $this->getCustomLabelUserwise($createdBy, $category->id);
+                $custom_label = $this->getCustomLabelUserwise($createdBy, $category->category_id);
                 $category['custom_labels'] = $custom_label;
             });
 
@@ -1291,10 +1750,11 @@ class OrderController extends Controller
             $attributes = $this->getProductToAttribute($product_id);
             // dd($main_price);
 
-            $p = DB::table('products')->where('id', $product_id)->first();
+            $p = DB::table('product_tbl')->where('product_id', $product_id)->first();
 
             $f_w = @explode('.', $width)[1];
             $f_h = @explode('.', $height)[1];
+            
 
             $fraction_w = $this->get_height_width_fraction($f_w, $p->category_id);
             $fraction_h = $this->get_height_width_fraction($f_h);
@@ -1367,6 +1827,10 @@ class OrderController extends Controller
                         };
                     }
                     $customerWiseSidemark = rtrim($customerWiseSidemark, '-');
+                }else{
+
+                    // $customerWiseSidemark = '4526--XXXX';
+                    $orderNumber = $compProfileData->company;
                 }
             }
 
@@ -1428,7 +1892,7 @@ class OrderController extends Controller
 
     public function existingShippingAddress($customer_id)
     {
-        $customerDetails = DB::table('customers')->select('first_name', 'last_name', 'city', 'state', 'zip_code', 'country_code', 'phone', 'email', 'address', 'billing_address_label', 'different_shipping_address')->where('id', $customer_id)->first();
+        $customerDetails = DB::table('customer_info')->select('first_name', 'last_name', 'city', 'state', 'zip_code', 'country_code', 'phone', 'email', 'address', 'billing_address_label', 'different_shipping_address')->where('customer_id', $customer_id)->first();
         $shippingAddress = DB::table('shipping_address_info')->select('first_name', 'last_name', 'city', 'state', 'zip as zip_code', 'country_code', 'phone', 'email', 'address', 'is_residential', 'commercial', 'storage_facility', 'freight_terminal')->where('customer_id', $customer_id)->first();
         //   dd($shippingAddress);
 
@@ -1545,7 +2009,7 @@ class OrderController extends Controller
 
 
             $show_b_customer_record = Customer::selectRaw("*, CONCAT_WS('-', first_name, last_name) as full_name")
-                ->where('id', $customer_id)
+                ->where('customer_id', $customer_id)
                 ->first();
 
             $this->generateBarcodeAndSave($show_b_customer_record->full_name, $order_id, $side_mark);
@@ -1651,7 +2115,7 @@ class OrderController extends Controller
                 'due' => $grand_total,
                 'order_status' => $order_status,
                 'order_stage' => 1,
-                'created_by' => auth('api')->user()->id,
+                'created_by' => auth('api')->user()->user_id,
                 'ship_method' => 1,
                 'updated_by' => 0,
                 'is_sync_with_quickbook' => 0,
@@ -1709,7 +2173,7 @@ class OrderController extends Controller
                         'upcharge_details' => $product['upcharge_details'],
                         'display_upcharge_details' => null,
                         'separate_display_upcharge_details' => null,
-                        'discount' => $product['discount'],
+                        'discount' => $product['discount'] ?? 0,
                         'unit_total_price' => $product['unit_total_price'],
                         'category_id' => $product['category_id'],
                         'sub_category_id' => @$product['sub_category_id'],
@@ -1880,7 +2344,7 @@ class OrderController extends Controller
 
 
             $show_b_customer_record = Customer::selectRaw("*, CONCAT_WS('-', first_name, last_name) as full_name")
-                ->where('id', $customer_id)
+                ->where('customer_id', $customer_id)
                 ->first();
 
             $this->generateBarcodeAndSave($show_b_customer_record->full_name, $order_id, $side_mark);
@@ -1986,7 +2450,7 @@ class OrderController extends Controller
                 'due' => $grand_total,
                 'order_status' => $order_status,
                 //  'order_stage' => 1,
-                'created_by' => auth('api')->user()->id,
+                'created_by' => auth('api')->user()->user_id,
                 'ship_method' => 1,
                 'updated_by' => 0,
                 //  'is_sync_with_quickbook' => 0,
@@ -2043,7 +2507,7 @@ class OrderController extends Controller
 
                             $is_taxable_product = DB::table('product_tbl')
                                 ->where("is_taxable", 1)
-                                ->where('id', @$product['product_id'])
+                                ->where('product_id', @$product['product_id'])
                                 ->get();
                             if (@$is_taxable_product) {
                                 $product_base_tax = round((@$product->unit_total_price * $tax_percentage / 100), 2);
@@ -2709,6 +3173,7 @@ class OrderController extends Controller
                 return response()->json(['success' => false, 'message' => $message], 400);
             }
 
+            
             // On this all status have to check MFG lebel entry and if not then add entry 
             if (in_array($stage, [4, 16, 20, 15, 5, 21, 8, 9, 19, 7, 12])) {
                 $this->createMfgLebelEntry($orderId);
@@ -2849,12 +3314,12 @@ class OrderController extends Controller
     {
 
         $order_item = DB::table('b_level_qutation_details')->where('row_id', $row_id)->first();
-        $category = DB::table('categories')->where('id', $order_item->category_id)->first();
-        $products = DB::table('products')->where('id', $order_item->product_id)->first();
+        $category = DB::table('category_tbl')->where('category_id', $order_item->category_id)->first();
+        $products = DB::table('product_tbl')->where('product_id', $order_item->product_id)->first();
         $pattern = DB::table('pattern_model_tbl')->where('pattern_model_id', $order_item->pattern_model_id)->first();
-        $color = DB::table('colors')->where('id', $order_item->color_id)->first();
-        $widthFraction = DB::table('width_height_fractions')->where('id', $order_item->height_fraction_id)->first();
-        $heightFraction = DB::table('width_height_fractions')->where('id', $order_item->width_fraction_id)->first();
+        $color = DB::table('color_tbl')->where('id', $order_item->color_id)->first();
+        $widthFraction = DB::table('width_height_fractions')->where('id', $order_item->width_fraction_id)->first();
+        $heightFraction = DB::table('width_height_fractions')->where('id', $order_item->height_fraction_id)->first();
         $room = DB::table('rooms')->where('room_name', $order_item->room)->first();
 
         $fracs1 = $category->fractions;
@@ -2893,7 +3358,7 @@ class OrderController extends Controller
             "selectedproduct" => [
                 "value" => $products->product_name,
                 "label" => $products->product_name,
-                "id" => $products->id
+                "id" => $products->product_id
             ],
 
             "selectedPattern" => [
@@ -2906,6 +3371,7 @@ class OrderController extends Controller
                     "color" => [
                         "select" => [
                             "label" => $color->color_name ?? "Manual Entry",
+                            "id" => $color->id ?? '',
                             "value" => $color->color_number ?? $order_item->manual_color_entry
                         ],
                         "input" => [
@@ -3032,8 +3498,8 @@ class OrderController extends Controller
             $individual_price = 100 - ($product->dealer_cost_factor * 100);
             $commission = array('dealer_price' => $product->dealer_cost_factor, 'individual_price' => $individual_price);
         } else {
-            $product = DB::table('products')->select('dealer_price', 'individual_price')
-                ->where('id', $product_id)
+            $product = DB::table('product_tbl')->select('dealer_price', 'individual_price')
+                ->where('product_id', $product_id)
                 ->first();
             $commission = array('dealer_price' => $product->dealer_price, 'individual_price' => $product->individual_price);
         }
@@ -3128,9 +3594,9 @@ class OrderController extends Controller
 
         if ($taxDetail && $taxDetail->is_product_base_tax) {
             if ($unitTotalPrice && $taxDetail->tax_percentage) {
-                $isTaxableProduct = DB::table('products')
+                $isTaxableProduct = DB::table('product_tbl')
                     ->where('is_taxable', 1)
-                    ->where('id', $product_id)
+                    ->where('product_id', $product_id)
                     ->count();
 
                 if ($isTaxableProduct) {
@@ -3266,13 +3732,15 @@ class OrderController extends Controller
                                     $op_op_op_att = DB::table('attr_options_option_option_tbl')->where('att_op_op_op_id', @$att_id[0])->first();
 
                                     if (@$op_op_att->type == 6) {
-                                        $opOpData[] = [
-                                            "label" => @$op_op_op_att->att_op_op_op_name,
-                                            "value" => $opOpOp->option_key_value, // Fill this if available
-                                            "op_op_key_value" => $opOp->option_key_value,
-                                            "parentLabel" => $op_op_att->op_op_name, // Fill this if available
+                                        if($opOp->op_op_id == $att_id[2] ){
+                                            $opOpData[] = [
+                                                "label" => @$op_op_op_att->att_op_op_op_name,
+                                                "value" => $opOpOp->option_key_value, // Fill this if available
+                                                "op_op_key_value" => $opOp->option_key_value,
+                                                "parentLabel" => $op_op_att->op_op_name, // Fill this if available
 
-                                        ];
+                                            ];
+                                        }
                                     }
                                 }
                                 $attributes[$opId][$opOpId] = $opOpData;
@@ -3332,7 +3800,7 @@ class OrderController extends Controller
                                             $opOpData[$opOpOpId = "op_op_op_id_" . $opOpOp->op_op_op_id] = [
                                                 "type" => "input_with_select",
                                                 "input" => [
-                                                    "value" => $op_op_value_f[0],
+                                                    "value" => $op_op_op_value_f[0],
                                                     "parentLabel" => @$check_op_op_op_att->att_op_op_op_name,
                                                     "type" => "input",
                                                     "op_op_op_key_value" => $opOpOp->option_key_value,
@@ -3462,19 +3930,19 @@ class OrderController extends Controller
         $orderd = DB::table('b_level_quatation_tbl')
             ->select(
                 'b_level_quatation_tbl.*',
-                DB::raw('CONCAT(customers.first_name, " ", customers.last_name) as customer_name'),
-                'customers.id',
-                'customers.phone',
-                'customers.address',
-                'customers.city',
-                'customers.state',
-                'customers.zip_code',
-                'customers.country_code',
-                'customers.customer_no',
-                'customers.email',
-                'customers.id'
+                DB::raw('CONCAT(customer_info.first_name, " ", customer_info.last_name) as customer_name'),
+                'customer_info.customer_id',
+                'customer_info.phone',
+                'customer_info.address',
+                'customer_info.city',
+                'customer_info.state',
+                'customer_info.zip_code',
+                'customer_info.country_code',
+                'customer_info.customer_no',
+                'customer_info.email',
+                'customer_info.customer_id'
             )
-            ->leftJoin('customers', 'customers.id', '=', 'b_level_quatation_tbl.customer_id')
+            ->leftJoin('customer_info', 'customer_info.customer_id', '=', 'b_level_quatation_tbl.customer_id')
             ->where('b_level_quatation_tbl.order_id', $order_id)
             ->first();
 
@@ -3487,8 +3955,8 @@ class OrderController extends Controller
         $company_profile = DB::table('company_profile')->select('*')
             ->where('user_id', $this->level_id)
             ->first();
-        $customer = DB::table('customers')->select('*')
-            ->where('id', $orderd->customer_id)
+        $customer = DB::table('customer_info')->select('*')
+            ->where('customer_id', $orderd->customer_id)
             ->first();
 
 
@@ -3550,7 +4018,7 @@ class OrderController extends Controller
 
         $address_label = "";
         $binfo = DB::table('company_profile')->where('user_id', $customer->customer_user_id)->first();
-        $b_c_info = DB::table('customers')->where('customer_user_id', $customer->customer_user_id)->first();
+        $b_c_info = DB::table('customer_info')->where('customer_user_id', $customer->customer_user_id)->first();
 
         if (isset($b_c_info->billing_address_label)) {
             switch ($b_c_info->billing_address_label) {
@@ -3595,18 +4063,18 @@ class OrderController extends Controller
         $order_details = DB::table('b_level_qutation_details')
             ->select(
                 'b_level_qutation_details.*',
-                'products.product_name',
-                'categories.category_name',
+                'product_tbl.product_name',
+                'category_tbl.category_name',
                 'b_level_quatation_attributes.product_attribute',
                 'pattern_model_tbl.pattern_name',
-                'colors.color_name',
-                'colors.color_number'
+                'color_tbl.color_name',
+                'color_tbl.color_number'
             )
-            ->leftJoin('products', 'products.id', '=', 'b_level_qutation_details.product_id')
-            ->leftJoin('categories', 'categories.id', '=', 'b_level_qutation_details.category_id')
+            ->leftJoin('product_tbl', 'product_tbl.product_id', '=', 'b_level_qutation_details.product_id')
+            ->leftJoin('category_tbl', 'category_tbl.category_id', '=', 'b_level_qutation_details.category_id')
             ->leftJoin('b_level_quatation_attributes', 'b_level_quatation_attributes.fk_od_id', '=', 'b_level_qutation_details.row_id')
             ->leftJoin('pattern_model_tbl', 'pattern_model_tbl.pattern_model_id', '=', 'b_level_qutation_details.pattern_model_id')
-            ->leftJoin('colors', 'colors.id', '=', 'b_level_qutation_details.color_id')
+            ->leftJoin('color_tbl', 'color_tbl.id', '=', 'b_level_qutation_details.color_id')
             ->where('b_level_qutation_details.order_id', $order_id)
             ->get();
 
@@ -3641,10 +4109,10 @@ class OrderController extends Controller
         $data['customer_info']['est_delivery_date'] = $orderd->est_delivery_date;
         $data['customer_info']['current_order_number'] = explode('-', $orderd->order_id)[0];
         $data['customer_info']['side_mark'] = ($orderd->side_mark != '') ? $orderd->side_mark : $customer->side_mark;
-        $data['customer_info']['customer_id'] = $customer->id;
+        $data['customer_info']['customer_id'] = $customer->customer_id;
         $data['customer_info']['addCustomer']['value'] = $customer->first_name . ' ' . $customer->last_name;
         $data['customer_info']['addCustomer']['label'] = $customer->first_name . ' ' . $customer->last_name;
-        $data['customer_info']['addCustomer']['id'] = $customer->id;
+        $data['customer_info']['addCustomer']['id'] = $customer->customer_id;
         $data['customer_info']['addCustomer']['tax_percentage'] = $customer->tax_percentage;
 
         $data['customer_info']["shipping_address"] = [
@@ -3737,8 +4205,8 @@ class OrderController extends Controller
             array_push($finalTotal, $finalUnitTotalPrice);
             $total_final_price += $list_price + $up_price;
 
-            $categoryData = DB::table('categories')->where('id', $item->category_id)->first();
-            $getProductData = DB::table('products')->where('id', $item->product_id)->first();
+            $categoryData = DB::table('category_tbl')->where('category_id', $item->category_id)->first();
+            $getProductData = DB::table('product_tbl')->where('product_id', $item->product_id)->first();
 
 
             if ($user_detail->display_total_values == 1) {
@@ -3800,7 +4268,7 @@ class OrderController extends Controller
             // For Get Sub Category name : START
             $sub_cat_name = '';
             if (isset($item->sub_category_id) && $item->sub_category_id > 0) {
-                $sub_category_data = DB::get('categories')->where('id', $item->sub_category_id)->first();
+                $sub_category_data = DB::get('category_tbl')->where('category_id', $item->sub_category_id)->first();
                 if (isset($sub_category_data->category_id)) {
                     $sub_cat_name = " (" . $sub_category_data->category_name . ") ";
                 }
@@ -3808,10 +4276,10 @@ class OrderController extends Controller
             // For Get Sub Category name : END
 
 
-            $is_cat_hide_room = DB::table('products')
-                ->select('categories.hide_room', 'categories.hide_color', 'products.hide_room as product_hide_room', 'products.hide_color as product_hide_color')
-                ->where('products.id', @$item->product_id)
-                ->join('categories', 'categories.id', '=', 'products.category_id')
+            $is_cat_hide_room = DB::table('product_tbl')
+                ->select('category_tbl.hide_room', 'category_tbl.hide_color', 'product_tbl.hide_room as product_hide_room', 'product_tbl.hide_color as product_hide_color')
+                ->where('product_tbl.product_id', @$item->product_id)
+                ->join('category_tbl', 'category_tbl.category_id', '=', 'product_tbl.category_id')
                 ->first();
 
 
@@ -3832,9 +4300,9 @@ class OrderController extends Controller
 
 
             $pattern = DB::table('pattern_model_tbl')->where('pattern_model_id', $item->pattern_model_id)->first();
-            $color = DB::table('colors')->where('id', $item->color_id)->first();
-            $widthFraction = DB::table('width_height_fractions')->where('id', $item->height_fraction_id)->first();
-            $heightFraction = DB::table('width_height_fractions')->where('id', $item->width_fraction_id)->first();
+            $color = DB::table('color_tbl')->where('id', $item->color_id)->first();
+            $widthFraction = DB::table('width_height_fractions')->where('id', $item->width_fraction_id)->first();
+            $heightFraction = DB::table('width_height_fractions')->where('id', $item->height_fraction_id)->first();
             $room = DB::table('rooms')->where('room_name', $item->room)->first();
 
             $fracs1 = $categoryData->fractions;
@@ -3897,18 +4365,18 @@ class OrderController extends Controller
             // $hiddencounterarr = array();
             // if (isset($roomcoun_arr[$item->row_id]) && count($roomcoun_arr[$item->row_id]) > 0) {
 
-            //     $cat_data = DB::table('products')
+            //     $cat_data = DB::table('product_tbl')
             //         ->select(
-            //             'categories.hide_room',
-            //             'categories.hide_color',
-            //             'products.hide_room as product_hide_room',
-            //             'products.hide_color as product_hide_color',
-            //             'products.enable_combo_product',
-            //             'products.is_taxable',
-            //             'products.product_base_shipping_status'
+            //             'category_tbl.hide_room',
+            //             'category_tbl.hide_color',
+            //             'product_tbl.hide_room as product_hide_room',
+            //             'product_tbl.hide_color as product_hide_color',
+            //             'product_tbl.enable_combo_product',
+            //             'product_tbl.is_taxable',
+            //             'product_tbl.product_base_shipping_status'
             //         )
-            //         ->join('categories', 'categories.id', '=', 'products.category_id')
-            //         ->where('products.id', $item->product_id)
+            //         ->join('category_tbl', 'category_tbl.category_id', '=', 'product_tbl.category_id')
+            //         ->where('product_tbl.product_id', $item->product_id)
             //         ->first();
 
 
@@ -3959,7 +4427,7 @@ class OrderController extends Controller
                 "selectedproduct" => [
                     "value" => $getProductData->product_name,
                     "label" => $getProductData->product_name,
-                    "id" => $getProductData->id
+                    "id" => $getProductData->product_id
                 ],
 
                 "selectedPattern" => [
@@ -3972,6 +4440,7 @@ class OrderController extends Controller
                         "color" => [
                             "select" => [
                                 "label" => $color->color_name ?? "Manual Entry",
+                                "id" => $color->id ?? '',
                                 "value" => $color->color_number ?? $item->manual_color_entry
                             ],
                             "input" => [
@@ -4241,21 +4710,23 @@ class OrderController extends Controller
     public function RetailerOrderStage($order_stage)
     {
         // return $order_stage;
+
         $statusData = DB::table('order_stage_status')
             ->select('id', "order_stage_no", "status_name", "position", "status", "status_color")
             ->where('status', 1)
             ->where('parent_id', 0)
             ->orderBy('position', 'asc')
             ->get();
-
         $selectedStatus = DB::table('order_stage_status')
             ->select('*')
-            ->where('status', 1)
+            // ->where('status', 1)
             ->where('order_stage_no', $order_stage)
             ->first();
 
-        foreach ($statusData as $key => $status) {
-
+            // return $selectedStatus->position;
+            foreach ($statusData as $key => $status) {
+            // dd($status->position);
+            // return $selectedStatus->position;
 
             if ($status->position < $selectedStatus->position) {
                 $status->disabled = true;
@@ -4292,6 +4763,7 @@ class OrderController extends Controller
                 ->get();
 
             foreach ($childStatusData as $key => $childStatus) {
+                
                 if ($childStatus->position < $selectedStatus->position) {
                     $childStatus->disabled = true;
                 } else {
@@ -4305,6 +4777,8 @@ class OrderController extends Controller
         return $statusData;
     }
 
+   
+
 
     public function filterOptions()
     {
@@ -4313,17 +4787,17 @@ class OrderController extends Controller
         $isAdmin = $user->is_admin;
 
         // Customer Data : start
-        $customersQuery = DB::table('customers')
-            ->select('customers.id', 'customers.customer_user_id', 'customers.first_name', 'customers.last_name', 'customers.company', 'customers.customer_no')
-            ->join('users', 'customers.customer_user_id', '=', 'users.user_id')
-            ->join('user_info', 'customers.customer_user_id', '=', 'user_info.id')
-            ->where('customers.level_id', $this->level_id)
-            ->where('users.status', 1)
+        $customersQuery = DB::table('customer_info')
+            ->select('customer_info.customer_id as id', 'customer_info.customer_user_id', 'customer_info.first_name', 'customer_info.last_name', 'customer_info.company', 'customer_info.customer_no')
+            ->join('log_info', 'customer_info.customer_user_id', '=', 'log_info.user_id')
+            ->join('user_info', 'customer_info.customer_user_id', '=', 'user_info.id')
+            ->where('customer_info.level_id', $this->level_id)
+            ->where('log_info.status', 1)
             ->where('user_info.wholesaler_connection', 1)
-            ->orderBy('customers.id', 'desc');
+            ->orderBy('customer_info.customer_id', 'desc');
 
         if (!$isAdmin) {
-            $customersQuery->whereRaw("FIND_IN_SET(?, customers.responsible_employee) <> 0", [$userId]);
+            $customersQuery->whereRaw("FIND_IN_SET(?, customer_info.responsible_employee) <> 0", [$userId]);
         }
 
         $customers = [
@@ -4493,7 +4967,7 @@ class OrderController extends Controller
     //     }
     // }
     public function getAttributesController(Request $request)
-{
+    {
     $user = auth('api')->user();
     $createdBy = $user->is_admin ? $user->user_id : $user->userinfo->created_by;
 
@@ -4559,5 +5033,223 @@ class OrderController extends Controller
 
     return response()->json(['message' => 'No data found.'], 404);
 }
+
+
+    public function saveSessionForEditUpdateOrder(Request $request)
+    {
+        $orderId = $request->order_id;
+        $userId = auth()->id(); // Use Laravel's auth system to get the authenticated user ID
+        
+        // Fetch user data
+        $orderConditionData = DB::table('company_profile')->where('user_id', $userId)->first();
+        $enteredOrderDays = (int) $orderConditionData->is_enable_order_days_comments_text;
+        $isEnable = $orderConditionData->is_enable_order_days_comments;
+    
+        // Fetch order details
+        $orderDtls = DB::table('b_level_quatation_tbl')->where('order_id', $orderId)->first();
+        
+        $paidAmount = $orderDtls->paid_amount;
+        $updatedDate = Carbon::parse($orderDtls->updated_date);
+        $currentDate = Carbon::now();
+        $noOfDaysRemaining = $currentDate->diffInDays($updatedDate, false);
+    
+        if ($enteredOrderDays < $noOfDaysRemaining && $paidAmount == 0.00 && $isEnable == 1) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+    
+    
+    public function checkWholesalerPaymentDue()
+    {
+    // Get payment term data from customer info : START
+    $userInfo = DB::table('user_info')
+        ->where('id', $this->level_id ?? request()->get('level_id'))
+        ->first();
+    // Get payment term data from customer info : END
+
+    $dueDays = 18000; // Default due dates (approx 50 years)
+    // Get Due dates from customer info : START
+    $dueDaysStr = '';
+    if (isset($userInfo->payment_term) && !empty($userInfo->payment_term) && !empty($userInfo->payment_term_type)) {
+        if ($userInfo->payment_term_type == 2) {
+            // Month term type 
+            $dueDays = $userInfo->payment_term * 30;
+            $dueDaysStr = $userInfo->payment_term . ' Months';
+        } else if ($userInfo->payment_term_type == 1) {
+            // days term type 
+            $dueDays = $userInfo->payment_term;
+            $dueDaysStr = $userInfo->payment_term . ' Days';
+        }
+    }
+    // Get Due dates from customer info : END
+
+    $date = now();
+    $dueDate = $date->subDays($dueDays)->format('Y-m-d');
+
+    // Query to fetch due payments
+    $res = DB::table('b_to_b_level_quatation_tbl')
+        ->where('due', '>', 0)
+        ->whereDate('delivery_date', '<=', $dueDate)
+        ->where('delivery_date', '!=', '')
+        ->where('created_by', $this->level_id ?? request()->get('level_id'))
+        ->get();
+
+    // Process the results
+    $productRes = $res->map(function ($item) {
+        $conversionCharge = $this->convertPrice($item->b_user_id, $item->created_by);
+        $item->due_amount = number_format((float)($item->due * $conversionCharge), 2, '.', '');
+        return $item;
+    });
+
+    // Add additional response data
+    if ($productRes->count() > 0) {
+        $response['order_data'] = $productRes;
+        $response['due_days'] = $dueDaysStr;
+        return response()->json($response);
+    } else {
+        return response()->json(0);
+    }
+}
+
+    public function convertPrice($bUserId, $createdBy, $convertStatus = 'CONVERT')
+    {
+        // Get the logged-in user ID from the session
+        $loginUser = auth()->user()->user_id;
+    
+        if ($bUserId == $loginUser && $convertStatus == 'CONVERT') {
+            return 1;
+        }
+    
+        // Fetch the company profiles for both users
+        $bUserCompany = DB::table('company_profile')->where('user_id', $bUserId)->first();
+        $createdByCompany = DB::table('company_profile')->where('user_id', $createdBy)->first();
+    
+        if (!empty($bUserCompany->currency) && !empty($createdByCompany->currency)) {
+            if ($bUserCompany->currency == $createdByCompany->currency) {
+                return 1;
+            } else {
+                $bUserCurrency = $this->getCurrencyCode($bUserCompany->currency);
+                $createdByCurrency = $this->getCurrencyCode($createdByCompany->currency);
+    
+                // Handle CONVERT_BACK logic
+                if ($convertStatus == 'CONVERT_BACK') {
+                    $bUserCurrency = $this->getCurrencyCode($createdByCompany->currency);
+                    $createdByCurrency = $this->getCurrencyCode($bUserCompany->currency);
+                }
+    
+                // API call for currency conversion
+                $priceUrl = "https://v6.exchangerate-api.com/v6/a23168fe4f24dd36658a1690/pair/{$bUserCurrency}/{$createdByCurrency}";
+    
+                try {
+                   $response = Http::get($priceUrl); // Laravel HTTP Client
+                    $result = json_decode($response->body());
+                    
+                    if (isset($result->conversion_rate)) {
+                        return $result->conversion_rate;
+                    } elseif (isset($result->rates)) {
+                        foreach ($result->rates as $key => $rate) {
+                            if ($key != $bUserCurrency) {
+                                return $rate;
+                            }
+                        }
+                    }
+                } catch (\Exception $e) {
+                    return 1; // Return 1 in case of an error
+                }
+            }
+        }
+    
+        return 1;
+    }
+
+    // Example method to fetch currency code (adjust this as per your implementation)
+    private function getCurrencyCode($symbol)
+    {
+    switch ($symbol) {
+        case '$':
+            return 'USD';
+        case 'AU$':
+            return 'AUD';
+        case 'ƒ':
+            return 'AWD';
+        case '¥':
+            return 'BRL';
+        case '₡':
+            return 'CRC';
+        case 'kn':
+            return 'HRK';
+        case '£':
+            return 'EGP';
+        case '€':
+            return 'EUR';
+        case 'Rs':
+            return 'INR';
+        case 'R':
+            return 'ZAR';
+        case '₩':
+            return 'KRW';
+        case '৳':
+            return 'BDT';
+        case '₨':
+            return 'PKR';
+        case '₣':
+            return 'CHF';
+        case 'ر.س':
+            return 'SAR';
+        case 'د.إ':
+            return 'AED';
+        default:
+            return ''; // Return empty string for unknown symbols
+    }
+}
+
+
+    // public function saveSessionForEditUpdateOrder(Request $request)
+    // {
+    //     // $orderId = $request->input('order_id');
+    //     // $orderStage = $request->input('order_stage');
+    //     // $userId = auth()->id(); // Assuming you're using Laravel's authentication system
+    
+    //     // $orderConditionData = DB::table('company_profile')
+    //     //     ->where('user_id', $userId)
+    //     //     ->first();
+    
+    //     // $enteredOrderDays = (int) $orderConditionData->is_enable_order_days_comments_text;
+    //     // $orderDaysCustomText = $orderConditionData->terms_condition_order_days;
+    //     // $isEnable = $orderConditionData->is_enable_order_days_comments;
+    
+    //     // // Setting all sessions to edit order :START
+    //     // // session([
+    //     // //     'edit_order_id_from_invoice' => $orderId,
+    //     // // ]);
+    
+    //     // $orderDetails = DB::table('b_level_quatation_tbl')
+    //     //     ->where('order_id', $orderId)
+    //     //     ->first();
+    
+    //     // $paidAmount = $orderDetails->paid_amount;
+    //     // $updatedDate = $orderDetails->updated_date;
+    //     // $currentDate = now();
+    
+    //     // $start = strtotime($updatedDate);
+    //     // $end = strtotime($currentDate);
+    //     // $noOfDaysRemaining = abs($start - $end) / 60 / 60 / 24;
+    
+    //     // if (($enteredOrderDays < $noOfDaysRemaining && $paidAmount == 0.00) && $isEnable == 1) {
+            
+    //     //     return 1;
+    //     // } else {
+            
+    //     //     return 0;
+    //     // }
+    //     // Setting all sessions to edit order :END
+    // }
+
+
+
+
+
 
 }

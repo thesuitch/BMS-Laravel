@@ -83,7 +83,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
                     'cp.wholesaler_delivery_option',
                     'cp.other_popup_message'
                 ])
-                ->where('ui.id', auth('api')->user()->id)
+                ->where('ui.id', auth('api')->user()->userinfo->id)
                 ->first();
         } else {
 
@@ -157,7 +157,7 @@ if (!function_exists('getCompanyProfileOrderConditionSettings')) {
                     'cp.wholesaler_delivery_option',
                     'cp.other_popup_message'
                 ])
-                ->where('ui.id', auth('api')->user()->id)
+                ->where('ui.id', auth('api')->user()->userinfo->id)
                 ->first();
         }
         return $data;
@@ -223,27 +223,27 @@ if (!function_exists('commonWholesalerToRetailerCommission')) {
 
             if (auth('api')->user()->user_type == 'c') {
                 // It means retailer
-                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+                $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->userinfo->id);
 
                 if (isset($userInfo->id) && $userInfo->id != '') {
                     // If no wholesaler connected, get retailer's custom label
-                    $createdBy = auth('api')->user()->id;
+                    $createdBy = auth('api')->user()->userinfo->id;
                 } else {
                     // If wholesaler connected, get wholesaler's custom label
                     // $createdBy = session()->get('main_b_id');
-                    $createdBy = auth('api')->user()->id;
+                    $createdBy = auth('api')->user()->userinfo->id;
                 }
             } else {
 
                 // It means wholesaler
                 if (auth('api')->user()->is_admin == 1) {
-                    $createdBy = auth('api')->user()->id;
+                    $createdBy = auth('api')->user()->userinfo->id;
                 } else {
                     // It means wholesaler employee
                     $createdBy = auth('api')->user()->userinfo->created_by;
 
                     if (empty($createdBy)) {
-                        $createdBy = auth('api')->user()->id;
+                        $createdBy = auth('api')->user()->userinfo->id;
                     }
                 }
             }
@@ -260,9 +260,9 @@ if (!function_exists('commonWholesalerToRetailerCommission')) {
             if (!empty($product)) {
                 $commission = ['dealer_price' => $product->dealer_cost_factor, 'individual_price' => $product->individual_cost_factor];
             } else {
-                $product = DB::table('products')
+                $product = DB::table('product_tbl')
                     ->select('dealer_price', 'individual_price')
-                    ->where('id', $productId)
+                    ->where('product_id', $productId)
                     ->first();
 
                 $commission = ['dealer_price' => $product->dealer_price, 'individual_price' => $product->individual_price];
@@ -414,3 +414,30 @@ if (!function_exists('calculateTotalAmt')) {
     }
 }
    // For strint operator calculate price for upcharges : END
+
+
+if (!function_exists('isActionAllowWholesaler')) {
+   function isActionAllowWholesaler($permissionKey, $module)
+   {
+
+       if (auth()->user()->is_admin == 1) {
+           return true;
+       }
+   
+       $roleIds = DB::table('b_user_access_tbl')
+           ->where('user_id', auth()->user()->is_admin)
+           ->pluck('role_id');
+   
+       if ($roleIds->isEmpty()) {
+           return false;
+       }
+   
+       return DB::table('wholesaler_emp_permissions')
+           ->join('wholesaler_permissions', 'wholesaler_permissions.id', '=', 'wholesaler_emp_permissions.permission_id')
+           ->where('wholesaler_permissions.access_key', $permissionKey)
+           ->where('wholesaler_permissions.module', $module)
+           ->where('wholesaler_emp_permissions.status', 1)
+           ->whereIn('role_id', $roleIds)
+           ->exists();
+   }
+}

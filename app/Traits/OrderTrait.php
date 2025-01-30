@@ -47,8 +47,8 @@ trait OrderTrait
         }
 
         if ($categoryId != 0) {
-            $categoryData = DB::table('categories')
-                ->where('id', $categoryId)
+            $categoryData = DB::table('category_tbl')
+                ->where('category_id', $categoryId)
                 ->orderBy('position', 'asc')
                 ->first();
 
@@ -131,7 +131,7 @@ trait OrderTrait
 
 
     //         if (auth('api')->user()->user_type == 'c') {
-    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->user_id);
     //             $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
     //         } else {
     //             $createdBy = auth('api')->user()->level_id;
@@ -206,7 +206,7 @@ trait OrderTrait
 
 
     //         $where = "FIND_IN_SET('" . $pattern_id . "', pattern_models_ids)";
-    //         $product_color_data = DB::table('products')
+    //         $product_color_data = DB::table('product_tbl')
     //             ->where('id', $product_id)
     //             ->whereRaw($where)
     //             ->first();
@@ -232,7 +232,7 @@ trait OrderTrait
 
 
     //         if (auth('api')->user()->user_type == 'c') {
-    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->id);
+    //             $userInfo = checkRetailerConnectToWholesaler(auth('api')->user()->user_id);
     //             $createdBy = isset($userInfo['id']) && $userInfo['id'] != '' ? auth('api')->user()->main_b_id : auth('api')->user()->level_id;
     //         } else {
     //             $createdBy = auth('api')->user()->level_id;
@@ -289,8 +289,10 @@ trait OrderTrait
         try {
             $result = [];
 
+            // $product = Product::select('colors', 'pattern_models_ids', 'hide_pattern', 'category_id', 'price_style_type')
+            //     ->findOrFail($product_id);
             $product = Product::select('colors', 'pattern_models_ids', 'hide_pattern', 'category_id', 'price_style_type')
-                ->findOrFail($product_id);
+            ->where('product_id',$product_id)->first();
 
             if ($product->hide_pattern == 1) {
                 return $result;
@@ -355,14 +357,16 @@ trait OrderTrait
         try {
             $result = [];
 
+            // $product = Product::select('colors', 'category_id', 'hide_color')
+            //     ->findOrFail($product_id);
             $product = Product::select('colors', 'category_id', 'hide_color')
-                ->findOrFail($product_id);
+                ->where('product_id',$product_id)->first();
 
             if (!isset($product->hide_color) || $product->hide_color == 1) {
                 return $result;
             }
 
-            $colorIds = DB::table('colors')
+            $colorIds = DB::table('color_tbl')
                 ->select('id', 'pattern_id', 'color_name', 'color_number', 'default', 'created_by')
                 ->whereIn('pattern_id', $patternModelIds)
                 ->where('status', 1)
@@ -440,7 +444,7 @@ trait OrderTrait
 
         // dd($width_fraction);
         $main_price =   $this->getProductRowColPrice($height, $width, $product_id, $pattern_id, $width_fraction, $height_fraction);
-
+        
         // print_r($main_price);
         //  exit;
         $result = [];
@@ -448,36 +452,35 @@ trait OrderTrait
         if ($product_id == '') {
             return $result;
         }
-
         // $result[]['main_pricea'] = $main_price;
-
-
+        
+        
         // $onKeyup = "checkTextboxUpcha   rge()";
         $level = 1;
-
+        
         $attributes = DB::table('product_attribute')
-            ->select('product_attribute.*', 'attribute_tbl.attribute_name', 'attribute_tbl.attribute_type')
-            ->join('attribute_tbl', 'attribute_tbl.attribute_id', '=', 'product_attribute.attribute_id')
-            ->where('product_attribute.product_id', $product_id)
-            ->orderBy('attribute_tbl.position', 'ASC')
-            ->get();
+        ->select('product_attribute.*', 'attribute_tbl.attribute_name', 'attribute_tbl.attribute_type')
+        ->join('attribute_tbl', 'attribute_tbl.attribute_id', '=', 'product_attribute.attribute_id')
+        ->where('product_attribute.product_id', $product_id)
+        ->orderBy('attribute_tbl.position', 'ASC')
+        ->get();
         //  dd($attributes);
         // dd($attributes->toSql());
-
-        $p = DB::table('products')->where('id', $product_id)->first();
-
+        
+        $p = DB::table('product_tbl')->where('product_id', $product_id)->first();
+        
         $category_id = (!empty($p->category_id) ? $p->category_id : '');
-
+        
         // Get fraction category wise: START
         $fraction_option = [];
-
+        
         if ($category_id != '') {
-            $hw1 = DB::table('categories')->select('fractions')->where('id', $category_id)->first();
+            $hw1 = DB::table('category_tbl')->select('fractions')->where('category_id', $category_id)->first();
             $fracs1 = $hw1->fractions;
             $fracs = explode(",", $fracs1);
-
+            
             $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
-
+            
             foreach ($hw2 as $row) {
                 if (in_array($row->fraction_value, $fracs)) {
                     $fraction_option[] = ['id' => $row->id, 'value' => $row->fraction_value];
@@ -485,19 +488,19 @@ trait OrderTrait
             }
         }
         // Get fraction category wise: END
-
+        
         // $main_price = 0;
-
+        
         $discountData = DB::table('c_cost_factor_tbl')
-            ->select("individual_cost_factor", "costfactor_discount")
-            ->where('product_id', $product_id)
-            ->where('level_id', $level)
-            ->first();
-
+        ->select("individual_cost_factor", "costfactor_discount")
+        ->where('product_id', $product_id)
+        ->where('level_id', $level)
+        ->first();
+        
         if (!empty($discountData->individual_cost_factor)) {
             $result['individual_cost_factor'] = $discountData->individual_cost_factor;
         }
-
+        
         if (!empty($p->price_style_type) && $p->price_style_type == 3) {
             // $result['pricestyle'] = $p->price_style_type;
             // $result['main_price'] = $p->fixed_price;
@@ -508,19 +511,18 @@ trait OrderTrait
             // $result['main_price'] = $p->sqft_price;
             $main_price = $p->sqft_price;
         }
-
+        
         foreach ($attributes as $attribute_key => $attribute) {
-
-
+            
             if ($attribute->attribute_type == 3) {
                 $options = DB::table('attr_options')
-                    ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id')
-                    ->join('product_attr_option', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
-                    ->where('product_attr_option.pro_attr_id', $attribute->id)
-                    ->orderBy('attr_options.position', 'ASC')
-                    ->orderBy('attr_options.att_op_id', 'ASC')
-                    ->get();
-
+                ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id')
+                ->join('product_attr_option', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
+                ->where('product_attr_option.pro_attr_id', $attribute->id)
+                ->orderBy('attr_options.position', 'ASC')
+                ->orderBy('attr_options.att_op_id', 'ASC')
+                ->get();
+                
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => $attribute->attribute_id,
@@ -528,57 +530,57 @@ trait OrderTrait
                     'type' => 'select',
                     'options' => [],
                 ];
-
+                
                 foreach ($options as $op) {
-
+                    
                     $ret_attr_query = DB::table('ret_attr_options')
                         ->where('att_op_id', $op->att_op_id)
                         ->where('created_by', $this->user_id)
                         ->first();
-
-                    if (!empty($ret_attr_query->retailer_att_op_id) && $ret_attr_query->retailer_att_op_id != '' && $ret_attr_query->retailer_price != '') {
-                        $op->price_type = $ret_attr_query->retailer_price_type;
-                        $op->price = $ret_attr_query->retailer_price;
+                        
+                        if (!empty($ret_attr_query->retailer_att_op_id) && $ret_attr_query->retailer_att_op_id != '' && $ret_attr_query->retailer_price != '') {
+                            $op->price_type = $ret_attr_query->retailer_price_type;
+                            $op->price = $ret_attr_query->retailer_price;
+                        }
+                        
+                        $optionData = [
+                            'label' => $op->op_op_name,
+                            'value' => $op->id . '_' . $op->att_op_id,
+                            // 'op_key_value' =>  $op->id . '_' . $op->att_op_id,
+                            'option_type' => $op->option_type,
+                            'option_id' => $op->att_op_id,
+                            'attr_id' => $height . '' . $height_fraction . '' . $width . '' . $width_fraction . '' . $op->id . '_' . $op->att_op_id . '1' . $product_id . '' . $pattern_id,
+                            'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
+                        ];
+                        
+                        $attributeData['options'][] = $optionData;
                     }
-
-                    $optionData = [
-                        'label' => $op->op_op_name,
-                        'value' => $op->id . '_' . $op->att_op_id,
-                        // 'op_key_value' =>  $op->id . '_' . $op->att_op_id,
-                        'option_type' => $op->option_type,
-                        'option_id' => $op->att_op_id,
-                        'attr_id' => $height . '' . $height_fraction . '' . $width . '' . $width_fraction . '' . $op->id . '_' . $op->att_op_id . '1' . $product_id . '' . $pattern_id,
-                        'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
-                    ];
-
-                    $attributeData['options'][] = $optionData;
-                }
-
-                $result[] = $attributeData;
-            } elseif ($attribute->attribute_type == 2) {
-
-                $options = DB::table('attr_options')
+                    
+                    $result[] = $attributeData;
+                } elseif ($attribute->attribute_type == 2) {
+                    
+                    $options = DB::table('attr_options')
                     ->select('attr_options.*', 'product_attr_option.id', 'product_attr_option.product_id as product_id')
                     ->join('product_attr_option', 'attr_options.att_op_id', '=', 'product_attr_option.option_id')
                     ->where('product_attr_option.pro_attr_id', $attribute->id)
                     ->orderBy('attr_options.position', 'ASC')
                     ->orderBy('attr_options.att_op_id', 'ASC')
                     ->get();
-
-                // dd($attribute->id);
-
-                $control_length_val = '';
+                    
+                    // dd($attribute->id);
+                    
+                    $control_length_val = '';
                 if ($attribute->attribute_name == 'Control Length') {
 
-
+                    
                     $company_profile = DB::table('company_profile')
-                        ->select('*')
-                        ->where('user_id', $this->level_id)
-                        ->first();
-
+                    ->select('*')
+                    ->where('user_id', $this->level_id)
+                    ->first();
+                    
                     $company_unit = ($company_profile->unit) ? $company_profile->unit : "";
                     $control_length_val = 'Cord Length';
-
+                    
                     if ($company_unit == 'inches') {
                         // If company_unit is inches then consider this option.
                         if ($height >= 55 && $height <= 65) {
@@ -603,26 +605,26 @@ trait OrderTrait
                         }
                     }
                 }
-
+                
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
                     'type' => 'select',
                     "attributes_type" => $attribute->attribute_type,
                     'options' => [],
-
+                    
                 ];
-
+                
                 foreach ($options as $op) {
                     $sl1 = ($op->default == 1 ? 1 : 0);
-
-
-
+                    
+                    
+                    
                     if ($control_length_val == $op->option_name) {
                         $sl1 = 1;
                     }
-
-
+                    
+                    
 
                     $optionData = [
                         'value' => $op->id . '_' . $op->att_op_id,
@@ -635,13 +637,13 @@ trait OrderTrait
                         'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $op->id . '_' . $op->att_op_id, 1, $product_id, $pattern_id),
                         'subAttributes' =>  $this->getProductAttrOptionOption($op->id, $attribute->attribute_id, $main_price, $height, $width, $height_fraction, $width_fraction, $pattern_id)
                     ];
-
+                    
                     $attributeData['options'][] = $optionData;
                 }
-
+                
                 $result[] = $attributeData;
             } elseif ($attribute->attribute_type == 5) {
-
+                
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
@@ -661,7 +663,7 @@ trait OrderTrait
                 // $ctm_class = "text_box_" . $attribute->attribute_id;
                 // $level = 0;
                 // $height = $attribute->attribute_name;
-
+                
                 $attributeData = [
                     'label' => $attribute->attribute_name,
                     'name' => 'op_id_' . $attribute->attribute_id,
@@ -669,19 +671,19 @@ trait OrderTrait
                     'type' => 'input',
                     'upcharge' => $this->calculateUpCondition($height, $height_fraction, $width, $width_fraction, $attribute->id . '_' . $attribute->attribute_id, 1, $product_id, $pattern_id),
                 ];
-
+                
                 $result[] = $attributeData;
             }
         }
         unset($attributes);
-
+        
         return $result;
     }
-
+    
     public function contributePrice($proAttOpId,  $mainPrice)
     {
-
-
+        
+        
 
         $options = DB::table('product_attr_option')
             ->select('attr_options.*', 'product_attr_option.product_id', 'product_attr_option.id as adddd', 'attribute_tbl.attribute_name as parent_attribute')
@@ -748,8 +750,8 @@ trait OrderTrait
 
         // Get product category based on product id: START
         if (isset($options->product_id) && $options->product_id != '') {
-            $productData = DB::table('products')
-                ->where('id', $options->product_id)
+            $productData = DB::table('product_tbl')
+                ->where('product_id', $options->product_id)
                 ->first();
 
             if (isset($productData->category_id) && $productData->category_id != '') {
@@ -797,7 +799,7 @@ trait OrderTrait
             // Get fraction category wise : START
             $fractionOptions = [];
             if ($categoryId != '') {
-                $hw1 = DB::table('categories')->select('fractions')->where('id', $categoryId)->first();
+                $hw1 = DB::table('category_tbl')->select('fractions')->where('category_id', $categoryId)->first();
                 $fracs1 = $hw1->fractions;
                 $fracs = explode(",", $fracs1);
                 $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
@@ -923,7 +925,7 @@ trait OrderTrait
 
                         $selectOptions[] = [
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
-                            'label' => $opopop->att_op_op_op_name,
+                            'label' => str_replace('"','',$opopop->att_op_op_op_name),
                             'op_op_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $op_op->option_id,
                             'subAttributes' => $this->AttrOptionOptionOption($opopop->att_op_op_op_id, $attributeId, $mainPrice),
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice),
@@ -1016,10 +1018,11 @@ trait OrderTrait
                     $optionsArray[count($optionsArray) - 1]['type'] = 'multi_select';
                     $multiselectOptions = [];
                     foreach ($opopops as $keyss => $opopop) {
-                        $selected = ($opopop->att_op_op_op_default == '1') ? true : false;
+                        $selected = ($opopop->att_op_op_op_default == '1') ? 1 : 0;
                         $multiselectOptions[] = [
+                            'selected' => $selected,
                             'value' => $opopop->att_op_op_op_id . '_' . $attributeId . '_' . $op_op->op_op_id,
-                            'label' => $opopop->att_op_op_op_name,
+                            'label' => str_replace('"','',$opopop->att_op_op_op_name),
                             'op_op_key_value' => $opopop->att_op_op_id . '_' . $op_op->id . '_' . $opopop->op_id,
                             'subAttributes' => $this->AttrOptionOptionOption($opopop->att_op_op_op_id, $attributeId, $mainPrice),
                             'price_value' => $this->multioption_price_value($opopop->att_op_op_op_id, $attributeId, $mainPrice),
@@ -1079,7 +1082,7 @@ trait OrderTrait
 
                 $optionTypeArray['options'][] = [
                     'value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
-                    'label' => $op_op->op_op_name,
+                    'label' => str_replace('"','',$op_op->op_op_name),
                     'op_op_key_value' => $op_op->op_op_id . '_' . $op_op->id . '_' . $options->att_op_id,
                     'subAttributes' => $this->get_product_attr_op_op_op($op_op->op_op_id, $op_op->id, $attributeId, $mainPrice, $height, $width, $height_fraction, $width_fraction, $pattern_id),
                 ];
@@ -1276,7 +1279,8 @@ trait OrderTrait
                 $selected = !isset($selected_values) ? ($op_op_op_op->att_op_op_op_op_default == '1' ? 'selected' : '') : $selected;
 
                 $output[0]['options'][] = [
-                    'value' => $op_op_op_op->att_op_op_op_op_id . '_' . $op_op_op_id . '" ' . $selected,
+                    // 'value' => $op_op_op_op->att_op_op_op_op_id . '_' . $op_op_op_id . '" ' . $selected,
+                    'value' => $op_op_op_op->att_op_op_op_op_id . '_' . $op_op_op_id,
                     'label' => $op_op_op_op->att_op_op_op_op_name,
                 ];
             }
@@ -1384,15 +1388,15 @@ trait OrderTrait
         $productAttrData = DB::table('product_attr_option_option')
             ->select('product_attr_option_option.*')
             ->where('op_op_id', $opOpId)
-            ->join('products', 'products.id', '=', 'product_attr_option_option.product_id')
+            ->join('product_tbl', 'product_tbl.product_id', '=', 'product_attr_option_option.product_id')
             ->first();
 
-        $productData = DB::table('products')->where('id', $productAttrData->product_id)->first();
+        $productData = DB::table('product_tbl')->where('product_id', $productAttrData->product_id)->first();
         $categoryId = $productData->category_id;
 
         $fractionOption = [];
         if ($categoryId != '') {
-            $hw1 = DB::table('categories')->select('fractions')->where('id', $categoryId)->first();
+            $hw1 = DB::table('category_tbl')->select('fractions')->where('category_id', $categoryId)->first();
             $fracs1 = $hw1->fractions;
             $fracs = explode(",", $fracs1);
             $hw2 = DB::table('width_height_fractions')->select('id', 'fraction_value')->orderBy('decimal_value', 'asc')->get();
@@ -1585,7 +1589,7 @@ trait OrderTrait
     //             $comboPrice = [];
 
     //             foreach (request()->post('comboProductIds') as $combo_key => $combo_product_id) {
-    //                 $p = DB::table('products')->where('id', $combo_product_id)->first();
+    //                 $p = DB::table('product_tbl')->where('id', $combo_product_id)->first();
 
     //                 if (!empty($p->price_style_type) && $p->price_style_type == 1) {
     //                     $price = DB::table('price_style')
@@ -1752,7 +1756,7 @@ trait OrderTrait
     //         } else {
 
 
-    //             $p = DB::table('products')->where('id', $product_id)->first();
+    //             $p = DB::table('product_tbl')->where('id', $product_id)->first();
     //             // dd($p->price_style_type);
     //             // exit;
 
@@ -2006,7 +2010,7 @@ trait OrderTrait
     //             // ... (continue with the remaining cases)
     //         }
     //     } else {
-    //         $p = DB::table('products')
+    //         $p = DB::table('product_tbl')
     //             ->where('id', $product_id)
     //             ->first();
 
@@ -2058,7 +2062,7 @@ trait OrderTrait
         $width += $fr_width;
 
         if ($height < 0 || $width < 0) {
-            $p = DB::table('products')->where('id', $product_id)->first();
+            $p = DB::table('product_tbl')->where('product_id', $product_id)->first();
             if (!empty($p->price_style_type) && $p->price_style_type == 11 && empty(request('comboProductIds'))) {
                 $pg = DB::table('group_fixed_price_model_mapping_tbl')
                     ->where('product_id', $product_id)
@@ -2075,7 +2079,7 @@ trait OrderTrait
         $postComboProductIds = request()->post('comboProductIds');
         if (!empty($postComboProductIds)) {
             foreach ($postComboProductIds as $combo_key => $combo_product_id) {
-                $p = DB::table('products')->where('id', $combo_product_id)->first();
+                $p = DB::table('product_tbl')->where('product_id', $combo_product_id)->first();
                 if (!$p) continue;
 
                 switch ($p->price_style_type) {
@@ -2184,7 +2188,7 @@ trait OrderTrait
             }
             return array_sum($comboPrice);
         } else {
-            $p = DB::table('products')->where('id', $product_id)->first();
+            $p = DB::table('product_tbl')->where('product_id', $product_id)->first();
             if (!$p) return 0;
 
             switch ($p->price_style_type) {
@@ -2705,7 +2709,7 @@ trait OrderTrait
             ->first(['dealer_cost_factor as dealer_price', 'individual_cost_factor as individual_price']);
 
         if (!$product) {
-            $product = Product::where('id', $product_id)->first(['dealer_price', 'individual_price']);
+            $product = Product::where('product_id', $product_id)->first(['dealer_price', 'individual_price']);
         }
         if ($product) {
             if ($product->dealer_price > 0) {
@@ -2724,7 +2728,7 @@ trait OrderTrait
     //         return [];
     //     }
 
-    //     $product = DB::table('products')->find($product_id);
+    //     $product = DB::table('product_tbl')->find($product_id);
     //     if (!$product) {
     //         return [];
     //     }
@@ -2775,7 +2779,8 @@ trait OrderTrait
         }
 
         // Fetch product data once
-        $product = DB::table('products')->find($product_id);
+        // $product = DB::table('product_tbl')->find($product_id);
+        $product = DB::table('product_tbl')->where('product_id',$product_id)->first();
         if (!$product) {
             return [];
         }
@@ -2869,7 +2874,7 @@ trait OrderTrait
     }
     function removeMfgLebelEntry($order_id)
     {
-        DB::table('b_level_quotation_details_mfg_label')->whereIn('order_id', $order_id)->delete();
+        DB::table('b_level_quotation_details_mfg_label')->where('order_id', $order_id)->delete();
     }
     // stage update : End 
 
@@ -3089,8 +3094,8 @@ trait OrderTrait
     public function retailerToWholesalerShippingCalculation($customer_id, $order_id, $level_id)
     {
         // Get customer Zone
-        $customer_data = DB::table('customers')
-            ->where('id', $customer_id)
+        $customer_data = DB::table('customer_info')
+            ->where('customer_id', $customer_id)
             ->first();
 
         // Calculate sub total
@@ -3151,8 +3156,8 @@ trait OrderTrait
                     ->where('decimal_value', '>=', "0." . $g_val)
                     ->orderBy('decimal_value', 'asc')
                     ->get();
-                $hw1 = DB::table('categories')->select('*')
-                    ->where('id', $category_id)
+                $hw1 = DB::table('category_tbl')->select('*')
+                    ->where('category_id', $category_id)
                     ->limit(1)
                     ->first();
                 if (isset($hw1->fractions) && $hw1->fractions != '') {
