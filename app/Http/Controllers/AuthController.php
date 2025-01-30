@@ -108,10 +108,7 @@ class AuthController extends Controller
         // Store auth token in a cookie
         $cookie = cookie('auth_token', $jwt_token, 1440, '/', '.vindotest.com', false, false, false, 'Lax');
     
-        return response()->json([
-            'message' => 'Login successful',
-            'token' => $jwt_token
-        ])->withCookie($cookie);
+        return $this->respondWithToken($jwt_token);
     }
 
     public function user()
