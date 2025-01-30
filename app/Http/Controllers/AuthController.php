@@ -97,10 +97,14 @@ class AuthController extends Controller
         }
     
         // Generate JWT Token
-        $token = JWTAuth::customClaims(['user_id' => $user->row_id])->fromUser($user);
+        // $token = JWTAuth::customClaims(['user_id' => $user->row_id])->fromUser($user);
+         // Log the user in
+         Auth::login($user);
+         // Generate a new JWT token for the user
+         $jwt_token = JWTAuth::fromUser($user);
     
         // Store auth token in a cookie
-        $cookie = cookie('auth_token', $token, 1440, '/', '.vindotest.com', false, false, false, 'Lax');
+        $cookie = cookie('auth_token', $jwt_token, 1440, '/', '.vindotest.com', false, false, false, 'Lax');
     
         return response()->json([
             'message' => 'Login successful',
